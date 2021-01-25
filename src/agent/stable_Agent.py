@@ -1,10 +1,11 @@
 import numpy as np
-from src import agent
+import agent
+
 
 ''' Agent which implements several heuristic algorithms'''
 class stableAgent(agent.FiniteHorizonAgent):
 
-    def __init__(self, epLen,func , alpha):
+    def __init__(self, epLen):
         '''args:
             epLen - number of steps
             func - function used to decide action
@@ -12,9 +13,7 @@ class stableAgent(agent.FiniteHorizonAgent):
             alpha - alpha parameter in ambulance problem
         '''
         self.epLen = epLen
-        self.func = func
         self.data = []
-        self.alpha = alpha
 
     def reset(self):
         # resets data matrix to be empty
@@ -41,7 +40,7 @@ class stableAgent(agent.FiniteHorizonAgent):
             return state
         else:
             # action = self.func(self.data)
-            action = data[-1]
+            action = self.data[-1]
             return action
 
 

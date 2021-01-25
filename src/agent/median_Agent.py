@@ -1,10 +1,12 @@
 import numpy as np
-from src import agent
+import agent
+
+
 
 ''' Agent which implements several heuristic algorithms'''
 class medianAgent(agent.FiniteHorizonAgent):
 
-    def __init__(self, epLen, func = np.median() , alpha):
+    def __init__(self, epLen):
         '''args:
             epLen - number of steps
             func - function used to decide action
@@ -12,9 +14,7 @@ class medianAgent(agent.FiniteHorizonAgent):
             alpha - alpha parameter in ambulance problem
         '''
         self.epLen = epLen
-        self.func = func
         self.data = []
-        self.alpha = alpha
 
     def reset(self):
         # resets data matrix to be empty
@@ -41,7 +41,7 @@ class medianAgent(agent.FiniteHorizonAgent):
             return state
         else:
             # action = self.func(self.data)
-            action = np.median(data)
+            action = np.asarray([np.median(self.data)])
             return action
 
 

@@ -1,0 +1,5 @@
+data/
+figures/
+*.ipynb
+__pycache__/
+tmp.csv

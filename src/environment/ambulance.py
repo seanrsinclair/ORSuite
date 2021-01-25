@@ -80,40 +80,40 @@ class AmbulanceEnvironment(gym.Env):
 
         new_arrival = self.arrival_dist(self.timestep)
 
-        print('old_state' , old_state)
-        print('new_arrival' , new_arrival)
+        # print('old_state' , old_state)
+        # print('new_arrival' , new_arrival)
 
         close_index = np.argmin(np.abs(old_state - new_arrival))
-        print('Close Index' , close_index)
+        # print('Close Index' , close_index)
 
         # Uniform Arrivals (have to work out how to use different arrival distributions)
         newState = np.array(action)
         newState[close_index] = new_arrival
         obs = newState
 
-        print('New state' , newState)
+        # print('New state' , newState)
         # Cost is a linear combination of the distance traveled to the action
         # and the distance served to the pickup
 
         # TODO: FIX FOR MULTIPLE AMBULANCES
+
         reward = 1-(self.alpha * np.mean(np.abs(self.state - action)) + (1 - self.alpha) * np.max(np.abs(action - newState)))
-        print(self.state, action, newState)
 
         # Optionally we can pass additional info, we are not using that for now
         info = {'arrival' : new_arrival}
 
-        if self.timestep == self.epLen:
-            done = True
+        if self.timestep <= self.epLen:
+            pContinue = True
             self.reset()
         else:
-            done = False
+            pContinue = False
         self.state = newState
         self.timestep += 1
 
         #return self.state and also a box object
         # can probably return self.state
 
-        return self.state , reward,  done, info
+        return self.state, reward,  pContinue, info
 
   def render(self, mode='console'):
     if mode != 'console':
@@ -131,5 +131,5 @@ class AmbulanceEnvironment(gym.Env):
 # def make_ambulanceEnvMDP(epLen = 5  , arrival_dist = lambda x : np.random.rand() ,alpha = 0.25 , starting_state = np.array([0]) , num_ambulance = 1)
 
 
-def make_ambulanceEnvMDP(epLen, arrivals, alpha, starting_state):
-    return AmbulanceEnvironment(epLen, arrivals, alpha, starting_state)
+def make_ambulanceEnvMDP(epLen, arrivals, alpha, starting_state, num_ambulance):
+    return AmbulanceEnvironment(epLen, arrivals, alpha, starting_state , num_ambulance)
