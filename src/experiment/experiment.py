@@ -1,11 +1,16 @@
 '''
 Script to run simple continuous RL experiments.
 '''
+import sys
+
+
+sys.path.append('../agent/')
+sys.path.append('../environment/')
 
 import numpy as np
 import pandas as pd
-from src import agent
-from src import environment
+import agent
+import environment
 import matplotlib.pyplot as plt
 import os.path as path
 from shutil import copyfile
@@ -28,7 +33,7 @@ class Experiment(object):
                 numIters - the number of iterations to run experiment, should match
                 number of agents in agent_list
         '''
-        assert isinstance(env, environment.Environment)
+        # assert isinstance(env, environment.Environment)
 
         self.seed = dict['seed']
         self.epFreq = dict['recFreq']
@@ -36,11 +41,11 @@ class Experiment(object):
         self.deBug = dict['deBug']
         self.nEps = dict['nEps']
         self.env = env
-        self.epLen = env.get_epLen()
+        self.epLen = dict['epLen']
         self.num_iters = dict['numIters']
         self.agent_list = agent_list
-
-        self.data = np.zeros([dict['nEps']*self.num_iters, 4])
+        # print('epLen: ' + str(self.epLen))
+        self.data = np.zeros([dict['nEps']*self.num_iters, 3])
 
         np.random.seed(self.seed)
 
@@ -49,10 +54,13 @@ class Experiment(object):
         print('**************************************************')
         print('Running experiment')
         print('**************************************************')
+
+
+        index = 0
         for i in range(self.num_iters):
             agent = self.agent_list[i]
             for ep in range(1, self.nEps+1):
-                print('Episode : ' + str(ep))
+                # print('Episode : ' + str(ep))
                 # Reset the environment
                 self.env.reset()
                 oldState = self.env.state
@@ -60,9 +68,9 @@ class Experiment(object):
 
                 agent.update_policy(ep)
 
-                pContinue = 1
+                pContinue = True
                 h = 0
-                while pContinue > 0 and h < self.env.epLen:
+                while pContinue and h < self.epLen:
                     # Step through the episode
                     if self.deBug:
                         print('state : ' + str(oldState))
@@ -70,7 +78,7 @@ class Experiment(object):
                     if self.deBug:
                         print('action : ' + str(action))
 
-                    reward, newState, pContinue = self.env.advance(action)
+                    newState, reward, pContinue, info = self.env.step(action)
                     epReward += reward
 
                     agent.update_obs(oldState, action, reward, newState, h)
@@ -78,15 +86,18 @@ class Experiment(object):
                     h = h + 1
                 if self.deBug:
                     print('final state: ' + str(newState))
-                print('Total Reward: ' + str(epReward))
+                # print('Total Reward: ' + str(epReward))
 
                 # Logging to dataframe
-                if ep % self.epFreq == 0:
-                    index = i*ep - 1
-                    self.data[index, 0] = ep-1
-                    self.data[index, 1] = i
-                    self.data[index, 2] = epReward
-                    self.data[index, 3] = agent.get_num_arms()
+                # if ep % self.epFreq == 0:
+                # print('## LOGGING TO DATA FRAME ##')
+                # print('Episode : ' + str(ep))
+                # print('Total Reward: ' + str(epReward))
+                # print('##                       ##')
+                self.data[index, 0] = ep-1
+                self.data[index, 1] = i
+                self.data[index, 2] = epReward
+                index += 1
 
         print('**************************************************')
         print('Experiment complete')
@@ -98,7 +109,9 @@ class Experiment(object):
         print('Saving data')
         print('**************************************************')
 
-        dt = pd.DataFrame(self.data, columns=['episode', 'iteration', 'epReward', 'Number of Balls'])
+        print(self.data)
+
+        dt = pd.DataFrame(self.data, columns=['episode', 'iteration', 'epReward'])
         dt = dt[(dt.T != 0).any()]
         print('Writing to file ' + self.targetPath)
         if path.exists(self.targetPath):
