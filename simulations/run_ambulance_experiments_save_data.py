@@ -70,8 +70,8 @@ for problem in ambulance_list:
     for param in param_list_ambulance:
 
         epLen = 5
-        nEps = 1000
-        numIters = 50
+        nEps = 500
+        numIters = 15
         if problem == 'beta':
             def arrivals(step):
                 return np.random.beta(5,2)
