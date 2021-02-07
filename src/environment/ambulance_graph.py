@@ -1,29 +1,31 @@
 '''
-Implementation of a basic RL environment for continuous spaces.
-Includes three test problems which were used in generating the figures.
+Implementation of an RL environment in a discrete graph space.
 '''
 
 import numpy as np
 import gym
-from gym import spaces
+#from gym import spaces
+import networkx as nx
 import math
 
 #------------------------------------------------------------------------------
-'''An ambulance environment over [0,1].  An agent interacts through the environment
-by picking a location to station the ambulance.  Then a patient arrives and the ambulance
-most go and serve the arrival, paying a cost of travel.'''
+'''An ambulance environment over a simple graph.  An agent interacts through 
+the environment by [EXPLAIN HOW ENVIRONMENT WORKS HERE] the ambulance.  Then 
+a patient arrives and the ambulance most go and serve the arrival, paying a 
+cost of travel.'''
 
 class AmbulanceEnvironment(gym.Env):
   """
   Custom Environment that follows gym interface.
-  This is a simple env where the arrivals are always uniformly distributed
+  This is a simple env where the arrivals are uniformly distributed across nodes
   """
   # Because of google colab, we cannot implement the GUI ('human' render mode)
   metadata = {'render.modes': ['human']}
   # Define constants for clearer code
 
 
-  def __init__( self, epLen = 5  , arrival_dist = lambda x : np.random.rand() ,alpha = 0.25 , starting_state = np.array([0]) , num_ambulance = 1):
+  def __init__(self, epLen = 5, arrival_dist = lambda x : np.random.rand(), alpha = 0.25,
+                edges = [(1,2,{'dist':3}), (2,3,{'dist':5}), (1,3,{'dist':1})], num_ambulance = 1, starting_state = [2]):
         '''
         epLen - number of steps
         arrivals - arrival distribution for patients
@@ -34,6 +36,9 @@ class AmbulanceEnvironment(gym.Env):
 
         self.epLen = epLen
         self.alpha = alpha
+
+        self.graph = nx.Graph(edges)
+
         self.state = starting_state
         self.starting_state = starting_state
         self.timestep = 0
@@ -42,11 +47,11 @@ class AmbulanceEnvironment(gym.Env):
 
 
         # Example when using discrete actions:
-        self.action_space = spaces.Box(low=0, high=1,
-                                        shape=(self.num_ambulance ,), dtype=np.float32)
+        # self.action_space = spaces.Box(low=0, high=1,
+        #                               ac  shape=(self.num_ambulance ,), dtype=np.float32)
         # Example for using a line with (0,10) as observation space:
-        self.observation_space = spaces.Box(low=0, high=1,
-                                        shape=(self.num_ambulance ,), dtype=np.float32)
+        # self.observation_space = spaces.Box(low=0, high=1,
+        #                                 shape=(self.num_ambulance ,), dtype=np.float32)
 
   def reset(self):
         """
@@ -78,35 +83,57 @@ class AmbulanceEnvironment(gym.Env):
         old_state = self.state
         # new state is sampled from the arrivals distribution
 
-        new_arrival = self.arrival_dist(self.timestep)
+        # chooses randomly from among all the nodes in the graph
+
+        # TODO: CHANGE THIS TO ACTUALLY USE ARRIVAL_DIST
+        new_arrival = np.random.choice(list(self.graph.nodes))
 
         # print('old_state' , old_state)
         # print('new_arrival' , new_arrival)
 
-        close_index = np.argmin(np.abs(old_state - new_arrival))
+
+        shortest_length = 999999999
+        closest_amb_idx = 0
+        closest_amb_loc = action[closest_amb_idx]
+
+        total_dist_oldstate_to_action = 0
+
+        for amb_idx in range(len(action)):
+            new_length = nx.shortest_path_length(self.graph, action[amb_idx], new_arrival, weight='dist')
+
+            total_dist_oldstate_to_action += nx.shortest_path_length(self.graph, self.state[amb_idx], action[amb_idx], weight='dist')
+
+            if new_length < shortest_length:
+                shortest_length = new_length
+                closest_amb_idx = amb_idx
+                closest_amb_loc = action[closest_amb_idx]
+            else:
+                continue
+
         # print('Close Index' , close_index)
 
         # Uniform Arrivals (have to work out how to use different arrival distributions)
         newState = np.array(action)
-        newState[close_index] = new_arrival
+        newState[closest_amb_idx] = new_arrival
         obs = newState
 
         # print('New state' , newState)
         # Cost is a linear combination of the distance traveled to the action
         # and the distance served to the pickup
 
-        # TODO: FIX FOR MULTIPLE AMBULANCES
-
-        reward = -1 * (self.alpha * np.sum(np.abs(self.state - action)) + (1 - self.alpha) * np.max(np.abs(action - newState)))
+        reward = -1 * (self.alpha * total_dist_oldstate_to_action + (1 - self.alpha) * shortest_length)
 
         # Optionally we can pass additional info, we are not using that for now
         info = {'arrival' : new_arrival}
 
         if self.timestep <= self.epLen:
             pContinue = True
+
+            ## TODO: why do we do self.reset() every time?
             self.reset()
         else:
             pContinue = False
+
         self.state = newState
         self.timestep += 1
 
