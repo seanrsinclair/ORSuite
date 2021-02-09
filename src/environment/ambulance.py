@@ -132,4 +132,4 @@ class AmbulanceEnvironment(gym.Env):
 
 
 def make_ambulanceEnvMDP(epLen, arrivals, alpha, starting_state, num_ambulance):
-    return AmbulanceEnvironment(epLen, arrivals, alpha, starting_state , num_ambulance)
+    return AmbulanceEnvironment(epLen, arrivals, alpha, starting_state, num_ambulance)
