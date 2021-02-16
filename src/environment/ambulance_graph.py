@@ -4,7 +4,7 @@ Implementation of an RL environment in a discrete graph space.
 
 import numpy as np
 import gym
-#from gym import spaces
+from gym import spaces
 import networkx as nx
 import math
 
@@ -14,7 +14,7 @@ the environment by [EXPLAIN HOW ENVIRONMENT WORKS HERE] the ambulance.  Then
 a patient arrives and the ambulance most go and serve the arrival, paying a 
 cost of travel.'''
 
-class AmbulanceEnvironment(gym.Env):
+class AmbulanceGraphEnvironment(gym.Env):
   """
   Custom Environment that follows gym interface.
   This is a simple env where the arrivals are uniformly distributed across nodes
@@ -24,15 +24,16 @@ class AmbulanceEnvironment(gym.Env):
   # Define constants for clearer code
 
 
-  def __init__(self, epLen = 5, arrival_dist = lambda x : np.random.rand(), alpha = 0.25,
-                edges = [(1,2,{'dist':3}), (2,3,{'dist':5}), (1,3,{'dist':1})], num_ambulance = 1, starting_state = [2]):
+  def __init__(self, epLen = 5, alpha = 0.25,
+                edges = [(0,1,{'dist':1}), (1,2,{'dist':3}), (2,3,{'dist':5}), (1,3,{'dist':1})],
+                starting_state = [2], num_ambulance = 1):
         '''
         epLen - number of steps
         arrivals - arrival distribution for patients
         alpha - parameter for difference in costs
         starting_state - starting location
         '''
-        super(AmbulanceEnvironment, self).__init__()
+        super(AmbulanceGraphEnvironment, self).__init__()
 
         self.epLen = epLen
         self.alpha = alpha
@@ -43,15 +44,14 @@ class AmbulanceEnvironment(gym.Env):
         self.starting_state = starting_state
         self.timestep = 0
         self.num_ambulance = num_ambulance
-        self.arrival_dist = arrival_dist
+        #self.arrival_dist = arrival_dist
 
 
-        # Example when using discrete actions:
-        # self.action_space = spaces.Box(low=0, high=1,
-        #                               ac  shape=(self.num_ambulance ,), dtype=np.float32)
-        # Example for using a line with (0,10) as observation space:
-        # self.observation_space = spaces.Box(low=0, high=1,
-        #                                 shape=(self.num_ambulance ,), dtype=np.float32)
+        self.possible_locs = spaces.Discrete(self.graph.number_of_nodes())
+        # Defining action space
+        self.action_space = spaces.Tuple(np.full(num_ambulance, self.possible_locs))
+        # Defining observation space
+        self.observation_space = spaces.Tuple(np.full(num_ambulance, self.possible_locs))
 
   def reset(self):
         """
@@ -158,5 +158,5 @@ class AmbulanceEnvironment(gym.Env):
 # def make_ambulanceEnvMDP(epLen = 5  , arrival_dist = lambda x : np.random.rand() ,alpha = 0.25 , starting_state = np.array([0]) , num_ambulance = 1)
 
 
-def make_ambulanceEnvMDP(epLen, arrivals, alpha, starting_state, num_ambulance):
-    return AmbulanceEnvironment(epLen, arrivals, alpha, starting_state , num_ambulance)
+def make_ambulanceGraphEnvMDP(epLen, alpha, edges, starting_state, num_ambulance):
+    return AmbulanceGraphEnvironment(epLen, alpha, edges, starting_state , num_ambulance)

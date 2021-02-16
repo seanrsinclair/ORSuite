@@ -81,7 +81,7 @@ class Experiment(object):
                     newState, reward, pContinue, info = self.env.step(action)
                     epReward += reward
 
-                    agent.update_obs(oldState, action, reward, newState, h)
+                    agent.update_obs(oldState, action, reward, newState, h, info)
                     oldState = newState
                     h = h + 1
                 if self.deBug:

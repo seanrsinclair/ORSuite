@@ -19,7 +19,7 @@ class stableAgent(agent.FiniteHorizonAgent):
         # resets data matrix to be empty
         self.data = []
 
-    def update_obs(self, obs, action, reward, newObs, timestep):
+    def update_obs(self, obs, action, reward, newObs, timestep, info):
         '''Add observation to records'''
         self.data.append(newObs)
         return
