@@ -5,27 +5,19 @@ import sklearn_extra.cluster
 
 
 
+def find_lengths(graph):
+    nodes = list(graph.nodes)
+    num_nodes = len(nodes)
+    dict_lengths = dict(nx.all_pairs_dijkstra_path_length(graph, cutoff=None, weight='dist'))
+    lengths = np.zeros((num_nodes, num_nodes))
 
-def find_median(graph):
-    """
-    for node in graph
-        add up distances to other nodes
-        choose node w smallest distance and remove from graph
-    """
-    median_node = 0
-    median_node_dist = 99999999
-    for node1 in graph.nodes:
-        total_dist = 0
+    for node1 in nodes:
+        for node2 in nodes:
+            lengths[node1, node2] = dict_lengths[node1][node2]
+    
+    avg_inv_lengths = 1 / np.mean(lengths, axis=0)
 
-        for node2 in graph.nodes:
-            total_dist += nx.shortest_path_length(graph, node1, node2, weight='dist')
-
-        if total_dist < median_node_dist:
-            median_node = node1
-            median_node_dist = total_dist
-
-    graph.remove_node(median_node)
-    return median_node, graph
+    return avg_inv_lengths
 
 
 ''' Agent which implements several heuristic algorithms'''
@@ -41,25 +33,23 @@ class medianAgent(agent.FiniteHorizonAgent):
         self.epLen = epLen
         self.data = []
         self.graph = nx.Graph(edges)
+        self.num_nodes = len(self.graph.nodes)
         self.num_ambulance = num_ambulance
-
-        self.median_nodes = []
-        for amb_idx in range(num_ambulance):
-            median, new_graph = find_median(self.graph)
-            self.median_nodes.append(median)
-            self.graph = new_graph
+        self.avg_inv_lengths = find_lengths(self.graph)
+        self.call_locs = []
 
 
     def reset(self):
         # resets data matrix to be empty
         self.data = []
         self.graph = nx.Graph(edges)
-        self.median_nodes = []
+        self.call_locs = []
+
 
     def update_obs(self, obs, action, reward, newObs, timestep, info):
         '''Add observation to records'''
         self.data.append(newObs)
-        #self.call_locs.append(info['arrival'])
+        self.call_locs.append(info['arrival'])
         return
 
     def get_num_arms(self):
@@ -74,7 +64,18 @@ class medianAgent(agent.FiniteHorizonAgent):
         '''
         Select action according to function
         '''
-        return self.median_nodes
+        if timestep == 0:
+            return state
+        else:
+            num_ambulance = len(self.data[0])
+            counts = np.bincount(self.call_locs, minlength=self.num_nodes)
+            score = np.multiply(self.avg_inv_lengths, counts)
+            action = []
+            for i in range(num_ambulance):
+                node = np.argmax(score)
+                action.append(node)
+                counts[node] = 0
+            return action
 
 
     def pick_action(self, state, step):
