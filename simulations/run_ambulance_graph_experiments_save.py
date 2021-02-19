@@ -58,6 +58,8 @@ def run_single_algo(algorithm, env, dictionary, path, num_iters, epLen, nEps, ed
 # ambulance_list = ['shifting', 'beta', 'uniform']
 # ambulance_list = ['uniform']
 
+arrival_dist_list = [None, [0.25, 0.4, 0.25, 0.05, 0.05]]
+
 param_list_ambulance = ['0', '1', '25']
 # param_list_ambulance = ['0']
 
@@ -67,56 +69,36 @@ algo_list = ['Median', 'No_Movement', 'Mode']
 
 
 #for problem in ambulance_list:
-for param in param_list_ambulance:
+for arrival_dist in arrival_dist_list:
+    for param in param_list_ambulance:
 
-    epLen = 5
-    nEps = 50
-    numIters = 15
+        epLen = 5
+        nEps = 500
+        numIters = 50
 
-    """
-    if problem == 'beta':
-        def arrivals(step):
-            return np.random.beta(5,2)
-    elif problem == 'uniform':
-        def arrivals(step):
-            return np.random.uniform(0,1)
-    elif problem == 'shifting':
-        def arrivals(step):
-            if step == 0:
-                return np.random.uniform(0, .25)
-            elif step == 1:
-                return np.random.uniform(.25, .3)
-            elif step == 2:
-                return np.random.uniform(.3, .5)
-            elif step == 3:
-                return np.random.uniform(.5, .6)
-            else:
-                return np.random.uniform(.6, .65)
-    """
+        if param == '1':
+            alpha = 1
+        elif param == '0':
+            alpha = 0
+        else:
+            alpha = 0.25
 
-    if param == '1':
-        alpha = 1
-    elif param == '0':
-        alpha = 0
-    else:
-        alpha = 0.25
-
-    edges = [(0,4,{'dist':7}), (0,1,{'dist':1}), (1,2,{'dist':3}), (2,3,{'dist':5}), (1,3,{'dist':1}), (1,4,{'dist':17}), (3,4,{'dist':3})]
-    starting_state = np.asarray([1, 2])
-    num_ambulance = len(starting_state)
+        edges = [(0,4,{'dist':7}), (0,1,{'dist':1}), (1,2,{'dist':3}), (2,3,{'dist':5}), (1,3,{'dist':1}), (1,4,{'dist':17}), (3,4,{'dist':3})]
+        starting_state = np.asarray([1, 2])
+        num_ambulance = len(starting_state)
 
 
-    env = ambulance_graph.make_ambulanceGraphEnvMDP(epLen, alpha, edges, starting_state, num_ambulance)
+        env = ambulance_graph.make_ambulanceGraphEnvMDP(epLen, arrival_dist, alpha, edges, starting_state, num_ambulance)
 
-    ##### PARAMETER TUNING FOR AMBULANCE ENVIRONMENT
+        ##### PARAMETER TUNING FOR AMBULANCE ENVIRONMENT
 
 
-    dictionary = {'seed': 1, 'epFreq' : 1, 'targetPath': './tmp.csv', 'deBug' : False, 'nEps': nEps, 'recFreq' : 10, 'numIters' : numIters, 'epLen': epLen}
+        dictionary = {'seed': 1, 'epFreq' : 1, 'targetPath': './tmp.csv', 'deBug' : False, 'nEps': nEps, 'recFreq' : 10, 'numIters' : numIters, 'epLen': epLen}
 
-    scaling_list = [0.01, 0.1, 0.25, 0.4, 0.5, 0.6, 0.75, 1, 1.5, 2, 5]
-    scaling_list = [0.]
+        scaling_list = [0.01, 0.1, 0.25, 0.4, 0.5, 0.6, 0.75, 1, 1.5, 2, 5]
+        scaling_list = [0.]
 
-    path = {}
-    for algorithm in algo_list:
-        path[algorithm] = '../data/ambulance_'+param+'_'+algorithm
-        run_single_algo(algorithm, env, dictionary, path[algorithm], numIters, epLen, nEps, edges, num_ambulance)
+        path = {}
+        for algorithm in algo_list:
+            path[algorithm] = '../data/ambulance_graph_'+str(arrival_dist)+param+'_'+algorithm
+            run_single_algo(algorithm, env, dictionary, path[algorithm], numIters, epLen, nEps, edges, num_ambulance)

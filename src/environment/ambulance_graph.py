@@ -24,7 +24,7 @@ class AmbulanceGraphEnvironment(gym.Env):
   # Define constants for clearer code
 
 
-  def __init__(self, epLen = 5, alpha = 0.25,
+  def __init__(self, epLen = 5, arrival_dist = None, alpha = 0.25,
                 edges = [(0,1,{'dist':1}), (1,2,{'dist':3}), (2,3,{'dist':5}), (1,3,{'dist':1})],
                 starting_state = [2], num_ambulance = 1):
         '''
@@ -44,7 +44,11 @@ class AmbulanceGraphEnvironment(gym.Env):
         self.starting_state = starting_state
         self.timestep = 0
         self.num_ambulance = num_ambulance
-        #self.arrival_dist = arrival_dist
+        if arrival_dist == None:
+            num_nodes = len(self.graph.nodes)
+            self.arrival_dist = np.full(num_nodes, 1/num_nodes)
+        else:
+            self.arrival_dist = arrival_dist
 
 
         self.possible_locs = spaces.Discrete(self.graph.number_of_nodes())
@@ -86,7 +90,8 @@ class AmbulanceGraphEnvironment(gym.Env):
         # chooses randomly from among all the nodes in the graph
 
         # TODO: CHANGE THIS TO ACTUALLY USE ARRIVAL_DIST
-        new_arrival = np.random.choice(list(self.graph.nodes))
+        new_arrival = np.random.choice(list(self.graph.nodes), p=self.arrival_dist)
+
 
         # print('old_state' , old_state)
         # print('new_arrival' , new_arrival)
@@ -158,5 +163,5 @@ class AmbulanceGraphEnvironment(gym.Env):
 # def make_ambulanceEnvMDP(epLen = 5  , arrival_dist = lambda x : np.random.rand() ,alpha = 0.25 , starting_state = np.array([0]) , num_ambulance = 1)
 
 
-def make_ambulanceGraphEnvMDP(epLen, alpha, edges, starting_state, num_ambulance):
-    return AmbulanceGraphEnvironment(epLen, alpha, edges, starting_state , num_ambulance)
+def make_ambulanceGraphEnvMDP(epLen, arrival_dist, alpha, edges, starting_state, num_ambulance):
+    return AmbulanceGraphEnvironment(epLen, arrival_dist, alpha, edges, starting_state , num_ambulance)
