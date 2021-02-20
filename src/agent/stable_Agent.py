@@ -2,7 +2,7 @@ import numpy as np
 import agent
 
 
-''' Agent which implements several heuristic algorithms'''
+''' Agent which implements several heuristic algorithms for the sequential resource allocation problem'''
 class stableAgent(agent.FiniteHorizonAgent):
 
     def __init__(self, epLen):
