@@ -14,6 +14,13 @@ import math
 Currently reward is Nash Social Welfare but in the future will integrate more options 
 to determine a fair allocation '''
 
+DEFAULT_ENV_CONFIG = {'K':2, 
+    'num_agents':3,
+    'weight_matrix':np.array([[1,0],[0,1],[1,1]]),
+    'init_budget': 100*np.ones(2),
+    'type_dist':lambda i: np.random.randint(50,size=3),
+    'utility_function': lambda x,theta: np.dot(x,theta)
+    }
 class ResourceAllocationEnvironment(gym.Env):
   """
   Custom Environment that follows gym interface.
@@ -23,7 +30,8 @@ class ResourceAllocationEnvironment(gym.Env):
   # Define constants for clearer code
 
 
-  def __init__( self, K = 2, num_agents = 3 , weight_matrix = np.array([[60,0],[0,60],[40,40]]) , init_budget = 100*np.ones(2), endowments = 100*np.ones(3), type_dist = lambda i: np.random.randint(0,2), u = lambda x,theta: np.dot(x,theta)):
+
+  def __init__( self, config=DEFAULT_ENV_CONFIG):
         '''
         Initializes the Sequential Resource Allocation Environment
 
@@ -36,23 +44,23 @@ class ResourceAllocationEnvironment(gym.Env):
         u: utility function, given an allocation x and a type theta, u(x,theta) is how good the fit is
         '''
         super(ResourceAllocationEnvironment, self).__init__()
-        self.weight_matrix = weight_matrix
-        self.num_commodities = K
-        self.epLen = num_agents
-        self.budget = init_budget
-        self.endowments = endowments
-        self.type_dist = lambda i: weight_matrix[type_dist(i),:]
-        self.utility_function = u
-        self.starting_state = (init_budget,self.type_dist(0),endowments[0]/sum(endowments))
+        self.weight_matrix = config['weight_matrix']
+        self.num_types = config['weight_matrix'].shape[0]
+        self.num_commodities = config['K']
+        self.epLen = config['num_agents']
+        self.budget = config['init_budget']
+        self.type_dist = config['type_dist']
+        self.utility_function = config['utility_function']
+        self.starting_state = (config['init_budget'],self.type_dist(0))
         self.state = self.starting_state
         self.timestep = 0
 
 
 
-        # Action space will be choosing K-dimensional allocation vector (vector gets normalized in post but if i could make action space normalize it already)
-        self.action_space = spaces.Box(low=0, high=self.budget,
-                                        shape=(self.num_commodities,), dtype=np.float32)
-        # First K entries of observation space is the remaining budget, next K is the type of the location, final entry is the relative endowment
+        # Action space will be choosing Kxn-dimensional allocation matrix
+        self.action_space = spaces.Box(low=0, high=max(self.budget),
+                                        shape=(self.num_types,self.num_commodities), dtype=np.float32)
+        # First K entries of observation space is the remaining budget, next K is the type of the location
         self.observation_space = spaces.Box(low=0, high=max(self.budget),
                                         shape=(2*self.num_commodities+1,), dtype=np.float32)
 
@@ -64,26 +72,23 @@ class ResourceAllocationEnvironment(gym.Env):
         # Initialize the timestep
         self.timestep = 0
         self.state = self.starting_state
-        # here we convert to float32 to make it more general (in case we want to use continuous actions)
-        # return np.array([self.starting_state]).astype(np.float32)
+
         return self.starting_state
         ## return a spaces.box object here
 
-  # def arrivals(step):
-  #       return np.random.uniform(0,1)
 
   def step(self, action):
         '''
         Move one step in the environment
 
         Args:
-        action - vector - chosen action (how much to allocate to prev location)
+        action - matrix - chosen action (each row how much to allocate to prev location)
         Returns:
             reward - double - reward
             newState - int - new state
             done - 0/1 - flag for end of the episode
         '''
-        (old_budget,old_type, old_rel_endowment) = self.state
+        (old_budget,old_type) = self.state
         # new state is sampled from the arrivals distribution
         allocation = np.array(action)
   
@@ -93,10 +98,12 @@ class ResourceAllocationEnvironment(gym.Env):
 
         # TODO: INTEGRATE OTHER FAIRNESS METRICS
         
-        reward = np.log(self.utility_function(allocation,old_type))
+        reward = (1/np.sum(old_type))*sum(
+            [old_type[theta]*np.log(self.utility_function(allocation[theta,:],self.weight_matrix[theta,:]) for theta in range(self.num_types))]
+            )
         print("Reward: %s"%reward)
-        (new_budget, new_type, new_rel_endowment) = (
-            old_budget-allocation, self.type_dist(self.timestep), self.endowments[self.timestep]/sum(self.endowments))
+        (new_budget, new_type) = (
+            old_budget-np.sum(allocation, axis=0), self.type_dist(self.timestep))
 
         # print('New state' , newState)
         # Cost is a linear combination of the distance traveled to the action
@@ -111,9 +118,10 @@ class ResourceAllocationEnvironment(gym.Env):
             pContinue = False
 
         
-        self.state = (new_budget, new_type, new_rel_endowment)
-        self.action_space = spaces.Box(low=0, high=new_budget,
-                                shape=(self.num_commodities,), dtype=np.float32)
+        self.state = (new_budget, new_type)
+        #not sure how to make it such the sum across all types is <= budget
+        self.action_space = spaces.Box(low=0, high=max(new_budget),
+                                shape=(self.num_types,self.num_commodities), dtype=np.float32)
         
         self.timestep += 1
         #return self.state and also a box object
@@ -137,5 +145,5 @@ class ResourceAllocationEnvironment(gym.Env):
 # def make_ambulanceEnvMDP(epLen = 5  , arrival_dist = lambda x : np.random.rand() ,alpha = 0.25 , starting_state = np.array([0]) , num_ambulance = 1)
 
 
-def make_resource_allocationEnvMDP(K = 2, num_agents = 3 , weight_matrix = np.array([[60,0],[0,60],[40,40]]) , init_budget = 100*np.ones(2), endowments = 100*np.ones(3), type_dist = lambda i: np.random.randint(0,2), u = lambda x,theta: np.dot(x,theta)):
-    return ResourceAllocationEnvironment(K, num_agents, weight_matrix, init_budget, endowments, type_dist,u)
+def make_resource_allocationEnvMDP(config=DEFAULT_ENV_CONFIG):
+    return ResourceAllocationEnvironment(config)
