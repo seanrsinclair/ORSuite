@@ -6,6 +6,14 @@ import sklearn_extra.cluster
 
 
 def find_lengths(graph):
+    """
+    Given a graph, find_lengths first calculates the pairwise shortest distance 
+    between all the nodes, which is stored in a (symmetric) matrix. The mean is 
+    then calculated along the rows to produce a vector, and each element of the 
+    vector is inverted.
+    This function produces a vector with a sort of 'measure' for each node where a 
+    higher measure indicates that that node is on average close to other nodes. 
+    """
     nodes = list(graph.nodes)
     num_nodes = len(nodes)
     dict_lengths = dict(nx.all_pairs_dijkstra_path_length(graph, cutoff=None, weight='dist'))
@@ -20,15 +28,20 @@ def find_lengths(graph):
     return avg_inv_lengths
 
 
-''' Agent which implements several heuristic algorithms'''
+''' Agent that implements a median-like heuristic algorithm for the graph ambulance environment'''
 class medianAgent(agent.FiniteHorizonAgent):
 
     def __init__(self, epLen, edges, num_ambulance):
-        '''args:
-            epLen - number of steps
-            func - function used to decide action
-            data - all data observed so far
-            alpha - alpha parameter in ambulance problem
+        '''
+        TODO: epLen - number of steps
+        TODO: func - function used to decide action
+        data - all data observed so far
+        edges - the edges and their weights in the environment
+        num_ambulance - the number of ambulances in the environment
+        avg_inv_lengths - a vector with an entry for each node i that is 
+            1/(avg distance between node i and all other nodes)
+        call_locs - the node locations of all calls observed so far
+        TODO: alpha - alpha parameter in ambulance problem
         '''
         self.epLen = epLen
         self.data = []
@@ -38,17 +51,22 @@ class medianAgent(agent.FiniteHorizonAgent):
         self.avg_inv_lengths = find_lengths(self.graph)
         self.call_locs = []
 
+    def update_config(self, config):
+        pass
 
     def reset(self):
-        # resets data matrix to be empty
+        # Resets data and call_locs arrays to be empty
         self.data = []
-        self.graph = nx.Graph(edges)
         self.call_locs = []
 
 
     def update_obs(self, obs, action, reward, newObs, timestep, info):
         '''Add observation to records'''
+
+        # Adds the most recent state obesrved in the environment to data
         self.data.append(newObs)
+
+        # Adds the most recent arrival location observed to call_locs
         self.call_locs.append(info['arrival'])
         return
 
@@ -57,6 +75,8 @@ class medianAgent(agent.FiniteHorizonAgent):
 
     def update_policy(self, k):
         '''Update internal policy based upon records'''
+
+        # Greedy algorithm does not update policy
         self.greedy = self.greedy
 
 
@@ -64,6 +84,13 @@ class medianAgent(agent.FiniteHorizonAgent):
         '''
         Select action according to function
         '''
+
+        # For the first iteration, choose the starting state
+        # After that choose locations for ambulances that maximize the number of 
+        # calls that arrive at that location multiplied by the inverse of the 
+        # average distance between that node and other nodes
+        # For a concrete example of how this works, see the ambulance environment
+        # readme document
         if timestep == 0:
             return state
         else:

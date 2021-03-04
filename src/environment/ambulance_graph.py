@@ -19,84 +19,89 @@ class AmbulanceGraphEnvironment(gym.Env):
   Custom Environment that follows gym interface.
   This is a simple env where the arrivals are uniformly distributed across nodes
   """
-  # Because of google colab, we cannot implement the GUI ('human' render mode)
+  #TODO: Because of google colab, we cannot implement the GUI ('human' render mode)
   metadata = {'render.modes': ['human']}
-  # Define constants for clearer code
 
 
-  def __init__(self, epLen = 5, arrival_dist = None, alpha = 0.25,
-                edges = [(0,1,{'dist':1}), (1,2,{'dist':3}), (2,3,{'dist':5}), (1,3,{'dist':1})],
-                starting_state = [2], num_ambulance = 1):
+  def __init__(self, config={'epLen': 5, 'arrival_dist': None, 'alpha': 0.25,
+                'edges': [(0,1,{'dist':1}), (1,2,{'dist':3}), (2,3,{'dist':5}), (1,3,{'dist':1})],
+                'starting_state': [2], 'num_ambulance': 1}):
         '''
-        epLen - number of steps
-        arrivals - arrival distribution for patients
-        alpha - parameter for difference in costs
-        starting_state - starting location
+        For a more detailed description of each parameter, see the readme file
+        
+        epLen - number of time steps
+        arrival_dist - arrival distribution for calls over nodes
+        alpha - parameter for proportional difference in costs
+        edges - edges in the graph and their weights (nodes are automatically inferred)
+        starting_state - a list containing the starting nodes for each ambulance
+        num_ambulance - the number of ambulances in the environment
         '''
         super(AmbulanceGraphEnvironment, self).__init__()
 
-        self.epLen = epLen
-        self.alpha = alpha
 
-        self.graph = nx.Graph(edges)
-
-        self.state = starting_state
-        self.starting_state = starting_state
+        self.epLen = config['epLen']
+        self.alpha = config['alpha']
+        self.graph = nx.Graph(config['edges'])
+        self.starting_state = config['starting_state']
+        self.state = self.starting_state
         self.timestep = 0
-        self.num_ambulance = num_ambulance
-        if arrival_dist == None:
+        self.num_ambulance = config['num_ambulance']
+        if config['arrival_dist'] == None:
             num_nodes = len(self.graph.nodes)
             self.arrival_dist = np.full(num_nodes, 1/num_nodes)
         else:
-            self.arrival_dist = arrival_dist
+            self.arrival_dist = config['arrival_dist']
 
-
+        # possible_locs represents all possible locations where an individual 
+        # ambulance could be stationed and is equivalent to the nodes in the graph
         self.possible_locs = spaces.Discrete(self.graph.number_of_nodes())
-        # Defining action space
+
+        # The action space is represented by tuples where each entry i is the 
+        # location of ambulance i.
+        # Any combination of ambulance locations is possible
         self.action_space = spaces.Tuple(np.full(num_ambulance, self.possible_locs))
-        # Defining observation space
+
+        # The definition of the observation space is the same as the action space
         self.observation_space = spaces.Tuple(np.full(num_ambulance, self.possible_locs))
 
   def reset(self):
         """
-        Important: the observation must be a numpy array
-        :return: (np.array)
+        TODO: Important: the observation must be a numpy array
+        Returns: the starting state
         """
         # Initialize the timestep
         self.timestep = 0
         self.state = self.starting_state
-        # here we convert to float32 to make it more general (in case we want to use continuous actions)
-        # return np.array([self.starting_state]).astype(np.float32)
-        return self.starting_state
-        ## return a spaces.box object here
 
-  # def arrivals(step):
-  #       return np.random.uniform(0,1)
+        #TODO: here we convert to float32 to make it more general (in case we want to use continuous actions)
+        #TODO: return np.array([self.starting_state]).astype(np.float32)
+        return self.starting_state
+        #TODO: return a spaces.box object here
 
   def step(self, action):
         '''
         Move one step in the environment
 
         Args:
-        action - int - chosen action
+        action - int list - list of nodes the same length as the number of ambulances,
+        where each entry i in the list corresponds to the chosen location for 
+        ambulance i
         Returns:
-            reward - double - reward
-            newState - int - new state
+            reward - float - reward based on the action chosen
+            newState - int list - new state of the system
             done - 0/1 - flag for end of the episode
         '''
         old_state = self.state
-        # new state is sampled from the arrivals distribution
 
-        # chooses randomly from among all the nodes in the graph
-
-        # TODO: CHANGE THIS TO ACTUALLY USE ARRIVAL_DIST
+        # The location of the new arrival is chosen randomly from among the nodes 
+        # in the graph according to the arrival distribution
         new_arrival = np.random.choice(list(self.graph.nodes), p=self.arrival_dist)
 
-
-        # print('old_state' , old_state)
-        # print('new_arrival' , new_arrival)
-
-
+        # Finds the distance traveled by all the ambulances from the old state to 
+        # the chosen action, assuming that each ambulance takes the shortest path,
+        # which is stored in total_dist_oldstate_to_action
+        # Also finds the closest ambulance to the call based on their locations at
+        # the end of the action, using shortest paths
         shortest_length = 999999999
         closest_amb_idx = 0
         closest_amb_loc = action[closest_amb_idx]
@@ -115,42 +120,39 @@ class AmbulanceGraphEnvironment(gym.Env):
             else:
                 continue
 
-        # print('Close Index' , close_index)
-
-        # Uniform Arrivals (have to work out how to use different arrival distributions)
+        # Update the state of the system according to the action taken and change 
+        # the location of the closest ambulance to the call to the call location
         newState = np.array(action)
         newState[closest_amb_idx] = new_arrival
         obs = newState
 
-        # print('New state' , newState)
-        # Cost is a linear combination of the distance traveled to the action
-        # and the distance served to the pickup
 
+        # The reward is a linear combination of the distance traveled to the action
+        # and the distance traveled to the call
+        # alpha controls the tradeoff between cost to travel between arrivals and 
+        # cost to travel to a call
+        # The reward is negated so that maximizing it will minimize the distance
         reward = -1 * (self.alpha * total_dist_oldstate_to_action + (1 - self.alpha) * shortest_length)
 
-        # Optionally we can pass additional info, we are not using that for now
+        # The info dictionary is used to pass the location of the most recent arrival
+        # so it can be used by the agent
         info = {'arrival' : new_arrival}
 
         if self.timestep <= self.epLen:
             pContinue = True
-
-            ## TODO: why do we do self.reset() every time?
-            self.reset()
         else:
             pContinue = False
 
         self.state = newState
         self.timestep += 1
 
-        #return self.state and also a box object
-        # can probably return self.state
-
+        #TODO: return self.state and also a box object
         return self.state, reward,  pContinue, info
+
 
   def render(self, mode='console'):
     if mode != 'console':
       raise NotImplementedError()
-
 
   def close(self):
     pass
@@ -159,9 +161,7 @@ class AmbulanceGraphEnvironment(gym.Env):
 #-------------------------------------------------------------------------------
 # Benchmark environments used when running an experiment
 
-#TODO: Make wrapper passing all arguments: e.g.
-# def make_ambulanceEnvMDP(epLen = 5  , arrival_dist = lambda x : np.random.rand() ,alpha = 0.25 , starting_state = np.array([0]) , num_ambulance = 1)
 
-
-def make_ambulanceGraphEnvMDP(epLen, arrival_dist, alpha, edges, starting_state, num_ambulance):
-    return AmbulanceGraphEnvironment(epLen, arrival_dist, alpha, edges, starting_state , num_ambulance)
+def make_ambulanceGraphEnvMDP(config):
+    """ Creates an ambulance graph environment with the parameters in config"""
+    return AmbulanceGraphEnvironment(config)

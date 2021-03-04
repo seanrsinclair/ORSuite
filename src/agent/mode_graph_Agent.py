@@ -3,28 +3,33 @@ import agent
 import sklearn_extra.cluster
 
 
-''' Agent which implements several heuristic algorithms'''
+''' Agent that implements a mode heuristic algorithm for the ambulance graph environment'''
 class modeAgent(agent.FiniteHorizonAgent):
 
     def __init__(self, epLen):
-        '''args:
-            epLen - number of steps
-            func - function used to decide action
-            data - all data observed so far
-            alpha - alpha parameter in ambulance problem
+        '''
+        TODO: epLen - number of steps
+        TODO: func - function used to decide action
+        data - all data observed so far
+        call_locs - the node locations of all calls observed so far
+        TODO: alpha - alpha parameter in ambulance problem
         '''
         self.epLen = epLen
         self.data = []
         self.call_locs = []
 
     def reset(self):
-        # resets data matrix to be empty
+        # Resets data and call_locs arrays to be empty
         self.data = []
         self.call_locs = []
 
     def update_obs(self, obs, action, reward, newObs, timestep, info):
         '''Add observation to records'''
+
+        # Adds the most recent state obesrved in the environment to data
         self.data.append(newObs)
+
+        # Adds the most recent arrival location observed to call_locs
         self.call_locs.append(info['arrival'])
         return
 
@@ -33,6 +38,8 @@ class modeAgent(agent.FiniteHorizonAgent):
 
     def update_policy(self, k):
         '''Update internal policy based upon records'''
+
+        # Greedy algorithm does not update policy
         self.greedy = self.greedy
 
 
@@ -41,8 +48,9 @@ class modeAgent(agent.FiniteHorizonAgent):
         Select action according to function
         '''
 
-        #choose locations where calls occur most frequently
-
+        # For the first iteration, choose the starting state
+        # After that, choose the locations where calls have occurred most frequently
+        # in the past
         if timestep == 0:
             return state
         else:

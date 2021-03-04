@@ -2,25 +2,27 @@ import numpy as np
 import agent
 
 
-''' Agent which implements several heuristic algorithms for the sequential resource allocation problem'''
+''' Agent that implements a stable heuristic algorithm for use with either ambulance environment'''
 class stableAgent(agent.FiniteHorizonAgent):
 
     def __init__(self, epLen):
-        '''args:
-            epLen - number of steps
-            func - function used to decide action
-            data - all data observed so far
-            alpha - alpha parameter in ambulance problem
+        '''
+        TODO: epLen - number of time steps
+        TODO: func - function used to decide action
+        data - all data observed so far
+        TODO: alpha - alpha parameter in ambulance problem
         '''
         self.epLen = epLen
         self.data = []
 
     def reset(self):
-        # resets data matrix to be empty
+        # Resets data array to be empty
         self.data = []
 
     def update_obs(self, obs, action, reward, newObs, timestep, info):
         '''Add observation to records'''
+
+        # Adds the most recent state obesrved in the environment to data
         self.data.append(newObs)
         return
 
@@ -29,6 +31,8 @@ class stableAgent(agent.FiniteHorizonAgent):
 
     def update_policy(self, k):
         '''Update internal policy based upon records'''
+
+        # Greedy algorithm does not update policy
         self.greedy = self.greedy
 
 
@@ -36,10 +40,13 @@ class stableAgent(agent.FiniteHorizonAgent):
         '''
         Select action according to function
         '''
+
+        # For the first iteration, choose the starting state
+        # After that, choose the most recently observed state as the new location 
+        # for each ambulance. This results in no ambulance movement between calls
         if timestep == 0:
             return state
         else:
-            # action = self.func(self.data)
             action = self.data[-1]
             return action
 
