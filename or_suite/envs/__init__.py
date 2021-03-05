@@ -1,4 +1,7 @@
 from gym.envs.registration import register
+import or_suite.envs.ambulance
+import or_suite.envs.resource_allocation
+
 
 # Ambulance Environments
 
@@ -9,5 +12,3 @@ register(id = 'Ambulance-v0',
 register(id = 'Ambulance-v1',
     entry_point ='or_suite.envs.ambulance.ambulance_graph:AmbulanceEnv'
 )
-
-
