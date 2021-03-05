@@ -1,6 +1,5 @@
 '''
 All agents should inherit from the Agent class.
-- FiniteHorizonAgent = finite *known* horizon H
 '''
 
 

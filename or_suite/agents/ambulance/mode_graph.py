@@ -1,10 +1,11 @@
 import numpy as np
-import agent
+
 import sklearn_extra.cluster
 
+from .. import Agent
 
 ''' Agent that implements a mode heuristic algorithm for the ambulance graph environment'''
-class modeAgent(agent.FiniteHorizonAgent):
+class modeAgent(Agent):
 
     def __init__(self, epLen):
         '''

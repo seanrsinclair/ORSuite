@@ -38,7 +38,7 @@ class AmbulanceGraphEnvironment(gym.Env):
         '''
         super(AmbulanceGraphEnvironment, self).__init__()
 
-
+        self.config = config
         self.epLen = config['epLen']
         self.alpha = config['alpha']
         self.graph = nx.Graph(config['edges'])
@@ -59,10 +59,10 @@ class AmbulanceGraphEnvironment(gym.Env):
         # The action space is represented by tuples where each entry i is the 
         # location of ambulance i.
         # Any combination of ambulance locations is possible
-        self.action_space = spaces.Tuple(np.full(num_ambulance, self.possible_locs))
+        self.action_space = spaces.Tuple(np.full(self.num_ambulance, self.possible_locs))
 
         # The definition of the observation space is the same as the action space
-        self.observation_space = spaces.Tuple(np.full(num_ambulance, self.possible_locs))
+        self.observation_space = spaces.Tuple(np.full(self.num_ambulance, self.possible_locs))
 
   def reset(self):
         """
@@ -77,6 +77,9 @@ class AmbulanceGraphEnvironment(gym.Env):
         #TODO: return np.array([self.starting_state]).astype(np.float32)
         return self.starting_state
         #TODO: return a spaces.box object here
+
+  def get_config(self):
+      return self.config
 
   def step(self, action):
         '''

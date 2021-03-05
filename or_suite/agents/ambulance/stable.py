@@ -1,9 +1,9 @@
 import numpy as np
-import agent
 
+from .. import Agent
 
 ''' Agent that implements a stable heuristic algorithm for use with either ambulance environment'''
-class stableAgent(agent.FiniteHorizonAgent):
+class stableAgent(Agent):
 
     def __init__(self, epLen):
         '''

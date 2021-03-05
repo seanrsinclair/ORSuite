@@ -1,9 +1,9 @@
 import numpy as np
-import agent
+
 import networkx as nx
 import sklearn_extra.cluster
 
-
+from .. import Agent
 
 def find_lengths(graph):
     """
@@ -29,7 +29,7 @@ def find_lengths(graph):
 
 
 ''' Agent that implements a median-like heuristic algorithm for the graph ambulance environment'''
-class medianAgent(agent.FiniteHorizonAgent):
+class medianAgent(Agent):
 
     def __init__(self, epLen, edges, num_ambulance):
         '''
@@ -50,6 +50,7 @@ class medianAgent(agent.FiniteHorizonAgent):
         self.num_ambulance = num_ambulance
         self.avg_inv_lengths = find_lengths(self.graph)
         self.call_locs = []
+
 
     def update_config(self, config):
         pass
