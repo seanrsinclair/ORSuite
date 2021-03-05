@@ -10,15 +10,14 @@ class Experiment(object):
         A simple class to run a MDP Experiment.
         Args:
             env - an instance of an Environment
-            agent - an agents
+            agent - an agent
             dict - a dictionary containing the arguments to send for the experiment, including:
                 seed - random seed for experiment
                 recFreq - proportion of episodes to save to file
                 targetPath - path to the file for saving
                 deBug - boolean of whether to include
                 nEps - number of episodes
-                numIters - the number of iterations to run experiment, should match
-                number of agents in agent_list
+                numIters - the number of iterations to run experiment
         '''
         # assert isinstance(env, environment.Environment)
 
