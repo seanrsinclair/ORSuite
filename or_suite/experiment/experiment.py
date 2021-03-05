@@ -41,10 +41,11 @@ class Experiment(object):
         print('Running experiment')
         print('**************************************************')
 
-        self.agent.update_config(self.env.get_config())
+
         index = 0
         for i in range(self.num_iters):
             self.agent.reset()
+            self.agent.update_config(self.env.get_config())
             for ep in range(1, self.nEps+1):
                 # print('Episode : ' + str(ep))
                 # Reset the environment

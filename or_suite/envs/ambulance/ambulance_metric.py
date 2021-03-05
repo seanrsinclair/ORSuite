@@ -13,6 +13,9 @@ import math
 by picking a location to station the ambulance.  Then a patient arrives and the ambulance
 most go and serve the arrival, paying a cost of travel.'''
 
+
+DEFAULT_CONFIG =  {'epLen': 5, 'arrival_dist': lambda x : np.random.rand(), 'alpha': 0.25, 'starting_state': np.array([0]), 'num_ambulance': 1}
+
 class AmbulanceEnvironment(gym.Env):
   """
   Custom Environment that follows gym interface.
@@ -22,7 +25,7 @@ class AmbulanceEnvironment(gym.Env):
   metadata = {'render.modes': ['human']}
 
 
-  def __init__(self, config = {'epLen': 5, 'arrival_dist': lambda x : np.random.rand(), 'alpha': 0.25, 'starting_state': np.array([0]), 'num_ambulance': 1}):
+  def __init__(self, config = DEFAULT_CONFIG):
         '''
         For a more detailed description of each parameter, see the readme file
         

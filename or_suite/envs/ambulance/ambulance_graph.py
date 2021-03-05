@@ -14,6 +14,12 @@ the environment by [EXPLAIN HOW ENVIRONMENT WORKS HERE] the ambulance.  Then
 a patient arrives and the ambulance most go and serve the arrival, paying a 
 cost of travel.'''
 
+
+
+DEFAULT_CONFIG = {'epLen': 5, 'arrival_dist': None, 'alpha': 0.25,
+                'edges': [(0,1,{'dist':1}), (1,2,{'dist':3}), (2,3,{'dist':5}), (1,3,{'dist':1})],
+                'starting_state': [2], 'num_ambulance': 1}
+
 class AmbulanceGraphEnvironment(gym.Env):
   """
   Custom Environment that follows gym interface.
@@ -23,9 +29,7 @@ class AmbulanceGraphEnvironment(gym.Env):
   metadata = {'render.modes': ['human']}
 
 
-  def __init__(self, config={'epLen': 5, 'arrival_dist': None, 'alpha': 0.25,
-                'edges': [(0,1,{'dist':1}), (1,2,{'dist':3}), (2,3,{'dist':5}), (1,3,{'dist':1})],
-                'starting_state': [2], 'num_ambulance': 1}):
+  def __init__(self, config=DEFAULT_CONFIG):
         '''
         For a more detailed description of each parameter, see the readme file
         
