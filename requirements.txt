@@ -1,0 +1,10 @@
+gym
+numpy
+pandas
+networkx
+scipy
+matplotlib
+seaborn
+jupyter
+scikit-learn
+scikit-learn-extra

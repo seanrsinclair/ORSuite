@@ -11,7 +11,10 @@ setup(name='or-suite',
 	version=VERSION,
 	description='OR-Suite: A set of environments for developing reinforcement learning agents for OR problems.',
 	author='Christopher Archer, Siddhartha Banerjee, Shashank Pathak, Carrie Rucker, Sean Sinclair, Christina Yu',
+	author_email = 'srs429@cornell.edu',
 	license='MIT',
 	url='https://github.com/seanrsinclair/ORSuite',
-	packages=find_packages()
+	packages = find_packages(),
+	zip_safe = False,
+	python_requires = '>=3.6'
 )
