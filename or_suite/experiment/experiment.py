@@ -1,7 +1,9 @@
 import time
 from shutil import copyfile
+import pandas as pd
 import tracemalloc
 import numpy as np
+import os
 
 class Experiment(object):
 
@@ -18,6 +20,7 @@ class Experiment(object):
                 deBug - boolean of whether to include
                 nEps - number of episodes
                 numIters - the number of iterations to run experiment
+                saveTrajectory - boolean of whether to save trajectory information
         '''
         # assert isinstance(env, environment.Environment)
 
@@ -29,9 +32,14 @@ class Experiment(object):
         self.env = env
         self.epLen = dict['epLen']
         self.num_iters = dict['numIters']
+        self.save_trajectory = dict['saveTrajectory']
         self.agent = agent
         # print('epLen: ' + str(self.epLen))
         self.data = np.zeros([dict['nEps']*self.num_iters, 5])
+
+
+        if self.save_trajectory:
+            self.trajectory = np.zeros([dict['nEps']*self.num_iters*self.epLen, 8])
 
         np.random.seed(self.seed)
 
@@ -43,6 +51,7 @@ class Experiment(object):
 
 
         index = 0
+        traj_index = 0
         for i in range(self.num_iters):
             self.agent.reset()
             self.agent.update_config(self.env.get_config())
@@ -73,6 +82,18 @@ class Experiment(object):
                     epReward += reward
 
                     self.agent.update_obs(oldState, action, reward, newState, h, info)
+
+                    if self.save_trajectory: # TODO: state, action, reward, etc are not necessarily numbers - so what is the best way of storing this in a list?
+                        self.trajectory[traj_index, 0] = i
+                        self.trajectory[traj_index, 1] = ep
+                        self.trajectory[traj_index, 2] = h
+                        self.trajectory[traj_index, 3] = oldState
+                        self.trajectory[traj_index, 4] = action
+                        self.trajectory[traj_index, 5] = reward
+                        self.trajectory[traj_index, 6] = newState
+                        self.trajectory[traj_index, 7] = info
+                    traj_index += 1
+
                     oldState = newState
                     h = h + 1
 
@@ -94,7 +115,7 @@ class Experiment(object):
                 self.data[index, 1] = i
                 self.data[index, 2] = epReward
                 self.data[index, 3] = current
-                self.data[index, 4] = ((end_time) - (start_time))*(10**9)
+                self.data[index, 4] = ((end_time) - (start_time))
 
                 index += 1
 
@@ -103,22 +124,38 @@ class Experiment(object):
         print('**************************************************')
 
     # Saves the data to the file location provided to the algorithm
-    def save_data(self , dir_path, targetPath):
+    def save_data(self , dir_path, targetPath): # TODO: Best way of getting directory locations for both paths?
         print('**************************************************')
         print('Saving data')
         print('**************************************************')
 
         print(self.data)
 
-        dt = pd.DataFrame(self.data, columns=['episode', 'iteration', 'epReward', 'memory', 'time'])
-        dt = dt[(dt.T != 0).any()]
-        print('Writing to file ' + self.targetPath)
 
-        if path.exists(dir_path):
-            dt.to_csv(os.path.join(dir_path,self.targetPath), index=False, float_format='%.2f', mode='a')
+        if self.save_trajectory:
+            data_loc, traj_loc = targetPath
+
+            dt = pd.DataFrame(self.data, columns=['episode', 'iteration', 'epReward', 'memory', 'time'])
+            dt = dt[(dt.T != 0).any()]
+
+            traj = pd.DataFrame(self.trajectory, columns=['index', 'episode', 'step', 'oldState', 'reward', 'newState', 'info'])
+            print('Writing to file ' + data_loc)
+        else:
+            data_loc = targetPath
+
+            dt = pd.DataFrame(self.data, columns=['episode', 'iteration', 'epReward', 'memory', 'time'])
+            dt = dt[(dt.T != 0).any()]
+            print('Writing to file ' + data_loc)
+
+        if os.path.exists(dir_path):
+            dt.to_csv(os.path.join(dir_path,data_loc), index=False, float_format='%.2f', mode='a')
+            if self.save_trajectory:
+                dt.to_csv(os.path.join(dir_path, traj_loc), index=False, float_format='%.2f', mode='a')
         else:
             os.makedirs(dir_path)
-            dt.to_csv(os.path.join(dir_path,self.targetPath), index=False, float_format='%.2f')
+            dt.to_csv(os.path.join(dir_path, data_loc), index=False, float_format='%.2f')
+            if self.save_trajectory:
+                dt.to_csv(os.path.join(dir_path, traj_loc), index=False, float_format='%.2f', mode='a')
 
         print('**************************************************')
         print('Data save complete')

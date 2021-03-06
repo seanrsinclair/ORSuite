@@ -23,12 +23,10 @@ class equalAllocationAgent(Agent):
         self.data.append(newObs)
         return
 
-    def get_num_arms(self):
-        return 0
-
     def update_policy(self, k):
         '''Update internal policy based upon records'''
         self.greedy = self.greedy
+        return
 
 
     def greedy(self, state, timestep, epsilon=0):
