@@ -15,15 +15,12 @@ Currently reward is Nash Social Welfare but in the future will integrate more op
 to determine a fair allocation '''
 
 DEFAULT_ENV_CONFIG = {'K':2, 
-    'num_agents':3,
+    'num_rounds':3,
     'weight_matrix':np.array([[1,0],[0,1],[1,1]]),
     'init_budget': 100*np.ones(2),
     'type_dist':lambda i: np.random.randint(50,size=3),
     'utility_function': lambda x,theta: np.dot(x,theta)
     }
-
-
-
 class ResourceAllocationEnvironment(gym.Env):
   """
   Custom Environment that follows gym interface.
@@ -40,20 +37,20 @@ class ResourceAllocationEnvironment(gym.Env):
 
         weight_matrix - Weights predefining the commodity needs for each type, every row is a type vector
         K - number of commodities
-        num_agents - Number of agents (also the length of an episode)
+        num_rounds - Number of agents (also the length of an episode)
         init_budget - amount of each commodity the principal begins with
-        endowments - how much of the commodities are given to the agents (rough corrolary of "size")
-        type_dist: Function determining the types (preferences) of each agent, is a function from integer to integer
+        type_dist: Function determining the number of people of each type at a location
         u: utility function, given an allocation x and a type theta, u(x,theta) is how good the fit is
         '''
         super(ResourceAllocationEnvironment, self).__init__()
         self.weight_matrix = config['weight_matrix']
         self.num_types = config['weight_matrix'].shape[0]
         self.num_commodities = config['K']
-        self.epLen = config['num_agents']
+        self.epLen = config['num_rounds']
         self.budget = config['init_budget']
         self.type_dist = config['type_dist']
         self.utility_function = config['utility_function']
+        
         self.starting_state = (config['init_budget'],self.type_dist(0))
         self.state = self.starting_state
         self.timestep = 0
@@ -139,14 +136,3 @@ class ResourceAllocationEnvironment(gym.Env):
 
   def close(self):
     pass
-
-
-#-------------------------------------------------------------------------------
-# Benchmark environments used when running an experiment
-
-#TODO: Make wrapper passing all arguments: e.g.
-# def make_ambulanceEnvMDP(epLen = 5  , arrival_dist = lambda x : np.random.rand() ,alpha = 0.25 , starting_state = np.array([0]) , num_ambulance = 1)
-
-
-def make_resource_allocationEnvMDP(config=DEFAULT_ENV_CONFIG):
-    return ResourceAllocationEnvironment(config)
