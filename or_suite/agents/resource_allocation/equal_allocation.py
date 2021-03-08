@@ -1,9 +1,9 @@
 import numpy as np
-import agent
+from .. import Agent
 
 
 ''' Agent which implements several heuristic algorithms'''
-class equalAllocationAgent(agent.FiniteHorizonAgent):
+class equalAllocationAgent(Agent):
 
     def __init__(self, epLen,env_config):
         '''args:
