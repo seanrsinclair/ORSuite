@@ -17,8 +17,8 @@ cost of travel.'''
 
 
 DEFAULT_CONFIG = {'epLen': 5, 'arrival_dist': None, 'alpha': 0.25,
-                'edges': [(0,1,{'dist':1}), (1,2,{'dist':3}), (2,3,{'dist':5}), (1,3,{'dist':1})],
-                'starting_state': [2], 'num_ambulance': 1}
+                'edges': [(0,4,{'dist':7}), (0,1,{'dist':1}), (1,2,{'dist':3}), (2,3,{'dist':5}), (1,3,{'dist':1}), (1,4,{'dist':17}), (3,4,{'dist':3})],
+                'starting_state': [1,2], 'num_ambulance': 2}
 
 class AmbulanceGraphEnvironment(gym.Env):
   """

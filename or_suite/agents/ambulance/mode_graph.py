@@ -2,7 +2,9 @@ import numpy as np
 
 import sklearn_extra.cluster
 
-from .. import Agent
+import sys
+sys.path.append('../')
+from agent import Agent
 
 ''' Agent that implements a mode heuristic algorithm for the ambulance graph environment'''
 class modeAgent(Agent):

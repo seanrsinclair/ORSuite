@@ -1,6 +1,8 @@
 import numpy as np
 
-from .. import Agent
+import sys
+sys.path.append('../')
+from agent import Agent
 
 ''' Agent that implements a stable heuristic algorithm for use with either ambulance environment'''
 class stableAgent(Agent):
