@@ -68,6 +68,7 @@ class AmbulanceGraphEnvironment(gym.Env):
         # The definition of the observation space is the same as the action space
         self.observation_space = spaces.MultiDiscrete(space_array)
 
+
   def reset(self):
         """
         Reinitializes variables and returns the starting state
