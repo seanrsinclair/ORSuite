@@ -5,6 +5,7 @@ import warnings
 from gym import error
 from or_suite.version import VERSION as __version__
 from or_suite.utils import *
+from or_suite.plots import *
 
 
 

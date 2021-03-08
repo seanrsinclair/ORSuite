@@ -84,14 +84,15 @@ class Experiment(object):
                     self.agent.update_obs(oldState, action, reward, newState, h, info)
 
                     if self.save_trajectory: # TODO: state, action, reward, etc are not necessarily numbers - so what is the best way of storing this in a list?
-                        self.trajectory[traj_index, 0] = i
-                        self.trajectory[traj_index, 1] = ep
-                        self.trajectory[traj_index, 2] = h
-                        self.trajectory[traj_index, 3] = oldState
-                        self.trajectory[traj_index, 4] = action
-                        self.trajectory[traj_index, 5] = reward
-                        self.trajectory[traj_index, 6] = newState
-                        self.trajectory[traj_index, 7] = info
+                        # turn into list, make self.trajectory a list, append. try pickle
+                        self.trajectory[traj_index, 0] = i # int 
+                        self.trajectory[traj_index, 1] = ep # int
+                        self.trajectory[traj_index, 2] = h # int
+                        self.trajectory[traj_index, 3] = oldState # e.g. in ambulance, a vector [loc_1, loc_2]
+                        self.trajectory[traj_index, 4] = action # e.g. in ambulance, a vector [mov_1, mov_2]
+                        self.trajectory[traj_index, 5] = reward # float
+                        self.trajectory[traj_index, 6] = newState # e.g. in ambulance, a vector [new_loc_1, new_loc_2]
+                        self.trajectory[traj_index, 7] = info # dictionary - OK if we ignore
                     traj_index += 1
 
                     oldState = newState
@@ -124,7 +125,8 @@ class Experiment(object):
         print('**************************************************')
 
     # Saves the data to the file location provided to the algorithm
-    def save_data(self , dir_path, targetPath): # TODO: Best way of getting directory locations for both paths?
+    def save_data(self , dir_path, targetPath): # TODO: Best way of getting directory locations for both paths? kwargs? 
+                        # remove targetPath - force into data.csv and traj.csv
         print('**************************************************')
         print('Saving data')
         print('**************************************************')
