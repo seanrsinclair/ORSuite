@@ -21,7 +21,7 @@ class AmbulanceEnvironment(gym.Env):
   Custom Environment that follows gym interface.
   This is a simple env where the arrivals are always uniformly distributed
   """
-  #TODO: Because of google colab, we cannot implement the GUI ('human' render mode)
+
   metadata = {'render.modes': ['human']}
 
 
@@ -56,17 +56,13 @@ class AmbulanceEnvironment(gym.Env):
 
   def reset(self):
         """
-        TODO: Important: the observation must be a numpy array
-        Returns: the starting state
+        Reinitializes variables and returns the starting state
         """
         # Initialize the timestep
         self.timestep = 0
         self.state = self.starting_state
 
-        #TODO: here we convert to float32 to make it more general (in case we want to use continuous actions)
-        #TODO: return np.array([self.starting_state]).astype(np.float32)
         return self.starting_state
-        #TODO: return a spaces.box object here
 
   # def arrivals(step):
   #       return np.random.uniform(0,1)
@@ -129,11 +125,3 @@ class AmbulanceEnvironment(gym.Env):
   def close(self):
     pass
 
-
-#-------------------------------------------------------------------------------
-# Benchmark environments used when running an experiment
-
-
-def make_ambulanceEnvMDP(config):
-    """ Creates an ambulance line environment with the parameters in config"""
-    return AmbulanceEnvironment(config)

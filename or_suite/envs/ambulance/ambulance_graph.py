@@ -25,7 +25,7 @@ class AmbulanceGraphEnvironment(gym.Env):
   Custom Environment that follows gym interface.
   This is a simple env where the arrivals are uniformly distributed across nodes
   """
-  #TODO: Because of google colab, we cannot implement the GUI ('human' render mode)
+
   metadata = {'render.modes': ['human']}
 
 
@@ -56,31 +56,27 @@ class AmbulanceGraphEnvironment(gym.Env):
         else:
             self.arrival_dist = config['arrival_dist']
 
-        # possible_locs represents all possible locations where an individual 
-        # ambulance could be stationed and is equivalent to the nodes in the graph
-        self.possible_locs = spaces.Discrete(self.graph.number_of_nodes())
 
-        # The action space is represented by tuples where each entry i is the 
-        # location of ambulance i.
-        # Any combination of ambulance locations is possible
-        self.action_space = spaces.Tuple(np.full(self.num_ambulance, self.possible_locs))
+        # creates an array stored in space_array the length of the number of ambulances
+        # where every entry is the number of nodes in the graph
+        num_nodes = self.graph.number_of_nodes()
+        space_array = np.full(self.num_ambulance, num_nodes)
+
+        # creates a space where every ambulance can be located at any of the nodes
+        self.action_space = spaces.MultiDiscrete(space_array)
 
         # The definition of the observation space is the same as the action space
-        self.observation_space = spaces.Tuple(np.full(self.num_ambulance, self.possible_locs))
+        self.observation_space = spaces.MultiDiscrete(space_array)
 
   def reset(self):
         """
-        TODO: Important: the observation must be a numpy array
-        Returns: the starting state
+        Reinitializes variables and returns the starting state
         """
         # Initialize the timestep
         self.timestep = 0
         self.state = self.starting_state
 
-        #TODO: here we convert to float32 to make it more general (in case we want to use continuous actions)
-        #TODO: return np.array([self.starting_state]).astype(np.float32)
         return self.starting_state
-        #TODO: return a spaces.box object here
 
   def get_config(self):
       return self.config
@@ -153,7 +149,6 @@ class AmbulanceGraphEnvironment(gym.Env):
         self.state = newState
         self.timestep += 1
 
-        #TODO: return self.state and also a box object
         return self.state, reward,  pContinue, info
 
 
@@ -164,11 +159,3 @@ class AmbulanceGraphEnvironment(gym.Env):
   def close(self):
     pass
 
-
-#-------------------------------------------------------------------------------
-# Benchmark environments used when running an experiment
-
-
-def make_ambulanceGraphEnvMDP(config):
-    """ Creates an ambulance graph environment with the parameters in config"""
-    return AmbulanceGraphEnvironment(config)

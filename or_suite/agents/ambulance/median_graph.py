@@ -33,15 +33,13 @@ class medianAgent(Agent):
 
     def __init__(self, epLen, edges, num_ambulance):
         '''
-        TODO: epLen - number of steps
-        TODO: func - function used to decide action
+        epLen - number of steps
         data - all data observed so far
         edges - the edges and their weights in the environment
         num_ambulance - the number of ambulances in the environment
         avg_inv_lengths - a vector with an entry for each node i that is 
             1/(avg distance between node i and all other nodes)
         call_locs - the node locations of all calls observed so far
-        TODO: alpha - alpha parameter in ambulance problem
         '''
         self.epLen = epLen
         self.data = []
@@ -70,9 +68,6 @@ class medianAgent(Agent):
         # Adds the most recent arrival location observed to call_locs
         self.call_locs.append(info['arrival'])
         return
-
-    def get_num_arms(self):
-        return 0
 
     def update_policy(self, k):
         '''Update internal policy based upon records'''

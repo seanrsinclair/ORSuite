@@ -7,10 +7,8 @@ class stableAgent(Agent):
 
     def __init__(self, epLen):
         '''
-        TODO: epLen - number of time steps
-        TODO: func - function used to decide action
+        epLen - number of time steps
         data - all data observed so far
-        TODO: alpha - alpha parameter in ambulance problem
         '''
         self.epLen = epLen
         self.data = []
@@ -25,9 +23,6 @@ class stableAgent(Agent):
         # Adds the most recent state obesrved in the environment to data
         self.data.append(newObs)
         return
-
-    def get_num_arms(self):
-        return 0
 
     def update_policy(self, k):
         '''Update internal policy based upon records'''
