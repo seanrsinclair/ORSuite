@@ -12,7 +12,7 @@ def run_single_algo(env, agent, settings):
 
     exp = or_suite.experiment.experiment.Experiment(env, agent, settings)
     _ = exp.run()
-    dt_data = exp.save_data(settings[targetPath], settings[targetPath])
+    dt_data = exp.save_data()
 
 
 
@@ -28,7 +28,7 @@ agents = [or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen'])]
 
 nEps = 500
 numIters = 50
-DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'targetPath': './tmp.csv', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen' : 5}
+DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance_graph/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen' : 5}
 
 alphas = [0, 1, 0.25]
 arrival_dists = [None, [0.25, 0.4, 0.25, 0.05, 0.05]]
@@ -42,6 +42,7 @@ for agent in agents:
             CONFIG = DEFAULT_CONFIG
             CONFIG['alpha'] = alpha
             CONFIG['arrival_dist'] = arrival_dist
+            DEFAULT_SETTINGS['dirPath'] = '../data/ambulance_graph_'+str(alpha)+'_'+str(arrival_dist)+'/'
             ambulance_graph_env = gym.make('Ambulance-v1', config=CONFIG)
 
             run_single_algo(ambulance_graph_env, agent, DEFAULT_SETTINGS)

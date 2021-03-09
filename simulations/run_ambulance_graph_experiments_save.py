@@ -60,7 +60,7 @@ def run_single_algo(env, agent, settings):
 
     exp = experiment.Experiment(env, agent, settings)
     _ = exp.run()
-    dt_data = exp.save_data(settings[targetPath], settings[targetPath])
+    dt_data = exp.save_data(settings[targetPath])
 
 
 DEFAULT_CONFIG = {'epLen': 5, 'arrival_dist': None, 'alpha': 0.25,
@@ -70,7 +70,7 @@ DEFAULT_CONFIG = {'epLen': 5, 'arrival_dist': None, 'alpha': 0.25,
 agents = [stableAgent(DEFAULT_CONFIG['epLen']), medianAgent(DEFAULT_CONFIG['epLen'], DEFAULT_CONFIG['edges'], DEFAULT_CONFIG['num_ambulance']), modeAgent(DEFAULT_CONFIG['epLen'])]
 nEps = 500
 numIters = 50
-DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'targetPath': './tmp.csv', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False}
+DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'targetPath': '../data/ambulance_graph/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False}
 
 alphas = [0, 1, 0.25]
 arrival_dists = [None, [0.25, 0.4, 0.25, 0.05, 0.05]]

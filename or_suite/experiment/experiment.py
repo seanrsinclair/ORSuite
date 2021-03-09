@@ -26,7 +26,8 @@ class Experiment(object):
 
         self.seed = dict['seed']
         self.epFreq = dict['recFreq']
-        self.targetPath = dict['targetPath']
+        self.dirPath = dict['dirPath']
+        # self.targetPath = dict['targetPath']
         self.deBug = dict['deBug']
         self.nEps = dict['nEps']
         self.env = env
@@ -125,7 +126,7 @@ class Experiment(object):
         print('**************************************************')
 
     # Saves the data to the file location provided to the algorithm
-    def save_data(self , dir_path, targetPath): # TODO: Best way of getting directory locations for both paths? kwargs? 
+    def save_data(self): # TODO: Best way of getting directory locations for both paths? kwargs? 
                         # remove targetPath - force into data.csv and traj.csv
         print('**************************************************')
         print('Saving data')
@@ -134,8 +135,13 @@ class Experiment(object):
         print(self.data)
 
 
+        dir_path = self.dirPath
+
+        data_loc = 'data.csv'
+        traj_loc = 'trajectory.csv'
+
+
         if self.save_trajectory:
-            data_loc, traj_loc = targetPath
 
             dt = pd.DataFrame(self.data, columns=['episode', 'iteration', 'epReward', 'memory', 'time'])
             dt = dt[(dt.T != 0).any()]
@@ -143,7 +149,6 @@ class Experiment(object):
             traj = pd.DataFrame(self.trajectory, columns=['index', 'episode', 'step', 'oldState', 'reward', 'newState', 'info'])
             print('Writing to file ' + data_loc)
         else:
-            data_loc = targetPath
 
             dt = pd.DataFrame(self.data, columns=['episode', 'iteration', 'epReward', 'memory', 'time'])
             dt = dt[(dt.T != 0).any()]
