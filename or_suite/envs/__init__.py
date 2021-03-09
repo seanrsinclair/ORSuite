@@ -6,11 +6,11 @@ import or_suite.envs.resource_allocation
 # Ambulance Environments
 
 register(id = 'Ambulance-v0',
-    entry_point ='or_suite.envs.ambulance.ambulance_metric:AmbulanceEnv'
+    entry_point ='or_suite.envs.ambulance.ambulance_metric:AmbulanceEnvironment'
 )
 
 register(id = 'Ambulance-v1',
-    entry_point ='or_suite.envs.ambulance.ambulance_graph:AmbulanceEnv'
+    entry_point ='or_suite.envs.ambulance.ambulance_graph:AmbulanceGraphEnvironment'
 )
 
 # Resource Allocation Environments

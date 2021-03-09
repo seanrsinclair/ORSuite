@@ -4,8 +4,7 @@ import networkx as nx
 import sklearn_extra.cluster
 
 import sys
-sys.path.append('../')
-from agent import Agent
+from .. import Agent
 
 def find_lengths(graph):
     """

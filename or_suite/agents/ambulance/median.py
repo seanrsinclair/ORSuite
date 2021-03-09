@@ -3,8 +3,7 @@ import sys
 import sklearn_extra.cluster
 
 import sys
-sys.path.append('../')
-from agent import Agent
+from .. import Agent
 
 ''' Agent that implements a k-medoid heuristic algorithm for the line ambulance environment'''
 class medianAgent(Agent):
