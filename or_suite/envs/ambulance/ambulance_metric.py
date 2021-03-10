@@ -37,6 +37,7 @@ class AmbulanceEnvironment(gym.Env):
         '''
         super(AmbulanceEnvironment, self).__init__()
 
+        self.config = config
         self.epLen = config['epLen']
         self.alpha = config['alpha']
         self.starting_state = config['starting_state']
@@ -64,8 +65,8 @@ class AmbulanceEnvironment(gym.Env):
 
         return self.starting_state
 
-  # def arrivals(step):
-  #       return np.random.uniform(0,1)
+  def get_config(self):
+        return self.config
 
   def step(self, action):
         '''
