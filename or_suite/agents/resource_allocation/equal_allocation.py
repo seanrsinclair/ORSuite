@@ -66,6 +66,7 @@ class equalAllocationAgent(Agent):
         '''
         num_types = self.env_config['weight_matrix'].shape[0]
         action = np.zeros((num_types, self.env_config['K']))
+        print("timestep: %s"%timestep)
         for type in range(num_types):
             action[type,:] = self.env_config['init_budget']*self.rel_exp_endowments[timestep,type]
         

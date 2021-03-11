@@ -20,10 +20,6 @@ def run_single_algo(env, agent, settings):
     dt_data = exp.save_data()
 
 
-
-
-
-
 ''' Defining parameters to be used in the experiment'''
 
 
@@ -40,8 +36,6 @@ DEFAULT_ENV_CONFIG = {'K':2,
 problem_list = ['default']
 
 
-
-
 for problem in problem_list:
     nEps = 500
     numIters = 15
@@ -53,7 +47,7 @@ for problem in problem_list:
         ##### PARAMETER TUNING FOR AMBULANCE ENVIRONMENT
 
 
-    DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance_graph/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen' : 5}
+    DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance_graph/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen' : epLen}
 
 
     path = {}
