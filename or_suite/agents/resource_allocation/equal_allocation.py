@@ -26,7 +26,7 @@ class equalAllocationAgent(Agent):
         rel_exp_endowments: matrix containing expected proportion of endowments for location t
         """
         num_types = self.env_config['weight_matrix'].shape[0]
-        rel_exp_endowments = np.zeros(self.env_config['num_rounds'],num_types)
+        rel_exp_endowments = np.zeros((self.env_config['num_rounds'],num_types))
         
         for t in range(self.env_config['num_rounds']):
             mean_endowment = np.zeros(num_types)
@@ -65,7 +65,7 @@ class equalAllocationAgent(Agent):
         Select action according to function
         '''
         num_types = self.env_config['weight_matrix'].shape[0]
-        action = np.zeros(num_types, self.env_config['K'])
+        action = np.zeros((num_types, self.env_config['K']))
         for type in range(num_types):
             action[type,:] = self.env_config['init_budget']*self.rel_exp_endowments[timestep,type]
         
