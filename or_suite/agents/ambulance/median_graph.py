@@ -9,11 +9,7 @@ from .. import Agent
 def find_lengths(graph):
     """
     Given a graph, find_lengths first calculates the pairwise shortest distance 
-    between all the nodes, which is stored in a (symmetric) matrix. The mean is 
-    then calculated along the rows to produce a vector, and each element of the 
-    vector is inverted.
-    This function produces a vector with a sort of 'measure' for each node where a 
-    higher measure indicates that that node is on average close to other nodes. 
+    between all the nodes, which is stored in a (symmetric) matrix.
     """
     nodes = list(graph.nodes)
     num_nodes = len(nodes)
@@ -23,10 +19,8 @@ def find_lengths(graph):
     for node1 in nodes:
         for node2 in nodes:
             lengths[node1, node2] = dict_lengths[node1][node2]
-    
-    avg_inv_lengths = 1 / np.mean(lengths, axis=0)
 
-    return avg_inv_lengths
+    return lengths
 
 
 ''' Agent that implements a median-like heuristic algorithm for the graph ambulance environment'''
@@ -47,7 +41,7 @@ class medianAgent(Agent):
         self.graph = nx.Graph(edges)
         self.num_nodes = len(self.graph.nodes)
         self.num_ambulance = num_ambulance
-        self.avg_inv_lengths = find_lengths(self.graph)
+        self.lengths = find_lengths(self.graph)
         self.call_locs = []
 
 
@@ -93,12 +87,12 @@ class medianAgent(Agent):
         else:
             num_ambulance = len(self.data[0])
             counts = np.bincount(self.call_locs, minlength=self.num_nodes)
-            score = np.multiply(self.avg_inv_lengths, counts)
+            score = self.lengths @ counts
             action = []
             for i in range(num_ambulance):
-                node = np.argmax(score)
+                node = np.argmin(score)
                 action.append(node)
-                counts[node] = 0
+                score[node] = 99999999
             return action
 
 
