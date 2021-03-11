@@ -1,65 +1,62 @@
 import sys
 
-
-sys.path.append('../src/agent/')
-sys.path.append('../src/environment/')
-sys.path.append('../src/experiment/')
+sys.path.append('../')
 
 import numpy as np
 import gym
 
-import environment
-import experiment
-import agent
+import or_suite
 
-import resource_allocation 
-from equal_allocation_Agent import equalAllocationAgent
-
-
-import pickle
-import time
+from stable_baselines3 import PPO
+from stable_baselines3.ppo import MlpPolicy
+from stable_baselines3.common.env_util import make_vec_env
+from stable_baselines3.common.evaluation import evaluate_policy
 
 
-def run_single_algo(algorithm, algo_information, env, dictionary, path, num_iters, epLen):
-    """
-    Runs a single instance
+def run_single_algo(env, agent, settings): 
 
-    Added new parameter algo_information which is a dictionary mapping string to agent init functions
-        These inits assume to only take in epLen as a parameter
-
-    Possible we could make a new file only containing these dictionaries, so we can specify the possible approaches to a problem
-    """
-
-
-    agent_list = [algo_information[algorithm](epLen) for _ in range(num_iters)]
-    exp = experiment.Experiment(env, agent_list, dictionary)
+    exp = or_suite.experiment.experiment.Experiment(env, agent, settings)
     _ = exp.run()
     dt_data = exp.save_data()
-    
-    # Saving Data
-    dt_data.to_csv(path+'.csv')
 
-    return algorithm
+
+
+
+
 
 ''' Defining parameters to be used in the experiment'''
 
 
+DEFAULT_ENV_CONFIG = {'K':2, 
+    'num_rounds':3,
+    'weight_matrix':np.array([[1,0],[0,1],[1,1]]),
+    'init_budget': 100*np.ones(2),
+    'type_dist':lambda i: np.random.randint(50,size=3),
+    'utility_function': lambda x,theta: np.dot(x,theta)
+    }
+
+
 #TODO: Edit algo-list to be the names of the algorithms you created
-algo_information = {'Equal_Allocation': lambda epLen: equalAllocationAgent(epLen)}
 problem_list = ['default']
+
+
+
 
 for problem in problem_list:
     nEps = 500
     numIters = 15
     #initialize resource allocation environment w/ default parameters
-    env = resource_allocation.make_resource_allocationEnvMDP()
+    env = or_suite.envs.resource_allocation.resource_allocation.ResourceAllocationEnvironment(config = DEFAULT_ENV_CONFIG)
     epLen = env.epLen
+    algo_information = {'Equal_Allocation': or_suite.agents.resource_allocation.equal_allocation.equalAllocationAgent(epLen, DEFAULT_ENV_CONFIG)}
+
         ##### PARAMETER TUNING FOR AMBULANCE ENVIRONMENT
 
 
-    dictionary = {'seed': 1, 'epFreq' : 1, 'targetPath': './tmp.csv', 'deBug' : False, 'nEps': nEps, 'recFreq' : 10, 'numIters' : numIters, 'epLen': epLen}
+    DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance_graph/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen' : 5}
+
 
     path = {}
     for algorithm in algo_information:
-        path[algorithm] = '../data/allocation_%s_%s'%(problem,algorithm)
-        run_single_algo(algorithm, algo_information, env, dictionary, path[algorithm], numIters, epLen)
+        DEFAULT_SETTINGS['dirPath'] = '../data/allocation_%s_%s'%(algorithm,problem)
+        run_single_algo(env, algo_information[algorithm], DEFAULT_SETTINGS)

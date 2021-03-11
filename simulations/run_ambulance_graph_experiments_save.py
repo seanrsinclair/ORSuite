@@ -24,11 +24,11 @@ DEFAULT_CONFIG = {'epLen': 5, 'arrival_dist': None, 'alpha': 0.25,
                 'edges': [(0,4,{'dist':7}), (0,1,{'dist':1}), (1,2,{'dist':3}), (2,3,{'dist':5}), (1,3,{'dist':1}), (1,4,{'dist':17}), (3,4,{'dist':3})],
                 'starting_state': [1,2], 'num_ambulance': 2}
 
-agents = [or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']), or_suite.agents.ambulance.median_graph.medianAgent(DEFAULT_CONFIG['epLen'], DEFAULT_CONFIG['edges'], DEFAULT_CONFIG['num_ambulance']), or_suite.agents.ambulance.mode_graph.modeAgent(DEFAULT_CONFIG['epLen'])]
+agents = {'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']), 'Median': or_suite.agents.ambulance.median_graph.medianAgent(DEFAULT_CONFIG['epLen'], DEFAULT_CONFIG['edges'], DEFAULT_CONFIG['num_ambulance']), 'Mode': or_suite.agents.ambulance.mode_graph.modeAgent(DEFAULT_CONFIG['epLen'])}
 nEps = 50
 numIters = 20
 epLen = 5
-DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance_graph/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen': epLen}
+DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance_graph/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen' : 5}
 
 alphas = [0, 1, 0.25]
 arrival_dists = [None, [0.25, 0.4, 0.25, 0.05, 0.05]]
@@ -37,14 +37,13 @@ arrival_dists = [None, [0.25, 0.4, 0.25, 0.05, 0.05]]
 for agent in agents:
     for alpha in alphas:
         for arrival_dist in arrival_dists:
-            agent.reset()
-
             CONFIG = DEFAULT_CONFIG
             CONFIG['alpha'] = alpha
             CONFIG['arrival_dist'] = arrival_dist
+            DEFAULT_SETTINGS['dirPath'] = '../data/ambulance_graph_'+str(agent)+'_'+str(alpha)+'_'+str(arrival_dist)+'/'
             ambulance_graph_env = gym.make('Ambulance-v1', config=CONFIG)
 
-            run_single_algo(ambulance_graph_env, agent, DEFAULT_SETTINGS)
+            run_single_algo(ambulance_graph_env, agents[agent], DEFAULT_SETTINGS)
 
 
 
