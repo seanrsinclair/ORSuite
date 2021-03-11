@@ -19,7 +19,7 @@ class equalAllocationAgent(Agent):
 
     def get_expected_endowments(self,N=1000):
         """
-        Monte Carlo Method for estimating Expectation of type distribution
+        Monte Carlo Method for estimating Expectation of type distribution using N realizations
         Only need to run this once to get expectations for all locations
 
         Returns: 
@@ -46,15 +46,14 @@ class equalAllocationAgent(Agent):
         self.data = []
     
     def update_config(self, config):
-        pass
+        '''Updates environment configuration dictionary'''
+        self.env_config = config
+        return
 
     def update_obs(self, obs, action, reward, newObs, timestep, info): 
         '''Add observation to records'''
         self.data.append(newObs)
         return
-
-    def get_num_arms(self):
-        return 0
 
     def update_policy(self, k):
         '''Update internal policy based upon records'''
@@ -67,8 +66,8 @@ class equalAllocationAgent(Agent):
         '''
         num_types = self.env_config['weight_matrix'].shape[0]
         action = np.zeros(num_types, self.env_config['K'])
-        for t in range(num_types):
-            action[t,:] = self.env_config['init_budget']*self.rel_exp_endowments[timestep,t]
+        for type in range(num_types):
+            action[type,:] = self.env_config['init_budget']*self.rel_exp_endowments[timestep,type]
         
         return action
 
