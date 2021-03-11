@@ -24,11 +24,11 @@ DEFAULT_CONFIG =  {'epLen': 5, 'arrival_dist': lambda x : np.random.rand(), 'alp
                     'starting_state': np.array([0]), 'num_ambulance': 1}
 
 
-agents = [or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']), or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen'])]
+agents = {'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']), 'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen'])}
 nEps = 50
 numIters = 20
 epLen = 5
-DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance_metric/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen': epLen}
+DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance_graph/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen' : 5}
 
 alphas = [0, 1, 0.25]
 
@@ -56,14 +56,14 @@ arrival_dists = [shifting, uniform, beta]
 for agent in agents:
     for alpha in alphas:
         for arrival_dist in arrival_dists:
-            agent.reset()
 
             CONFIG = DEFAULT_CONFIG
             CONFIG['alpha'] = alpha
             CONFIG['arrival_dist'] = arrival_dist
+            DEFAULT_SETTINGS['dirPath'] = '../data/ambulance_metric_'+str(agent)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/'
             ambulance_graph_env = gym.make('Ambulance-v0', config=CONFIG)
 
-            run_single_algo(ambulance_graph_env, agent, DEFAULT_SETTINGS)
+            run_single_algo(ambulance_graph_env, agents[agent], DEFAULT_SETTINGS)
 
 
 

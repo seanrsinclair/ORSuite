@@ -5,7 +5,7 @@ from .. import Agent
 ''' Agent which implements several heuristic algorithms'''
 class equalAllocationAgent(Agent):
 
-    def __init__(self, epLen,env_config):
+    def __init__(self, epLen, env_config):
         '''args:
             epLen - number of steps
             func - function used to decide action

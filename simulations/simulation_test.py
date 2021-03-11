@@ -48,6 +48,7 @@ arrival_dists = [None, [0.25, 0.4, 0.25, 0.05, 0.05]]
 #             run_single_algo(ambulance_graph_env, agent, DEFAULT_SETTINGS)
 
 
+
 from stable_baselines3 import PPO
 from stable_baselines3.ppo import MlpPolicy
 
@@ -78,7 +79,7 @@ def evaluate(model, num_episodes=100):
         all_episode_rewards.append(sum(episode_rewards))
 
     mean_episode_reward = np.mean(all_episode_rewards)
-    print("Mean reward:", mean_episode_reward, "Num episodes:", num_episodes)
+    # print("Mean reward:", mean_episode_reward, "Num episodes:", num_episodes)
 
     return mean_episode_reward, np.std(all_episode_rewards)
 
@@ -99,14 +100,12 @@ mean_reward, std_reward = evaluate(model)
 print(f"mean_reward:{mean_reward:.2f} +/- {std_reward:.2f}")
 
 
-model.learn(total_timesteps=1000)
+model.learn(total_timesteps=100)
 
 mean_reward, std_reward = evaluate(model)
 print(f"mean_reward:{mean_reward:.2f} +/- {std_reward:.2f}")
 
+model.learn(total_timesteps=1000)
 
-
-
-
-
-
+mean_reward, std_reward = evaluate(model)
+print(f"mean_reward:{mean_reward:.2f} +/- {std_reward:.2f}")
