@@ -54,3 +54,13 @@ for problem in problem_list:
     for algorithm in algo_information:
         DEFAULT_SETTINGS['dirPath'] = '../data/allocation_%s_%s'%(algorithm,problem)
         run_single_algo(env, algo_information[algorithm], DEFAULT_SETTINGS)
+
+env = make_vec_env('Resource-v0', n_envs=4)
+model = PPO(MlpPolicy, env, verbose=1, gamma=1)
+model.learn(total_timesteps=1000)
+
+env = gym.make('Resource-v0')
+n_episodes = 100
+res_mean, res_std = evaluate_policy(model, env, n_eval_episodes=n_episodes)
+
+print(-res_mean, '+/-', 1.96*res_std/np.sqrt(n_episodes))
