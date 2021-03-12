@@ -45,7 +45,11 @@ class equalAllocationAgent(Agent):
         # resets data matrix to be empty
         self.data = []
     
+<<<<<<< HEAD
     def update_config(self, env, config):
+=======
+    def update_config(self, config):
+>>>>>>> 72b65ac (Line figures and plots)
         '''Updates environment configuration dictionary'''
         self.env_config = config
         return
@@ -66,7 +70,10 @@ class equalAllocationAgent(Agent):
         '''
         num_types = self.env_config['weight_matrix'].shape[0]
         action = np.zeros((num_types, self.env_config['K']))
+<<<<<<< HEAD
         print("timestep: %s"%timestep)
+=======
+>>>>>>> 72b65ac (Line figures and plots)
         for type in range(num_types):
             action[type,:] = self.env_config['init_budget']*self.rel_exp_endowments[timestep,type]
         

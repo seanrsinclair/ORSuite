@@ -45,7 +45,11 @@ class medianAgent(Agent):
         self.call_locs = []
 
 
+<<<<<<< HEAD
     def update_config(self, env, config):
+=======
+    def update_config(self, config):
+>>>>>>> 72b65ac (Line figures and plots)
         pass
 
     def reset(self):

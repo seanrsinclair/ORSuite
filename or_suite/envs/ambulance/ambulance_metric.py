@@ -7,7 +7,10 @@ import numpy as np
 import gym
 from gym import spaces
 import math
+<<<<<<< HEAD
 from .. import env_configs
+=======
+>>>>>>> 72b65ac (Line figures and plots)
 
 #------------------------------------------------------------------------------
 '''An ambulance environment over [0,1].  An agent interacts through the environment
@@ -15,6 +18,10 @@ by picking a location to station the ambulance.  Then a patient arrives and the 
 most go and serve the arrival, paying a cost of travel.'''
 
 
+<<<<<<< HEAD
+=======
+DEFAULT_CONFIG =  {'epLen': 5, 'arrival_dist': lambda x : np.random.rand(), 'alpha': 0.25, 'starting_state': np.array([0]), 'num_ambulance': 1}
+>>>>>>> 72b65ac (Line figures and plots)
 
 class AmbulanceEnvironment(gym.Env):
   """
@@ -25,7 +32,11 @@ class AmbulanceEnvironment(gym.Env):
   metadata = {'render.modes': ['human']}
 
 
+<<<<<<< HEAD
   def __init__(self, config = env_configs.ambulance_metric_default_config):
+=======
+  def __init__(self, config = DEFAULT_CONFIG):
+>>>>>>> 72b65ac (Line figures and plots)
         '''
         For a more detailed description of each parameter, see the readme file
         
@@ -92,8 +103,12 @@ class AmbulanceEnvironment(gym.Env):
 
         # Update the state of the system according to the action taken and change 
         # the location of the closest ambulance to the call to the call location
+<<<<<<< HEAD
         action = np.array(action)
         newState = action
+=======
+        newState = np.array(action)
+>>>>>>> 72b65ac (Line figures and plots)
         newState[close_index] = new_arrival
         obs = newState
 

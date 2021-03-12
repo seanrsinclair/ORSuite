@@ -55,7 +55,11 @@ class Experiment(object):
         traj_index = 0
         for i in range(self.num_iters):
             self.agent.reset()
+<<<<<<< HEAD
             self.agent.update_config(self.env, self.env.get_config())
+=======
+            self.agent.update_config(self.env.get_config())
+>>>>>>> 72b65ac (Line figures and plots)
             for ep in range(1, self.nEps+1):
                 # print('Episode : ' + str(ep))
                 # Reset the environment

@@ -20,10 +20,18 @@ def run_single_algo(env, agent, settings):
     dt_data = exp.save_data()
 
 
+<<<<<<< HEAD
 DEFAULT_CONFIG =  or_suite.envs.env_configs.ambulance_metric_default_config
 
 
 agents = {'Random': or_suite.agents.rl.random.randomAgent(), 'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']), 'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen'])}
+=======
+DEFAULT_CONFIG =  {'epLen': 5, 'arrival_dist': lambda x : np.random.rand(), 'alpha': 0.25, 
+                    'starting_state': np.array([0]), 'num_ambulance': 1}
+
+
+agents = {'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']), 'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen'])}
+>>>>>>> 72b65ac (Line figures and plots)
 nEps = 50
 numIters = 20
 epLen = 5
@@ -68,11 +76,19 @@ for agent in agents:
 
 ######## Testing with Stable Baselines3 PPO Algorithm ########
 
+<<<<<<< HEAD
 env = make_vec_env('Ambulance-v0', n_envs=4)
 model = PPO(MlpPolicy, env, verbose=1, gamma=1)
 model.learn(total_timesteps=1000)
 
 env = gym.make('Ambulance-v0')
+=======
+env = make_vec_env('Ambulance-v1', n_envs=4)
+model = PPO(MlpPolicy, env, verbose=1, gamma=1)
+model.learn(total_timesteps=1000)
+
+env = gym.make('Ambulance-v1')
+>>>>>>> 72b65ac (Line figures and plots)
 n_episodes = 100
 res_mean, res_std = evaluate_policy(model, env, n_eval_episodes=n_episodes)
 
