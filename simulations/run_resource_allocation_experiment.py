@@ -8,9 +8,11 @@ import gym
 import or_suite
 
 from stable_baselines3 import PPO
-from stable_baselines3.ppo import MlpPolicy
+from stable_baselines3.ppo import CnnPolicy
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.evaluation import evaluate_policy
+from stable_baselines3.common.env_checker import check_env
+
 
 
 def run_single_algo(env, agent, settings): 
@@ -32,31 +34,35 @@ DEFAULT_ENV_CONFIG = {'K':2,
     }
 
 
-#TODO: Edit algo-list to be the names of the algorithms you created
-problem_list = ['default']
+# #TODO: Edit algo-list to be the names of the algorithms you created
+# problem_list = ['default']
 
 
-for problem in problem_list:
-    nEps = 500
-    numIters = 15
-    #initialize resource allocation environment w/ default parameters
-    env = or_suite.envs.resource_allocation.resource_allocation.ResourceAllocationEnvironment(config = DEFAULT_ENV_CONFIG)
-    epLen = env.epLen
-    algo_information = {'Equal_Allocation': or_suite.agents.resource_allocation.equal_allocation.equalAllocationAgent(epLen, DEFAULT_ENV_CONFIG)}
+# for problem in problem_list:
+#     nEps = 500
+#     numIters = 15
+#     #initialize resource allocation environment w/ default parameters
+#     env = gym.make('Resource-v0', config = DEFAULT_ENV_CONFIG)
+#     epLen = env.epLen
+#     algo_information = {'Equal_Allocation': or_suite.agents.resource_allocation.equal_allocation.equalAllocationAgent(epLen, DEFAULT_ENV_CONFIG)}
 
-        ##### PARAMETER TUNING FOR AMBULANCE ENVIRONMENT
-
-
-    DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance_graph/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen' : epLen}
+#         ##### PARAMETER TUNING FOR AMBULANCE ENVIRONMENT
 
 
-    path = {}
-    for algorithm in algo_information:
-        DEFAULT_SETTINGS['dirPath'] = '../data/allocation_%s_%s'%(algorithm,problem)
-        run_single_algo(env, algo_information[algorithm], DEFAULT_SETTINGS)
+#     DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance_graph/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen' : epLen}
 
-env = make_vec_env('Resource-v0', n_envs=4)
-model = PPO(MlpPolicy, env, verbose=1, gamma=1)
+
+#     path = {}
+#     for algorithm in algo_information:
+#         DEFAULT_SETTINGS['dirPath'] = '../data/allocation_%s_%s'%(algorithm,problem)
+#         run_single_algo(env, algo_information[algorithm], DEFAULT_SETTINGS)
+
+env = gym.make('Resource-v0', config = DEFAULT_ENV_CONFIG)
+
+
+check_env(env)
+
+model = PPO(CnnPolicy, env, verbose=1, gamma=1)
 model.learn(total_timesteps=1000)
 
 env = gym.make('Resource-v0')
