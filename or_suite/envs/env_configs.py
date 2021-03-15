@@ -25,3 +25,9 @@ ambulance_graph_default_config = {'epLen': 5,
                 'starting_state': [1,2], 'num_ambulance': 2
   }
 
+
+finite_bandit_default_config =  {'epLen': 5,
+    'arm_means': np.array([.1, .7, .2, 1])
+  }
+
+
