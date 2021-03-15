@@ -45,7 +45,7 @@ class medianAgent(Agent):
         self.call_locs = []
 
 
-    def update_config(self, config):
+    def update_config(self, env, config):
         pass
 
     def reset(self):

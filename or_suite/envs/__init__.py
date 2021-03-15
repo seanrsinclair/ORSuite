@@ -1,6 +1,7 @@
 from gym.envs.registration import register
 import or_suite.envs.ambulance
 import or_suite.envs.resource_allocation
+from or_suite.envs.env_configs import *
 
 
 # Ambulance Environments

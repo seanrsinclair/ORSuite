@@ -20,11 +20,10 @@ def run_single_algo(env, agent, settings):
     dt_data = exp.save_data()
 
 
-DEFAULT_CONFIG =  {'epLen': 5, 'arrival_dist': lambda x : np.random.rand(), 'alpha': 0.25, 
-                    'starting_state': np.array([0]), 'num_ambulance': 1}
+DEFAULT_CONFIG =  or_suite.envs.env_configs.ambulance_metric_default_config
 
 
-agents = {'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']), 'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen'])}
+agents = {'Random': or_suite.agents.rl.random.randomAgent(), 'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']), 'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen'])}
 nEps = 50
 numIters = 20
 epLen = 5

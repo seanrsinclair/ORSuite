@@ -7,6 +7,7 @@ import numpy as np
 import gym
 from gym import spaces
 import math
+from .. import env_configs
 
 #------------------------------------------------------------------------------
 '''An ambulance environment over [0,1].  An agent interacts through the environment
@@ -14,7 +15,6 @@ by picking a location to station the ambulance.  Then a patient arrives and the 
 most go and serve the arrival, paying a cost of travel.'''
 
 
-DEFAULT_CONFIG =  {'epLen': 5, 'arrival_dist': lambda x : np.random.rand(), 'alpha': 0.25, 'starting_state': np.array([0]), 'num_ambulance': 1}
 
 class AmbulanceEnvironment(gym.Env):
   """
@@ -25,7 +25,7 @@ class AmbulanceEnvironment(gym.Env):
   metadata = {'render.modes': ['human']}
 
 
-  def __init__(self, config = DEFAULT_CONFIG):
+  def __init__(self, config = env_configs.ambulance_metric_default_config):
         '''
         For a more detailed description of each parameter, see the readme file
         

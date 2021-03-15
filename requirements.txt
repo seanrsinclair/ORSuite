@@ -9,3 +9,4 @@ jupyter
 scikit-learn
 scikit-learn-extra
 stable-baselines3[extra]
+yaml

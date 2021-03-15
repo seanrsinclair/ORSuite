@@ -7,21 +7,14 @@ import numpy as np
 import gym
 from gym import spaces
 import math
-
+from .. import env_configs
 
 #------------------------------------------------------------------------------
 '''Sequential Resource Allocation Problem for n agents with K commodities. 
 Currently reward is Nash Social Welfare but in the future will integrate more options 
 to determine a fair allocation '''
 
-# 2 commodities, 3 locations, uniform random type distribution, linear utility
-DEFAULT_ENV_CONFIG = {'K': 2, 
-    'num_rounds': 3,
-    'weight_matrix': np.array([[1,0],[0,1],[1,1]]),
-    'init_budget': 100*np.ones(2),
-    'type_dist': lambda i: np.random.randint(50,size=3),
-    'utility_function': lambda x,theta: np.dot(x,theta)
-    }
+
 class ResourceAllocationEnvironment(gym.Env):
   """
   Custom Environment that follows gym interface.
@@ -29,7 +22,7 @@ class ResourceAllocationEnvironment(gym.Env):
 
   metadata = {'render.modes': ['human']}
 
-  def __init__( self, config=DEFAULT_ENV_CONFIG):
+  def __init__( self, config=env_configs.resource_allocation_default_cofig):
         '''
         Initializes the Sequential Resource Allocation Environment
 
