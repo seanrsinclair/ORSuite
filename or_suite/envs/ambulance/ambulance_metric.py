@@ -92,7 +92,8 @@ class AmbulanceEnvironment(gym.Env):
 
         # Update the state of the system according to the action taken and change 
         # the location of the closest ambulance to the call to the call location
-        newState = np.array(action)
+        action = np.array(action)
+        newState = action
         newState[close_index] = new_arrival
         obs = newState
 
