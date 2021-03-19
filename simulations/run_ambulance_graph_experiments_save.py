@@ -20,17 +20,9 @@ def run_single_algo(env, agent, settings):
     dt_data = exp.save_data()
 
 
-<<<<<<< HEAD
 DEFAULT_CONFIG = or_suite.envs.env_configs.ambulance_graph_default_config
 
 agents = {'Random': or_suite.agents.rl.random.randomAgent(), 'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']), 'Median': or_suite.agents.ambulance.median_graph.medianAgent(DEFAULT_CONFIG['epLen'], DEFAULT_CONFIG['edges'], DEFAULT_CONFIG['num_ambulance']), 'Mode': or_suite.agents.ambulance.mode_graph.modeAgent(DEFAULT_CONFIG['epLen'])}
-=======
-DEFAULT_CONFIG = {'epLen': 5, 'arrival_dist': None, 'alpha': 0.25,
-                'edges': [(0,4,{'dist':7}), (0,1,{'dist':1}), (1,2,{'dist':3}), (2,3,{'dist':5}), (1,3,{'dist':1}), (1,4,{'dist':17}), (3,4,{'dist':3})],
-                'starting_state': [1,2], 'num_ambulance': 2}
-
-agents = {'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']), 'Median': or_suite.agents.ambulance.median_graph.medianAgent(DEFAULT_CONFIG['epLen'], DEFAULT_CONFIG['edges'], DEFAULT_CONFIG['num_ambulance']), 'Mode': or_suite.agents.ambulance.mode_graph.modeAgent(DEFAULT_CONFIG['epLen'])}
->>>>>>> 72b65ac (Line figures and plots)
 nEps = 50
 numIters = 20
 epLen = 5
@@ -55,12 +47,12 @@ for agent in agents:
 
 ######## Testing with Stable Baselines3 PPO Algorithm ########
 
-env = make_vec_env('Ambulance-v1', n_envs=4)
-model = PPO(MlpPolicy, env, verbose=1, gamma=1)
-model.learn(total_timesteps=1000)
+# env = make_vec_env('Ambulance-v1', n_envs=4)
+# model = PPO(MlpPolicy, env, verbose=1, gamma=1)
+# model.learn(total_timesteps=1000)
 
-env = gym.make('Ambulance-v1')
-n_episodes = 100
-res_mean, res_std = evaluate_policy(model, env, n_eval_episodes=n_episodes)
+# env = gym.make('Ambulance-v1')
+# n_episodes = 100
+# res_mean, res_std = evaluate_policy(model, env, n_eval_episodes=n_episodes)
 
-print(-res_mean, '+/-', 1.96*res_std/np.sqrt(n_episodes))
+# print(-res_mean, '+/-', 1.96*res_std/np.sqrt(n_episodes))
