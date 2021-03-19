@@ -24,7 +24,7 @@ All the three components are driven by a python script `run_<env_name>_save_data
 - Step 1 : Execute the following command to generate data points for *__ambulance__* environment: 
 ` python run_ambulance_save_data.py`
 This saves the data generated from the *__ambulance__* environment to `~/or_suite-main/data` 
-The file structure will be in the format of `~/or_suite-main//data/<env_name>_metric_<agent>_<sweep function>/data.csv`
+The file structure will be in the format of `~/or_suite-main/data/<env_name>_metric_<agent>_<sweep function>/data.csv`
 The generated data will contain the following metrics : 
   - Episodes Rewards
   - Iteration counts
