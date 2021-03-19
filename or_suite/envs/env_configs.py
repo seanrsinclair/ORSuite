@@ -13,7 +13,7 @@ resource_allocation_default_cofig = {'K': 2,
 ambulance_metric_default_config =  {'epLen': 5,
     'arrival_dist': lambda x : np.random.rand(), 
     'alpha': 0.25, 
-    'starting_state': np.array([0]), 
+    'starting_state': np.array([0.0]), 
     'num_ambulance': 1
   }
 
