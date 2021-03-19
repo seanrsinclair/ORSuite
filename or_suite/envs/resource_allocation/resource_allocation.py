@@ -14,13 +14,15 @@ from .. import env_configs
 Currently reward is Nash Social Welfare but in the future will integrate more options 
 to determine a fair allocation '''
 
-
 class ResourceAllocationEnvironment(gym.Env):
   """
   Custom Environment that follows gym interface.
   """
-
+  # Because of google colab, we cannot implement the GUI ('human' render mode)
   metadata = {'render.modes': ['human']}
+  # Define constants for clearer code
+
+
 
   def __init__( self, config=env_configs.resource_allocation_default_cofig):
         '''

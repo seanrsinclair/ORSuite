@@ -47,12 +47,12 @@ for agent in agents:
 
 ######## Testing with Stable Baselines3 PPO Algorithm ########
 
-env = make_vec_env('Ambulance-v1', n_envs=4)
-model = PPO(MlpPolicy, env, verbose=1, gamma=1)
-model.learn(total_timesteps=1000)
+# env = make_vec_env('Ambulance-v1', n_envs=4)
+# model = PPO(MlpPolicy, env, verbose=1, gamma=1)
+# model.learn(total_timesteps=1000)
 
-env = gym.make('Ambulance-v1')
-n_episodes = 100
-res_mean, res_std = evaluate_policy(model, env, n_eval_episodes=n_episodes)
+# env = gym.make('Ambulance-v1')
+# n_episodes = 100
+# res_mean, res_std = evaluate_policy(model, env, n_eval_episodes=n_episodes)
 
-print(-res_mean, '+/-', 1.96*res_std/np.sqrt(n_episodes))
+# print(-res_mean, '+/-', 1.96*res_std/np.sqrt(n_episodes))

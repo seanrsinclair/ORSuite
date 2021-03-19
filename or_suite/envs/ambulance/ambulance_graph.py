@@ -19,7 +19,6 @@ cost of travel.'''
 
 
 
-
 class AmbulanceGraphEnvironment(gym.Env):
   """
   Custom Environment that follows gym interface.

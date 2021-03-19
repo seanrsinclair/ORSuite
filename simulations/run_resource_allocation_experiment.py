@@ -1,7 +1,10 @@
 import sys
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 72b65ac (Line figures and plots)
 sys.path.append('../')
 
 import numpy as np
@@ -10,11 +13,17 @@ import gym
 import or_suite
 
 from stable_baselines3 import PPO
+<<<<<<< HEAD
 from stable_baselines3.ppo import CnnPolicy
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.evaluation import evaluate_policy
 from stable_baselines3.common.env_checker import check_env
 
+=======
+from stable_baselines3.ppo import MlpPolicy
+from stable_baselines3.common.env_util import make_vec_env
+from stable_baselines3.common.evaluation import evaluate_policy
+>>>>>>> 72b65ac (Line figures and plots)
 
 
 def run_single_algo(env, agent, settings): 

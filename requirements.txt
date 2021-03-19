@@ -9,4 +9,7 @@ jupyter
 scikit-learn
 scikit-learn-extra
 stable-baselines3[extra]
+<<<<<<< HEAD
 yaml
+=======
+>>>>>>> 72b65ac (Line figures and plots)
