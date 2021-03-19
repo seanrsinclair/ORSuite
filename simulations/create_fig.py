@@ -92,9 +92,12 @@ def plot_radar_plots(path1, path2 , fig_path , fig_name):
 
     # Set data
     df = pd.DataFrame({'group': ['Median', 'Stable'],
-                       'Time': time*10000,
-                       'Space': space/100,
-                       'Reward': np.abs(reward*100)})
+                       'Time': time,
+                       'Space': space,
+                       'Reward': np.abs(reward)})
+    df -= df.min()
+    df /= df.max()
+    
     print(df)
     # ------- PART 1: Create background
 
