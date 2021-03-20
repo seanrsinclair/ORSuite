@@ -40,7 +40,7 @@ class Experiment(object):
 
 
         if self.save_trajectory:
-            self.trajectory = np.zeros([dict['nEps']*self.num_iters*self.epLen, 8])
+            self.trajectory = []
 
         np.random.seed(self.seed)
 
@@ -117,7 +117,7 @@ class Experiment(object):
                 self.data[index, 1] = i
                 self.data[index, 2] = epReward
                 self.data[index, 3] = current
-                self.data[index, 4] = ((end_time) - (start_time))
+                self.data[index, 4] = ((end_time) - (start_time)) * (10**9)
 
                 index += 1
 
@@ -155,14 +155,14 @@ class Experiment(object):
             print('Writing to file ' + data_loc)
 
         if os.path.exists(dir_path):
-            dt.to_csv(os.path.join(dir_path,data_loc), index=False, float_format='%.2f', mode='a')
+            dt.to_csv(os.path.join(dir_path,data_loc), index=False, float_format='%.2f', mode='w')
             if self.save_trajectory:
-                dt.to_csv(os.path.join(dir_path, traj_loc), index=False, float_format='%.2f', mode='a')
+                dt.to_csv(os.path.join(dir_path, traj_loc), index=False, float_format='%.2f', mode='w')
         else:
             os.makedirs(dir_path)
-            dt.to_csv(os.path.join(dir_path, data_loc), index=False, float_format='%.2f')
+            dt.to_csv(os.path.join(dir_path, data_loc), index=False, float_format='%.2f', mode='w')
             if self.save_trajectory:
-                dt.to_csv(os.path.join(dir_path, traj_loc), index=False, float_format='%.2f', mode='a')
+                dt.to_csv(os.path.join(dir_path, traj_loc), index=False, float_format='%.2f', mode='w')
 
         print('**************************************************')
         print('Data save complete')

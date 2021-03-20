@@ -8,6 +8,19 @@ import numpy as np
 import pandas as pd
 from math import pi
 
+
+def normalize(df):
+    result = df.copy()
+    for feature_name in df.columns:
+        if feature_name != 'group':
+                max_value = df[feature_name].max()
+                min_value = df[feature_name].min()
+                print(max_value, min_value, feature_name)
+                result[feature_name] = (df[feature_name] - min_value) / (max_value - min_value)
+                
+    return result
+
+
 def plot_radar_plots(path1, path2 , fig_path , fig_name):
     
     nEps = 50
@@ -44,8 +57,8 @@ def plot_radar_plots(path1, path2 , fig_path , fig_name):
                        'Time': time,
                        'Space': space,
                        'Reward': np.abs(reward)})
-    df -= df.min()
-    df /= df.max()
+    print(df)
+    df = normalize(df)
     
     print(df)
     # ------- PART 1: Create background
@@ -71,8 +84,8 @@ def plot_radar_plots(path1, path2 , fig_path , fig_name):
 
     # Draw ylabels
     ax.set_rlabel_position(0)
-    plt.yticks([10,20,30], ["10","20","30"], color="grey", size=7)
-    plt.ylim(0,40)
+    plt.yticks([.2,.4,.6,.8], [".2",".4",".6", ".8"], color="grey", size=7)
+    plt.ylim(0,1.1)
 
 
     # ------- PART 2: Add plots
@@ -104,32 +117,38 @@ def plot_radar_plots(path1, path2 , fig_path , fig_name):
                 pad_inches = 0.01)
         
 
-def plot_line_plots(path1, path2 , fig_path , fig_name):
+def plot_line_plots(path1, path2 , path3, fig_path , fig_name):
     
+
         dt_first = pd.read_csv(path_first).groupby(['episode']).mean()
         dt_second = pd.read_csv(path_sec).groupby(['episode']).mean()
+        dt_third = pd.read_csv(path_third).groupby(['episode']).mean()
         dt_first['episode'] = dt_first.index.values
         dt_second['episode'] = dt_second.index.values
+        dt_third['episode'] = dt_third.index.values
         
         #Selecting the number of points to plot default = 5
         dt_second = dt_second.iloc[::5, :]
         dt_first = dt_first.iloc[::5, :]
+        dt_third = dt_third.iloc[::5, :]
        
-        fig, ax = plt.subplots(1, 3, constrained_layout=False)
-        fig.figsize = [30,30]
+        fig, ax = plt.subplots(1, 3, constrained_layout=False, figsize=(15,5))
         fig.suptitle('Comparison of Observed Rewards')
         
-        ax[0].plot(dt_first['episode'], dt_first['epReward'], label='Median', linestyle=':')
-        ax[0].plot(dt_second['episode'], dt_second['epReward'], label = 'No Movement', linestyle='-.')
+        ax[0].plot(dt_first['episode'], dt_first['epReward'], label='Random', linestyle=':')
+        ax[0].plot(dt_second['episode'], dt_second['epReward'], label = 'Stable', linestyle='-.')
+        ax[0].plot(dt_third['episode'], dt_third['epReward'], label = 'Median', linestyle='-')
         ax[0].set_ylabel('Observed Reward')
 
 
-        ax[1].plot(dt_first['episode'], dt_first['time'], label='Median', linestyle=':')
-        ax[1].plot(dt_second['episode'], dt_second['time'], label = 'No Movement', linestyle='-.')
+        ax[1].plot(dt_first['episode'], dt_first['time'], label='Random', linestyle=':')
+        ax[1].plot(dt_second['episode'], dt_second['time'], label = 'Stable', linestyle='-.')
+        ax[1].plot(dt_third['episode'], dt_third['time'], label='Median', linestyle='-')
         ax[1].set_ylabel('Observed Time Used ( ns )')
 
-        ax[2].plot(dt_first['episode'], dt_first['memory'], label='Median', linestyle=':')
-        ax[2].plot(dt_second['episode'], dt_second['memory'], label = 'No Movement', linestyle='-.')
+        ax[2].plot(dt_first['episode'], dt_first['memory'], label='Random', linestyle=':')
+        ax[2].plot(dt_second['episode'], dt_second['memory'], label = 'Stable', linestyle='-.')
+        ax[2].plot(dt_third['episode'], dt_third['memory'], label='Median', linestyle='-')
         ax[2].set_ylabel('Observed Memory Usage (B)')
 
         # plt.ylim(0,5+.1)
@@ -155,10 +174,10 @@ if __name__ == "__main__":
     list_algo_1 = []
     list_algo_2 = []
 
-    env_type = 'ambulance'
+    env_type = 'ambulance_metric'
     problem_list = ['shifting', 'beta', 'uniform']
     param_list = ['0', '1', '0.25']
-    algo_list = ['metric_Median' , 'metric_Stable']
+    algo_list = ['Random' , 'Stable', 'Median']
 
     my_path = os.path.abspath(__file__) # Figures out the absolute path for you in case your working directory moves around.
     
@@ -172,12 +191,14 @@ if __name__ == "__main__":
     #         name_no = '../data/ambulance_metric'+problem+'_'+param+'_No_Movement'+'/data.csv'
     #         list_algo_2.append(name_sec)
 
+            path_third = '../data/'+env_type+'_'+str(algo_list[2])+'_'+param+'_'+problem+'/data.csv'
+
             fig_path = '../figures/'
-            line_fig_name = '../figures/'+env_type+'_'+problem+'_'+param+'_line_plot'+'.jpg'
-            radar_fig_name = '../figures/'+env_type+'_'+problem+'_'+param+'_radar_plot'+'.jpg'
+            line_fig_name = '../figures/'+env_type+'_'+problem+'_'+param+'_line_plot'+'.pdf'
+            radar_fig_name = '../figures/'+env_type+'_'+problem+'_'+param+'_radar_plot'+'.pdf'
             
             #lineplots
-            plot_line_plots(path_first, path_sec , fig_path , line_fig_name)
+            plot_line_plots(path_first, path_sec , path_third, fig_path , line_fig_name)
             
             #radarplots
-            plot_radar_plots(path_first, path_sec , fig_path , radar_fig_name)
+            # plot_radar_plots(path_first, path_sec , fig_path , radar_fig_name)
