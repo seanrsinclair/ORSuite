@@ -24,8 +24,8 @@ DEFAULT_CONFIG =  or_suite.envs.env_configs.ambulance_metric_default_config
 
 
 agents = {'Random': or_suite.agents.rl.random.randomAgent(), 'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']), 'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen'])}
-nEps = 50
-numIters = 20
+nEps = 1000
+numIters = 100
 epLen = DEFAULT_CONFIG['epLen']
 DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen' : 5}
 
@@ -51,7 +51,6 @@ def beta(step):
 
 arrival_dists = [shifting, uniform, beta]
 
-
 for agent in agents:
     for alpha in alphas:
         for arrival_dist in arrival_dists:
@@ -66,16 +65,29 @@ for agent in agents:
 
 
 
-######## Testing with Stable Baselines3 PPO Algorithm ########
 
-env = make_vec_env('Ambulance-v1', n_envs=4)
-model = PPO(MlpPolicy, env, verbose=1, gamma=1)
-model.learn(total_timesteps=1000)
+for alpha in alphas:
+    for arrival_dist in arrival_dists:
+        path_list = []
+        algo_list = []
+        for agent in agents:
+            path_list.append('../data/ambulance_metric_'+str(agent)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/data.csv')
+            algo_list.append(str(agent))
 
-env = gym.make('Ambulance-v1')
-n_episodes = 100
-res_mean, res_std = evaluate_policy(model, env, n_eval_episodes=n_episodes)
+        fig_path = '../figures/'
+        fig_name = '../figures/ambulance_metric'+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'_line_plot'+'.pdf'
+        or_suite.plots.plot_line_plots(path_list, algo_list, fig_path, fig_name)
 
-print(-res_mean, '+/-', 1.96*res_std/np.sqrt(n_episodes))
+# ######## Testing with Stable Baselines3 PPO Algorithm ########
+
+# env = make_vec_env('Ambulance-v1', n_envs=4)
+# model = PPO(MlpPolicy, env, verbose=1, gamma=1)
+# model.learn(total_timesteps=1000)
+
+# env = gym.make('Ambulance-v1')
+# n_episodes = 100
+# res_mean, res_std = evaluate_policy(model, env, n_eval_episodes=n_episodes)
+
+# print(-res_mean, '+/-', 1.96*res_std/np.sqrt(n_episodes))
 
 

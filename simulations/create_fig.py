@@ -11,12 +11,11 @@ from math import pi
 
 def normalize(df):
     result = df.copy()
-    for feature_name in df.columns:
-        if feature_name != 'group':
-                max_value = df[feature_name].max()
-                min_value = df[feature_name].min()
-                print(max_value, min_value, feature_name)
-                result[feature_name] = (df[feature_name] - min_value) / (max_value - min_value)
+    for feature_name in df.columns[1:]:
+        max_value = df[feature_name].max()
+        min_value = df[feature_name].min()
+        print(max_value, min_value, feature_name)
+        result[feature_name] = (df[feature_name] - min_value) / (max_value - min_value)
                 
     return result
 
