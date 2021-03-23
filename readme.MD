@@ -29,11 +29,9 @@ In order to add an additional environment to the ORSuite, simply:
 1. Create Environment: Add an additional folder in `~/or_suite/envs/` corresponding to your problem set-up.  Then create a `env_name.py` file which inherits `gym.Env` dictating the MDP formulation.
 2. Register Environment: Edit `~/or_suite/envs/__init__.py` to include a new entry defining your environment of the form
   ```python
-  {
     register(id = 'name-v0',
     entry_point = 'env_location'
     )
-  }
   ```
 3. Set Configurations: Edit `~/or_suite/envs/env_configs.py` to include a configuration dictionary for default parameters of the environment.
 4. Create an `__init__.py` file importing the new environment.
