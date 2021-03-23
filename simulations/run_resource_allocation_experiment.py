@@ -1,10 +1,5 @@
 import sys
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 72b65ac (Line figures and plots)
 sys.path.append('../')
 
 import numpy as np
@@ -13,17 +8,9 @@ import gym
 import or_suite
 
 from stable_baselines3 import PPO
-<<<<<<< HEAD
-from stable_baselines3.ppo import CnnPolicy
-from stable_baselines3.common.env_util import make_vec_env
-from stable_baselines3.common.evaluation import evaluate_policy
-from stable_baselines3.common.env_checker import check_env
-
-=======
 from stable_baselines3.ppo import MlpPolicy
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.evaluation import evaluate_policy
->>>>>>> 72b65ac (Line figures and plots)
 
 
 def run_single_algo(env, agent, settings): 
@@ -44,8 +31,8 @@ problem_list = ['default']
 
 
 for problem in problem_list:
-    nEps = 500
-    numIters = 15
+    nEps = 50
+    numIters = 5
     #initialize resource allocation environment w/ default parameters
     env = gym.make('Resource-v0', config = DEFAULT_ENV_CONFIG)
     epLen = env.epLen
@@ -54,7 +41,7 @@ for problem in problem_list:
         ##### PARAMETER TUNING FOR AMBULANCE ENVIRONMENT
 
 
-    DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance_graph/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen' : epLen}
+    DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance_graph/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': True, 'epLen' : epLen}
 
 
     path = {}

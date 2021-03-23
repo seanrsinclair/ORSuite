@@ -43,7 +43,7 @@ def plot_radar_plots(path_list, algo_list, fig_path , fig_name):
         df = pd.read_csv(path_list[index]).groupby(['episode']).mean()
         df['episode'] = df.index.values 
         df = df[df['episode'] == df.max()['episode']] # THIS IS NOT TOTALLY CORRECT, SHOULD BE SUM OVER EPISODES FOR TIME AND SPACE?
-        reward.append(df.iloc[0]['epReward'])
+        reward.append(df.iloc[0]['epReward']) # TODO: Figure out how to get this to work with additional user-defined metrics
         time.append(df.iloc[0]['time'])
         space.append(df.iloc[0]['memory'])
         
