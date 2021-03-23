@@ -23,8 +23,8 @@ def run_single_algo(env, agent, settings):
 DEFAULT_CONFIG = or_suite.envs.env_configs.ambulance_graph_default_config
 
 agents = {'Random': or_suite.agents.rl.random.randomAgent(), 'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']), 'Median': or_suite.agents.ambulance.median_graph.medianAgent(DEFAULT_CONFIG['epLen'], DEFAULT_CONFIG['edges'], DEFAULT_CONFIG['num_ambulance']), 'Mode': or_suite.agents.ambulance.mode_graph.modeAgent(DEFAULT_CONFIG['epLen'])}
-nEps = 1000
-numIters = 100
+nEps = 50
+numIters = 5
 epLen = DEFAULT_CONFIG['epLen']
 DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen' : 5}
 
@@ -52,8 +52,11 @@ for alpha in alphas:
             algo_list.append(str(agent))
 
         fig_path = '../figures/'
-        fig_name = '../figures/ambulance_graph_'+str(alpha)+'_'+str(arrival_dist)+'_line_plot'+'.pdf'
+        fig_name = 'ambulance_graph_'+str(alpha)+'_'+str(arrival_dist)+'_line_plot'+'.pdf'
         or_suite.plots.plot_line_plots(path_list, algo_list, fig_path, fig_name)
+
+        fig_name = 'ambulance_graph_'+str(alpha)+'_'+str(arrival_dist)+'_radar_plot'+'.pdf'
+        or_suite.plots.plot_radar_plots(path_list, algo_list, fig_path, fig_name)
 
 
 ######## Testing with Stable Baselines3 PPO Algorithm ########

@@ -24,8 +24,8 @@ DEFAULT_CONFIG =  or_suite.envs.env_configs.ambulance_metric_default_config
 
 
 agents = {'Random': or_suite.agents.rl.random.randomAgent(), 'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']), 'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen'])}
-nEps = 1000
-numIters = 100
+nEps = 100
+numIters = 5
 # nEps = 50
 # numIters = 20
 
@@ -57,7 +57,9 @@ arrival_dists = [shifting, uniform, beta]
 for agent in agents:
     for alpha in alphas:
         for arrival_dist in arrival_dists:
-
+            print(agent)
+            print(alpha)
+            print(arrival_dist.__name__)
             CONFIG = DEFAULT_CONFIG
             CONFIG['alpha'] = alpha
             CONFIG['arrival_dist'] = arrival_dist
@@ -78,8 +80,12 @@ for alpha in alphas:
             algo_list.append(str(agent))
 
         fig_path = '../figures/'
-        fig_name = '../figures/ambulance_metric'+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'_line_plot'+'.pdf'
+        fig_name = 'ambulance_metric'+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'_line_plot'+'.pdf'
         or_suite.plots.plot_line_plots(path_list, algo_list, fig_path, fig_name)
+
+
+        fig_name = 'ambulance_metric'+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'_radar_plot'+'.pdf'
+        or_suite.plots.plot_radar_plots(path_list, algo_list, fig_path, fig_name)
 
 # ######## Testing with Stable Baselines3 PPO Algorithm ########
 
