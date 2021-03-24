@@ -6,3 +6,5 @@ tmp.csv
 or_suite.egg-info/
 *.pyc
 *.zip
+.nbgrader.log
+simulations/tmp/

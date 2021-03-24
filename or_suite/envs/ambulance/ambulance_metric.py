@@ -126,7 +126,7 @@ class AmbulanceEnvironment(gym.Env):
         if self.timestep != self.epLen - 1:
             done = False
         else:
-            done = False
+            done = True
 
         self.state = new_state
         self.timestep += 1

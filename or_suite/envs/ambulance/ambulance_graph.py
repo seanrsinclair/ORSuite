@@ -142,10 +142,8 @@ class AmbulanceGraphEnvironment(gym.Env):
         info = {'arrival' : new_arrival}
 
         if self.timestep != (self.epLen-1):
-            print(self.timestep)
             done = False
         else:
-            print(str(self.timestep)+' done!')
             done = True
 
         self.state = newState
