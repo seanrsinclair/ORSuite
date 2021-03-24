@@ -45,7 +45,7 @@ class equalAllocationAgent(Agent):
         # resets data matrix to be empty
         self.data = []
     
-    def update_config(self, config):
+    def update_config(self, env, config):
         '''Updates environment configuration dictionary'''
         self.env_config = config
         return

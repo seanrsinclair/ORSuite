@@ -8,6 +8,8 @@ from gym import spaces
 import networkx as nx
 import math
 
+from .. import env_configs
+
 #------------------------------------------------------------------------------
 '''An ambulance environment over a simple graph.  An agent interacts through 
 the environment by [EXPLAIN HOW ENVIRONMENT WORKS HERE] the ambulance.  Then 
@@ -16,9 +18,6 @@ cost of travel.'''
 
 
 
-DEFAULT_CONFIG = {'epLen': 5, 'arrival_dist': None, 'alpha': 0.25,
-                'edges': [(0,4,{'dist':7}), (0,1,{'dist':1}), (1,2,{'dist':3}), (2,3,{'dist':5}), (1,3,{'dist':1}), (1,4,{'dist':17}), (3,4,{'dist':3})],
-                'starting_state': [1,2], 'num_ambulance': 2}
 
 class AmbulanceGraphEnvironment(gym.Env):
   """
@@ -29,7 +28,7 @@ class AmbulanceGraphEnvironment(gym.Env):
   metadata = {'render.modes': ['human']}
 
 
-  def __init__(self, config=DEFAULT_CONFIG):
+  def __init__(self, config=env_configs.ambulance_graph_default_config):
         '''
         For a more detailed description of each parameter, see the readme file
         

@@ -3,6 +3,7 @@ from shutil import copyfile
 import pandas as pd
 import tracemalloc
 import numpy as np
+import pickle
 import os
 
 class Experiment(object):
@@ -40,7 +41,7 @@ class Experiment(object):
 
 
         if self.save_trajectory:
-            self.trajectory = np.zeros([dict['nEps']*self.num_iters*self.epLen, 8])
+            self.trajectory = []
 
         np.random.seed(self.seed)
 
@@ -55,7 +56,7 @@ class Experiment(object):
         traj_index = 0
         for i in range(self.num_iters):
             self.agent.reset()
-            self.agent.update_config(self.env.get_config())
+            self.agent.update_config(self.env, self.env.get_config())
             for ep in range(1, self.nEps+1):
                 # print('Episode : ' + str(ep))
                 # Reset the environment
@@ -84,17 +85,10 @@ class Experiment(object):
 
                     self.agent.update_obs(oldState, action, reward, newState, h, info)
 
-                    if self.save_trajectory: # TODO: state, action, reward, etc are not necessarily numbers - so what is the best way of storing this in a list?
+                    if self.save_trajectory: # 
                         # turn into list, make self.trajectory a list, append. try pickle
-                        self.trajectory[traj_index, 0] = i # int 
-                        self.trajectory[traj_index, 1] = ep # int
-                        self.trajectory[traj_index, 2] = h # int
-                        self.trajectory[traj_index, 3] = oldState # e.g. in ambulance, a vector [loc_1, loc_2]
-                        self.trajectory[traj_index, 4] = action # e.g. in ambulance, a vector [mov_1, mov_2]
-                        self.trajectory[traj_index, 5] = reward # float
-                        self.trajectory[traj_index, 6] = newState # e.g. in ambulance, a vector [new_loc_1, new_loc_2]
-                        self.trajectory[traj_index, 7] = info # dictionary - OK if we ignore
-                    traj_index += 1
+                        record = {'iter': i, 'episode': ep, 'step' : h, 'oldState' : oldState, 'action' : action, 'reward' : reward, 'newState' : newState, 'info' : info}
+                        self.trajectory.append(record)
 
                     oldState = newState
                     h = h + 1
@@ -117,7 +111,7 @@ class Experiment(object):
                 self.data[index, 1] = i
                 self.data[index, 2] = epReward
                 self.data[index, 3] = current
-                self.data[index, 4] = ((end_time) - (start_time))
+                self.data[index, 4] = ((end_time) - (start_time)) * (10**9)
 
                 index += 1
 
@@ -138,7 +132,7 @@ class Experiment(object):
         dir_path = self.dirPath
 
         data_loc = 'data.csv'
-        traj_loc = 'trajectory.csv'
+        traj_loc = 'trajectory.obj'
 
 
         if self.save_trajectory:
@@ -146,7 +140,8 @@ class Experiment(object):
             dt = pd.DataFrame(self.data, columns=['episode', 'iteration', 'epReward', 'memory', 'time'])
             dt = dt[(dt.T != 0).any()]
 
-            traj = pd.DataFrame(self.trajectory, columns=['index', 'episode', 'step', 'oldState', 'reward', 'newState', 'info'])
+            filename = os.path.join(dir_path, traj_loc)
+
             print('Writing to file ' + data_loc)
         else:
 
@@ -155,14 +150,18 @@ class Experiment(object):
             print('Writing to file ' + data_loc)
 
         if os.path.exists(dir_path):
-            dt.to_csv(os.path.join(dir_path,data_loc), index=False, float_format='%.2f', mode='a')
+            dt.to_csv(os.path.join(dir_path,data_loc), index=False, float_format='%.2f', mode='w')
             if self.save_trajectory:
-                dt.to_csv(os.path.join(dir_path, traj_loc), index=False, float_format='%.2f', mode='a')
+                outfile = open(filename, 'wb')
+                pickle.dump(self.trajectory, outfile)
+                outfile.close()
         else:
             os.makedirs(dir_path)
-            dt.to_csv(os.path.join(dir_path, data_loc), index=False, float_format='%.2f')
+            dt.to_csv(os.path.join(dir_path, data_loc), index=False, float_format='%.2f', mode='w')
             if self.save_trajectory:
-                dt.to_csv(os.path.join(dir_path, traj_loc), index=False, float_format='%.2f', mode='a')
+                outfile = open(filename, 'wb')
+                pickle.dump(self.trajectory, outfile)
+                outfile.close()
 
         print('**************************************************')
         print('Data save complete')

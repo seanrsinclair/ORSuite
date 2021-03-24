@@ -8,7 +8,7 @@ class Agent(object):
     def __init__(self):
         pass
 
-    def update_config(self, config):
+    def update_config(self, env, config):
         ''' Update agent information based on the config__file'''
         pass
 
