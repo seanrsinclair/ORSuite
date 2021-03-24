@@ -24,8 +24,8 @@ DEFAULT_CONFIG =  or_suite.envs.env_configs.ambulance_metric_default_config
 
 
 agents = {'Random': or_suite.agents.rl.random.randomAgent(), 'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']), 'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen'])}
-nEps = 100
-numIters = 5
+nEps = 1000
+numIters = 50
 # nEps = 50
 # numIters = 20
 

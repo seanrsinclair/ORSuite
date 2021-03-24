@@ -76,6 +76,7 @@ class AmbulanceGraphEnvironment(gym.Env):
         self.timestep = 0
         self.state = self.starting_state
 
+
         return self.starting_state
 
   def get_config(self):
@@ -129,7 +130,6 @@ class AmbulanceGraphEnvironment(gym.Env):
         newState[closest_amb_idx] = new_arrival
         obs = newState
 
-
         # The reward is a linear combination of the distance traveled to the action
         # and the distance traveled to the call
         # alpha controls the tradeoff between cost to travel between arrivals and 
@@ -141,15 +141,17 @@ class AmbulanceGraphEnvironment(gym.Env):
         # so it can be used by the agent
         info = {'arrival' : new_arrival}
 
-        if self.timestep <= self.epLen:
-            pContinue = True
+        if self.timestep != (self.epLen-1):
+            print(self.timestep)
+            done = False
         else:
-            pContinue = False
+            print(str(self.timestep)+' done!')
+            done = True
 
         self.state = newState
         self.timestep += 1
 
-        return self.state, reward,  pContinue, info
+        return self.state, reward,  done, info
 
 
   def render(self, mode='console'):

@@ -108,11 +108,11 @@ class ResourceAllocationEnvironment(gym.Env):
         # Optionally we can pass additional info, we are not using that for now
         info = {'type' : new_type}
 
-        if self.timestep < self.epLen:
-            pContinue = True
+        if self.timestep != self.epLen - 1:
+            done = False
             self.reset()
         else:
-            pContinue = False
+            done = True
 
         
         self.state = (new_budget, new_type)
@@ -124,7 +124,7 @@ class ResourceAllocationEnvironment(gym.Env):
         #return self.state and also a box object
         # can probably return self.state
 
-        return self.state, reward,  pContinue, info
+        return self.state, reward,  done, info
 
   def render(self, mode='console'):
     if mode != 'console':
