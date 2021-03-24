@@ -50,17 +50,17 @@ class ResourceAllocationEnvironment(gym.Env):
         self.type_dist = config['type_dist']
         self.utility_function = config['utility_function']
         
-        self.starting_state = (config['init_budget'],self.type_dist(0))
+        self.starting_state = np.concatenate((config['init_budget'],self.type_dist(0)))
         self.state = self.starting_state
         self.timestep = 0
 
 
-
+        
         # Action space will be choosing Kxn-dimensional allocation matrix
         self.action_space = spaces.Box(low=0, high=max(self.budget),
-                                        shape=(self.num_types,self.num_commodities), dtype=np.float32)
+                                        shape=(self.num_types*self.num_commodities,), dtype=np.float32)
         # First K entries of observation space is the remaining budget, next K is the type of the location
-        self.observation_space = spaces.Box(low=0, high=max(self.budget),
+        self.observation_space = spaces.Box(low=-np.inf, high=np.inf,
                                         shape=(self.num_commodities+self.num_types,), dtype=np.float32)
 
   def reset(self):
@@ -90,22 +90,24 @@ class ResourceAllocationEnvironment(gym.Env):
             done - 0/1 - flag for end of the episode
             info - dict - any additional information 
         '''
-        (old_budget,old_type) = self.state
+        old_budget = self.state[:self.num_commodities]
+        old_type = self.state[self.num_commodities:]
         # new state is sampled from the arrivals distribution
-        allocation = np.array(action)
-  
+        allocation = np.reshape(np.array(action),(self.num_types,self.num_commodities))
+        # TODO: CHECK IF ALLOCATION IS VALID
 
         # print('old_state' , old_state)
         # print('new_type' , new_type)
-
+        #print("length of obs space:",self.num_commodities+self.num_types)
         # TODO: INTEGRATE OTHER FAIRNESS METRICS
         
         reward = (1/np.sum(old_type))*sum(
             [old_type[theta]*np.log(self.utility_function(allocation[theta,:],self.weight_matrix[theta,:])) for theta in range(self.num_types)]
             )
-        print("Reward: %s"%reward)
-        (new_budget, new_type) = (
-            old_budget-np.sum(allocation, axis=0), self.type_dist(self.timestep))
+        #print("Reward: %s"%reward)
+        new_budget = old_budget-np.sum(allocation, axis=0)
+        new_type = self.type_dist(self.timestep)
+    
 
         # print('New state' , newState)
         # Cost is a linear combination of the distance traveled to the action
@@ -120,10 +122,11 @@ class ResourceAllocationEnvironment(gym.Env):
             pContinue = False
 
         
-        self.state = (new_budget, new_type)
+        self.state = np.concatenate((new_budget, new_type))
+        print("len of state: ",len(self.state) )
         #not sure how to make it such the sum across all types is <= budget
         self.action_space = spaces.Box(low=0, high=max(new_budget),
-                                shape=(self.num_types,self.num_commodities), dtype=np.float32)
+                                shape=(self.num_types*self.num_commodities,), dtype=np.float32)
         
         self.timestep += 1
         #return self.state and also a box object
