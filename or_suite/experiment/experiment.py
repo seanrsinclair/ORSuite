@@ -66,13 +66,13 @@ class Experiment(object):
 
                 self.agent.update_policy(ep)
 
-                pContinue = True
+                done = False
                 h = 0
 
                 start_time = time.time()
                 tracemalloc.start()
 
-                while pContinue and h < self.epLen:
+                while (not done) and h < self.epLen:
                     # Step through the episode
                     if self.deBug:
                         print('state : ' + str(oldState))
@@ -80,7 +80,7 @@ class Experiment(object):
                     if self.deBug:
                         print('action : ' + str(action))
 
-                    newState, reward, pContinue, info = self.env.step(action)
+                    newState, reward, done, info = self.env.step(action)
                     epReward += reward
 
                     self.agent.update_obs(oldState, action, reward, newState, h, info)

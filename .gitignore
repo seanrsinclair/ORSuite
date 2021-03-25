@@ -5,3 +5,6 @@ tmp.csv
 .ipynb_checkpoints
 or_suite.egg-info/
 *.pyc
+*.zip
+.nbgrader.log
+simulations/tmp/

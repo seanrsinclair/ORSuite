@@ -123,15 +123,15 @@ class AmbulanceEnvironment(gym.Env):
         # so it can be used by the agent
         info = {'arrival' : new_arrival}
 
-        if self.timestep <= self.epLen:
-            pContinue = True
+        if self.timestep != self.epLen - 1:
+            done = False
         else:
-            pContinue = False
+            done = True
 
         self.state = new_state
         self.timestep += 1
 
-        return self.state, reward,  pContinue, info
+        return self.state, reward,  done, info
 
 
   # def render(self, mode='console'):

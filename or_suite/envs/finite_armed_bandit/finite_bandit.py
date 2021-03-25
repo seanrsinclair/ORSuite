@@ -77,15 +77,15 @@ class FiniteBanditEnvironment(gym.Env):
 
         info = {'reward' : reward}
 
-        if self.timestep <= self.epLen:
-            pContinue = True
+        if self.timestep != self.epLen - 1:
+            done = False
         else:
-            pContinue = False
+            done = True
 
         self.state = newState
         self.timestep += 1
 
-        return self.state, reward,  pContinue, info
+        return self.state, reward,  done, info
 
 
   def render(self, mode='console'):

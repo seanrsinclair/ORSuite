@@ -6,7 +6,7 @@ import sys
 from .. import Agent
 
 ''' Agent that implements a k-medoid heuristic algorithm for the line ambulance environment'''
-class medianAgent(Agent):
+class median_sklearnAgent(Agent):
 
     def __init__(self, epLen):
         '''
@@ -54,18 +54,12 @@ class medianAgent(Agent):
             return state
         else:
             num_ambulance = len(self.data[0])
-            # print(num_ambulance)
-            left_points = [(1 / num_ambulance)*i for i in range(num_ambulance)]
-            # print(left_points)
-            quantiles = []
-            for j in range(len(left_points)):
-                if j == len(left_points) - 1:
-                    quantiles.append(((1 - left_points[j]) / 2) + left_points[j])
-                else:
-                    quantiles.append(((left_points[j+1] - left_points[j]) / 2) + left_points[j])
-
-            action = np.quantile(np.asarray(self.call_locs), quantiles)
-
+            if len(self.call_locs) > num_ambulance:
+                reshaped_call_locs = np.asarray(self.call_locs).reshape(-1,1)
+                clusters = sklearn_extra.cluster.KMedoids(n_clusters=num_ambulance, max_iter=50).fit(reshaped_call_locs)
+                action = np.asarray(clusters.cluster_centers_).reshape(-1,)
+            else:
+                action = np.full(num_ambulance, np.median(self.call_locs))
             return action
 
 
