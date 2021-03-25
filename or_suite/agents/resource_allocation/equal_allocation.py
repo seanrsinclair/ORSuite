@@ -16,6 +16,8 @@ class equalAllocationAgent(Agent):
         self.env_config = env_config
         self.data = []
         self.rel_exp_endowments = self.get_expected_endowments()
+        print("R")
+        print(self.rel_exp_endowments)
 
     def get_expected_endowments(self,N=1000):
         """
@@ -27,7 +29,6 @@ class equalAllocationAgent(Agent):
         """
         num_types = self.env_config['weight_matrix'].shape[0]
         rel_exp_endowments = np.zeros((self.env_config['num_rounds'],num_types))
-        
         for t in range(self.env_config['num_rounds']):
             mean_endowment = np.zeros(num_types)
             for i in range(N):
@@ -36,9 +37,13 @@ class equalAllocationAgent(Agent):
             mean_endowment = (1/N)*mean_endowment
             rel_exp_endowments[t,:] = mean_endowment
 
+        total = np.sum(rel_exp_endowments)
         for t in range(self.env_config['num_rounds']):
-            rel_exp_endowments[t,:] = np.divide(rel_exp_endowments[t,:],sum(rel_exp_endowments))
+            for i in range(num_types):
+                rel_exp_endowments[t,i] = rel_exp_endowments[t,i]/total
         
+        
+        assert np.sum(rel_exp_endowments) <= 1.5, "{}".format(rel_exp_endowments)
         return rel_exp_endowments
 
     def reset(self):
