@@ -55,7 +55,7 @@ class ResourceAllocationEnvironment(gym.Env):
         self.action_space = spaces.Box(low=0, high=max(self.budget),
                                         shape=(self.num_types*self.num_commodities,), dtype=np.float32)
         # First K entries of observation space is the remaining budget, next K is the type of the location
-        self.observation_space = spaces.Box(low=-np.inf, high=np.inf,
+        self.observation_space = spaces.Box(low=0, high=np.inf,
                                         shape=(self.num_commodities+self.num_types,), dtype=np.float32)
 
   def reset(self):
@@ -118,10 +118,10 @@ class ResourceAllocationEnvironment(gym.Env):
 
         
         self.state = np.concatenate((new_budget, new_type))
-        print("len of state: ",len(self.state) )
+        #print("len of state: ",len(self.state) )
         #not sure how to make it such the sum across all types is <= budget
-        self.action_space = spaces.Box(low=0, high=max(new_budget),
-                                shape=(self.num_types*self.num_commodities,), dtype=np.float32)
+        #self.action_space = spaces.Box(low=0, high=max(new_budget),
+        #                        shape=(self.num_types,self.num_commodities), dtype=np.float32)
         
         self.timestep += 1
         #return self.state and also a box object

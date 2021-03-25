@@ -49,16 +49,16 @@ for problem in problem_list:
         DEFAULT_SETTINGS['dirPath'] = '../data/allocation_%s_%s'%(algorithm,problem)
         run_single_algo(env, algo_information[algorithm], DEFAULT_SETTINGS)
 
-# env = gym.make('Resource-v0', config = DEFAULT_ENV_CONFIG)
+env = gym.make('Resource-v0', config = DEFAULT_ENV_CONFIG)
 
 
-# check_env(env)
+#gym.check_env(env)
 
-# model = PPO(CnnPolicy, env, verbose=1, gamma=1)
-# model.learn(total_timesteps=1000)
+model = PPO(MlpPolicy, env, verbose=1, gamma=1)
+model.learn(total_timesteps=1000)
 
-# env = gym.make('Resource-v0')
-# n_episodes = 100
-# res_mean, res_std = evaluate_policy(model, env, n_eval_episodes=n_episodes)
+env = gym.make('Resource-v0')
+n_episodes = 100
+res_mean, res_std = evaluate_policy(model, env, n_eval_episodes=n_episodes)
 
-# print(-res_mean, '+/-', 1.96*res_std/np.sqrt(n_episodes))
+print(-res_mean, '+/-', 1.96*res_std/np.sqrt(n_episodes))
