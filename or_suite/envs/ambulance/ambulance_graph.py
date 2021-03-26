@@ -45,15 +45,12 @@ class AmbulanceGraphEnvironment(gym.Env):
         self.epLen = config['epLen']
         self.alpha = config['alpha']
         self.graph = nx.Graph(config['edges'])
+        self.num_nodes = self.graph.number_of_nodes
         self.starting_state = config['starting_state']
         self.state = self.starting_state
         self.timestep = 0
         self.num_ambulance = config['num_ambulance']
-        if config['arrival_dist'] == None:
-            num_nodes = len(self.graph.nodes)
-            self.arrival_dist = np.full(num_nodes, 1/num_nodes)
-        else:
-            self.arrival_dist = config['arrival_dist']
+        self.arrival_dist = config['arrival_dist']
 
 
         # creates an array stored in space_array the length of the number of ambulances
@@ -99,7 +96,7 @@ class AmbulanceGraphEnvironment(gym.Env):
 
         # The location of the new arrival is chosen randomly from among the nodes 
         # in the graph according to the arrival distribution
-        new_arrival = np.random.choice(list(self.graph.nodes), p=self.arrival_dist)
+        new_arrival = np.random.choice(list(self.graph.nodes), p=self.arrival_dist(timestep))
 
         # Finds the distance traveled by all the ambulances from the old state to 
         # the chosen action, assuming that each ambulance takes the shortest path,
