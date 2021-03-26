@@ -35,7 +35,15 @@ epLen = DEFAULT_CONFIG['epLen']
 DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen' : 5}
 
 alphas = [0, 1, 0.25]
-arrival_dists = [None, [0.25, 0.4, 0.25, 0.05, 0.05]]
+
+def uniform(step, num_nodes):
+    return np.full(num_nodes, 1/num_nodes)
+
+def nonuniform(step, num_nodes):
+    #TODO: fix so it actually works for a variable number of nodes
+    return np.array([0.25, 0.4, 0.25, 0.05, 0.05])
+
+arrival_dists = [uniform, nonuniform]
 
 
 for agent in agents:
