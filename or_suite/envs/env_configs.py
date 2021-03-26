@@ -8,7 +8,13 @@ resource_allocation_default_config = {'K': 2,
     'utility_function': lambda x,theta: np.dot(x,theta)
     }
 
-
+resource_allocation_simple_config = {'K':1,
+  'num_rounds':3,
+  'weight_matrix': np.array([[1]]),
+  'init_budget': 3,
+  'utility_function': lambda x,theta: x,
+  'type_dist': lambda i: 1
+}
 
 ambulance_metric_default_config =  {'epLen': 5,
     'arrival_dist': lambda x : np.random.beta(5,2), 
