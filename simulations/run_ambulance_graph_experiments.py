@@ -8,6 +8,7 @@ import networkx as nx
 
 import re
 import ast
+import copy
 
 import or_suite
 
@@ -23,8 +24,8 @@ import pandas as pd
 def run_single_algo(env, agent, settings): 
 
     exp = or_suite.experiment.experiment.Experiment(env, agent, settings)
-    _ = exp.run()
-    dt_data = exp.save_data()
+    exp.run()
+    exp.save_data()
 
 
 DEFAULT_CONFIG = or_suite.envs.env_configs.ambulance_graph_default_config
@@ -53,7 +54,7 @@ ithaca_edges = []
 for line in edges_file:
     travel_dict = ast.literal_eval(re.search('({.+})', line).group(0))
     split = line.split()
-    ithaca_edges.append((split[0], split[1], travel_dict))
+    ithaca_edges.append((int(split[0]), int(split[1]), travel_dict))
 edges_file.close()
 
 
@@ -74,7 +75,7 @@ arrival_dists = [uniform, nonuniform, from_data]
 for agent in agents:
     for alpha in alphas:
         for arrival_dist in arrival_dists:
-            CONFIG = DEFAULT_CONFIG
+            CONFIG = copy.deepcopy(DEFAULT_CONFIG)
             CONFIG['alpha'] = alpha
             CONFIG['arrival_dist'] = arrival_dist
 
@@ -113,7 +114,11 @@ for agent in agents:
                     os.makedirs(DEFAULT_SETTINGS['dirPath'])
                 df.to_csv(DEFAULT_SETTINGS['dirPath']+'data.csv', index=False, float_format='%.2f', mode='w')
             else:
-                run_single_algo(ambulance_graph_env, agents[agent], DEFAULT_SETTINGS)
+                if agent == 'Median':
+                    agent_to_use = or_suite.agents.ambulance.median_graph.medianAgent(CONFIG['epLen'], CONFIG['edges'], CONFIG['num_ambulance'])
+                else:
+                    agent_to_use = agents[agent]
+                run_single_algo(ambulance_graph_env, agent_to_use, DEFAULT_SETTINGS)
 
 for alpha in alphas:
     for arrival_dist in arrival_dists:
