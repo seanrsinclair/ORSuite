@@ -1,7 +1,8 @@
 import numpy as np
 from .. import Agent
+import itertools
 
-class eNetModelBased_Multiple(Agent):
+class eNetModelBased(Agent):
 
     def __init__(self, action_net, state_net, epLen, scaling, state_action_dim, alpha, flag):
         '''
@@ -41,7 +42,7 @@ class eNetModelBased_Multiple(Agent):
         '''
             Adds the observation to records by using the update formula
         '''
-    def update_obs(self, obs, action, reward, newObs, timestep):
+    def update_obs(self, obs, action, reward, newObs, timestep, info):
         '''Add observation to records'''
 
         # returns the discretized state and action location
@@ -76,18 +77,18 @@ class eNetModelBased_Multiple(Agent):
         '''Update internal policy based upon records'''
         # Update value estimates
         for h in np.arange(self.epLen - 1, -1, -1):
-            for state in ????:
-                for action in ????:
+            for state in itertools.product(*[np.arange(len(self.state_net)) for _ in range(self.state_action_dim[0])]):
+                for action in itertools.product(*[np.arange(len(self.action_net)) for _ in range(self.state_action_dim[1])]):
                     dim = (h,) + state + action
                     if self.num_visits[dim] == 0:
                         self.qVals[dim] = self.epLen
                     else:
                         if h == self.epLen - 1:
-                            self.qVals[dim] = min(self.qVals, self.rEst[dim] + self.scaling / np.sqrt(self.num_visits[dim]))
+                            self.qVals[dim] = min(self.qVals[dim], self.rEst[dim] + self.scaling / np.sqrt(self.num_visits[dim]))
                         else:
-                            vEst = np.min(self.epLen, np.sum(np.multiply(self.vVals[(h+1,)], self.pEst[dim] + self.alpha) / (np.sum(self.pEst[dim] + self.alpha))))
+                            vEst = min(self.epLen, np.sum(np.multiply(self.vVals[(h+1,)], self.pEst[dim] + self.alpha) / (np.sum(self.pEst[dim] + self.alpha))))
                             self.qVals[dim] = min(self.qVals[dim], self.epLen, self.rEst[dim] + self.scaling / np.sqrt(self.num_visits[dim]) + vEst)
-                    self.vVals[dim] = min(self.epLen, self.qVals[(h+1,) + state].max())
+                self.vVals[(h,) + state] = min(self.epLen, self.qVals[(h,) + state].max())
 
         self.greedy = self.greedy
 
@@ -122,8 +123,8 @@ class eNetModelBased_Multiple(Agent):
     def pick_action(self, state, step):
         if self.flag == False:
             state_discrete = np.argmin((np.abs(np.asarray(self.state_net) - np.asarray(state))), axis=0)
-            for action in ???? :
-                dim = (timestep,) + tuple(state_discrete) + tuple(action_discrete)
+            for action in itertools.product(*[np.arange(len(self.action_net)) for _ in range(self.state_action_dim[1])]):
+                dim = (step,) + tuple(state_discrete) + action
                 if self.num_visits(dim) == 0:
                     self.qVals[dim] == 0
                 else:
@@ -132,7 +133,7 @@ class eNetModelBased_Multiple(Agent):
                     else:
                         vEst = np.min(self.epLen, np.sum(np.multiply(self.vVals[(timestep+1,)], self.pEst[dim] + self.alpha) / (np.sum(self.pEst[dim] + self.alpha))))
                         self.qVals[dim] = min(self.qVals[dim], self.epLen, self.rEst[dim] + vEst + self.scaling / np.sqrt(self.num_visits[dim]))
-                self.vVals[(timestep,)+tuple(state_discrete)] = self.qVals[(timestep,)+tuple(state_discrete)].max()
+            self.vVals[(timestep,)+tuple(state_discrete)] = self.qVals[(timestep,)+tuple(state_discrete)].max()
 
         action = self.greedy(state, step)
         return action

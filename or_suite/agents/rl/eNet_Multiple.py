@@ -2,7 +2,7 @@ import numpy as np
 from .. import Agent
 
 ''' epsilon Net agent '''
-class eNet_Multiple(Agent):
+class eNet(Agent):
 
     def __init__(self, action_net, state_net, epLen, scaling, state_action_dim):
         '''
@@ -26,6 +26,12 @@ class eNet_Multiple(Agent):
         self.qVals = np.ones(self.matrix_dim, dtype=np.float32) * self.epLen
         self.num_visits = np.zeros(self.matrix_dim, dtype=np.float32)
 
+    def update_config(self, env, config):
+        ''' Update agent information based on the config__file'''
+        self.environment = env
+        pass
+
+    
         '''
             Resets the agent by overwriting all of the estimates back to zero
         '''
@@ -36,7 +42,7 @@ class eNet_Multiple(Agent):
         '''
             Adds the observation to records by using the update formula
         '''
-    def update_obs(self, obs, action, reward, newObs, timestep):
+    def update_obs(self, obs, action, reward, newObs, timestep, info):
         '''Add observation to records'''
 
         # returns the discretized state and action location
@@ -96,6 +102,4 @@ class eNet_Multiple(Agent):
 
     def pick_action(self, state, step):
         action = self.greedy(state, step)
-        if len(action) ==1:
-            return action[0]
         return action
