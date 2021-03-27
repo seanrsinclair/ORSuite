@@ -105,28 +105,29 @@ class Tree():
     def get_active_ball_recursion(self, state, node):
         # If the node doesn't have any children, then the largest one
         # in the subtree must be itself
-        print('Getting active node in state: ' + str(state))
+        # print('Getting active node in state: ' + str(state))
         if node.children == None:
             return node, node.qVal
         else:
             # Otherwise checks each child node
             active_node, qVal = node, node.qVal
-            qVal = 0
-            print(len(node.children))
+            qVal = (-1)*np.inf
+            # print(len(node.children))
             index = 0
             for child in node.children:
-                print(index)
+                # print(index)
                 index += 1
                 # if the child node contains the current state
-                print (child.state_val, child.action_val, child.radius)
+                # print (child.state_val, child.action_val, child.radius)
                 if self.state_within_node(state, child):
-                    print('State is within node')
+                    # print('State is within node')
                     # recursively check that node for the max one, and compare against all of them
                     new_node, new_qVal = self.get_active_ball_recursion(state, child)
                     if new_qVal >= qVal:
                         active_node, qVal = new_node, new_qVal
                 else:
-                    print('State is not within node')
+                    # print('State is not within node')
+                    continue
                     
             return active_node, qVal
 

@@ -164,9 +164,9 @@ def plot_line_plots(path_list, algo_list, fig_path , fig_name):
 
 
     ax[0].set_ylabel('Observed Reward')
-    ax[1].set_ylabel('Observed Time Used ( ns )')
+    ax[1].set_ylabel('Observed Time Used')
     ax[2].set_ylabel('Observed Memory Usage (B)')
-
+    ax[1].set_yscale('log')
     plt.xlabel('Episode')
     plt.tight_layout()
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')

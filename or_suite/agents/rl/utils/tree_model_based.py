@@ -213,28 +213,35 @@ class Tree():
         sm.set_array([])
         return fig
 
-    # A method which implements recursion and greedily selects the selected ball
-    # to have the largest qValue and contain the state being considered
-
     def get_active_ball_recursion(self, state, node):
+        # print(state)
         # If the node doesn't have any children, then the largest one
         # in the subtree must be itself
+        # print('Getting active node in state: ' + str(state))
         if node.children == None:
             return node, node.qVal
         else:
             # Otherwise checks each child node
-            qVal = 0
+            active_node, qVal = node, node.qVal
+            qVal = (-1)*np.inf
+            # print(len(node.children))
+            index = 0
             for child in node.children:
-
+                # print(index)
+                index += 1
                 # if the child node contains the current state
+                # print (child.state_val, child.action_val, child.radius)
                 if self.state_within_node(state, child):
+                    # print('State is within node')
                     # recursively check that node for the max one, and compare against all of them
                     new_node, new_qVal = self.get_active_ball_recursion(state, child)
                     if new_qVal >= qVal:
                         active_node, qVal = new_node, new_qVal
                 else:
-                    pass
-        return active_node, qVal
+                    # print('State is not within node')
+                    continue
+                    
+            return active_node, qVal
 
 
     def get_active_ball(self, state):
@@ -242,5 +249,5 @@ class Tree():
         return active_node, qVal
 
     # Helper method which checks if a state is within the node
-    def state_within_node(self, state, node):
+    def state_within_node(self, state, node): 
         return np.abs(state - node.state_val) <= node.radius

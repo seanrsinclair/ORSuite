@@ -111,7 +111,7 @@ class Experiment(object):
                 self.data[index, 1] = i
                 self.data[index, 2] = epReward
                 self.data[index, 3] = current
-                self.data[index, 4] = ((end_time) - (start_time)) * (10**9)
+                self.data[index, 4] = ((end_time) - (start_time))
 
                 index += 1
 

@@ -29,8 +29,8 @@ def run_single_algo(env, agent, settings):
 
 DEFAULT_CONFIG =  or_suite.envs.env_configs.ambulance_metric_default_config
 epLen = DEFAULT_CONFIG['epLen']
-nEps = 100
-numIters = 5
+nEps = 1000
+numIters = 25
 
 epsilon = (nEps * epLen)**(-1 / 4)
 action_net = np.arange(start=0, stop=1, step=epsilon)
@@ -38,17 +38,16 @@ state_net = np.arange(start=0, stop=1, step=epsilon)
 
 scaling = 0.5
 
-agents = {'SB_PPO': None, 'Random': or_suite.agents.rl.random.randomAgent(),
+agents = {# 'SB_PPO': None, 'Random': or_suite.agents.rl.random.randomAgent(),
      'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']),
      'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen']), 
-     # 'Unif_MB': or_suite.agents.rl.eNet_model_Agent.eNetModelBased(action_net, state_net, epLen, scaling, 0, False),
-     # 'Unif_QL': or_suite.agents.rl.eNet_Agent.eNet(action_net, state_net, epLen, scaling),
-     # 'AdaQL': or_suite.agents.rl.adaptive_Agent.AdaptiveDiscretization(epLen, numIters, scaling)
+     'Unif_MB': or_suite.agents.rl.eNet_model_Agent.eNetModelBased(action_net, state_net, epLen, scaling, 0, False),
+     'Unif_QL': or_suite.agents.rl.eNet_Agent.eNet(action_net, state_net, epLen, scaling),
+     'AdaQL': or_suite.agents.rl.adaptive_Agent.AdaptiveDiscretization(epLen, numIters, scaling),
+     'AdaMB': or_suite.agents.rl.adaptive_model_Agent.AdaptiveModelBasedDiscretization(epLen, numIters, scaling, 0, 2, True, True)
      }
 
 
-nEps = 1000
-numIters = 1
 
 DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen' : 5}
 
@@ -74,8 +73,8 @@ def beta(step):
 
 arrival_dists = [shifting, uniform, beta]
 # arrival_dists = [beta]
-num_ambulances = [1,3]
-
+# num_ambulances = [1,3]
+num_ambulances = [1]
 
 for agent in agents:
     for num_ambulance in num_ambulances:

@@ -1,9 +1,9 @@
 import numpy as np
-from src import agent
-from tree_model_based import Node, Tree
+from .. import Agent
+from or_suite.agents.rl.utils.tree_model_based import Tree, Node
 
 
-class AdaptiveModelBasedDiscretization(agent.FiniteHorizonAgent):
+class AdaptiveModelBasedDiscretization(Agent):
 
     def __init__(self, epLen, numIters, scaling, alpha, split_threshold, inherit_flag, flag):
         '''args:
@@ -42,6 +42,11 @@ class AdaptiveModelBasedDiscretization(agent.FiniteHorizonAgent):
             tree = Tree(self.epLen, self.inherit_flag)
             self.tree_list.append(tree)
 
+    def update_config(self, env, config):
+        ''' Update agent information based on the config__file'''
+        pass
+
+
         # Gets the number of arms for each tree and adds them together
     def get_num_arms(self):
         total_size = 0
@@ -49,7 +54,7 @@ class AdaptiveModelBasedDiscretization(agent.FiniteHorizonAgent):
             total_size += tree.get_number_of_active_balls()
         return total_size
 
-    def update_obs(self, obs, action, reward, newObs, timestep):
+    def update_obs(self, obs, action, reward, newObs, timestep, info):
         '''Add observation to records'''
         # print('Updating observations at step: ' + str(timestep))
         # print('Old state: ' + str(obs) + ' action: ' + str(action) + ' newState: ' + str(newObs))
@@ -180,7 +185,7 @@ class AdaptiveModelBasedDiscretization(agent.FiniteHorizonAgent):
         # Picks an action uniformly in that ball
         action = np.random.uniform(active_node.action_val - active_node.radius, active_node.action_val + active_node.radius)
 
-        return action
+        return [action]
 
     def pick_action(self, state, timestep):
         action = self.greedy(state, timestep)

@@ -1,9 +1,9 @@
 import numpy as np
-from src import agent
+from .. import Agent
 
-class eNetModelBased(agent.FiniteHorizonAgent):
+class eNetModelBased_Multiple(Agent):
 
-    def __init__(self, action_net, state_net, epLen, scaling, state_action_dim, alpha):
+    def __init__(self, action_net, state_net, epLen, scaling, state_action_dim, alpha, flag):
         '''
         args:
             - action_net - epsilon net of action space
@@ -17,6 +17,7 @@ class eNetModelBased(agent.FiniteHorizonAgent):
         self.epLen = epLen
         self.scaling = scaling
         self.alpha = alpha
+        self.flag = flag
         self.state_action_dim = state_action_dim
         self.state_size = self.state_action_dim[0] * [len(state_net)]
         self.action_size = self.state_action_dim[1] * [len(action_net)]
@@ -74,30 +75,20 @@ class eNetModelBased(agent.FiniteHorizonAgent):
     def update_policy(self, k):
         '''Update internal policy based upon records'''
         # Update value estimates
-        #axes_count = np.sum(np.array([self.epLen]+ self.state_size+ self.action_size))
-        #self.qVals = np.where(self.num_visits==0,self.epLen,self.qVals)
-        # self.qVals[self.epLen-1] = np.where(self.qVals[self.epLen-1]<self.rEst[self.epLen-1]+ self.scaling / np.sqrt(self.num_visits[self.epLen-1]), self.qVals[self.epLen-1], self.rEst[self.epLen-1]+ self.scaling / np.sqrt(self.num_visits[self.epLen-1]))
-        # self.qVals[self.epLen-1] = np.where(self.qVals[self.epLen-1]<self.epLen, self.qVals[self.epLen-1], self.epLen)
-        # vEst = np.dot(self.vVals[1:self.epLen, :], (self.pEst[0:self.epLen-1] + self.alpha) / (
-        #                                 np.sum(self.pEst[0:self.epLen-1], axis = np.arange(axes_count)) + self.state_action_dim[0]*len(self.state_net) * self.alpha))
-        # self.qVals[0:self.epLen-1]
         for h in np.arange(self.epLen - 1, -1, -1):
-            for state1 in range(len(self.state_net)):
-                for state2 in range(len(self.state_net)):
-                    for action1 in range(len(self.action_net)):
-                        for action2 in range(len(self.action_net)):
-                            if self.num_visits[h, state1, state2, action1,action2] == 0:
-                                self.qVals[h, state1, state2, action1, action2] = self.epLen
-                            else:
-                                if h == self.epLen - 1:
-                                    self.qVals[h, state1, state2, action1, action2] = min(self.qVals[h, state1, state2, action1, action2], self.epLen,self.rEst[h, state1, state2,action1, action2] + self.scaling / np.sqrt(self.num_visits[h, state1, state2, action1, action2]))
-                                else:
-                                    vEst = np.sum(self.vVals[h + 1]* ((self.pEst[h, state1, state2, action1, action2] + self.alpha) / (
-                                                np.sum(self.pEst[h, state1, state2, action1, action2]) + len(self.state_net) * self.alpha)))
-                                    self.qVals[h, state1, state2, action1, action2] = min(self.qVals[h, state1, state2, action1, action2], self.epLen,
-                                                                   self.rEst[h, state1, state2, action1, action2] + self.scaling / np.sqrt(
-                                                                   self.num_visits[h, state1, state2, action1, action2]) + vEst)
-                    self.vVals[h, state1, state2] = min(self.epLen, np.max(self.qVals[h, state1, state2, :]))
+            for state in ????:
+                for action in ????:
+                    dim = (h,) + state + action
+                    if self.num_visits[dim] == 0:
+                        self.qVals[dim] = self.epLen
+                    else:
+                        if h == self.epLen - 1:
+                            self.qVals[dim] = min(self.qVals, self.rEst[dim] + self.scaling / np.sqrt(self.num_visits[dim]))
+                        else:
+                            vEst = np.min(self.epLen, np.sum(np.multiply(self.vVals[(h+1,)], self.pEst[dim] + self.alpha) / (np.sum(self.pEst[dim] + self.alpha))))
+                            self.qVals[dim] = min(self.qVals[dim], self.epLen, self.rEst[dim] + self.scaling / np.sqrt(self.num_visits[dim]) + vEst)
+                    self.vVals[dim] = min(self.epLen, self.qVals[(h+1,) + state].max())
+
         self.greedy = self.greedy
 
 
@@ -129,7 +120,19 @@ class eNetModelBased(agent.FiniteHorizonAgent):
         #return self.action_net[action.T[index]]
 
     def pick_action(self, state, step):
+        if self.flag == False:
+            state_discrete = np.argmin((np.abs(np.asarray(self.state_net) - np.asarray(state))), axis=0)
+            for action in ???? :
+                dim = (timestep,) + tuple(state_discrete) + tuple(action_discrete)
+                if self.num_visits(dim) == 0:
+                    self.qVals[dim] == 0
+                else:
+                    if step == self.epLen - 1:
+                        self.qVals[dim] = min(self.qVals[dim], self.epLen, self.rEst[dim] + self.scaling / np.sqrt(self.num_visits[dim]))
+                    else:
+                        vEst = np.min(self.epLen, np.sum(np.multiply(self.vVals[(timestep+1,)], self.pEst[dim] + self.alpha) / (np.sum(self.pEst[dim] + self.alpha))))
+                        self.qVals[dim] = min(self.qVals[dim], self.epLen, self.rEst[dim] + vEst + self.scaling / np.sqrt(self.num_visits[dim]))
+                self.vVals[(timestep,)+tuple(state_discrete)] = self.qVals[(timestep,)+tuple(state_discrete)].max()
+
         action = self.greedy(state, step)
-        if len(action) ==1:
-            return action[0]
         return action

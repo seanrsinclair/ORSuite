@@ -1,8 +1,8 @@
 import numpy as np
-from src import agent
+from .. import Agent
 
 ''' epsilon Net agent '''
-class eNet(agent.FiniteHorizonAgent):
+class eNet_Multiple(Agent):
 
     def __init__(self, action_net, state_net, epLen, scaling, state_action_dim):
         '''
