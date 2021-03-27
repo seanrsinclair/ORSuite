@@ -7,6 +7,8 @@ import gym
 
 import or_suite
 
+import copy
+
 import os
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3 import PPO
@@ -83,7 +85,7 @@ for agent in agents:
                 print(agent)
                 print(alpha)
                 print(arrival_dist.__name__)
-                CONFIG = DEFAULT_CONFIG
+                CONFIG = copy.deepcopy(DEFAULT_CONFIG)
                 CONFIG['alpha'] = alpha
                 CONFIG['arrival_dist'] = arrival_dist
                 CONFIG['num_ambulance'] = num_ambulance
