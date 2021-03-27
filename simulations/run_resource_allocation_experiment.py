@@ -23,7 +23,7 @@ def run_single_algo(env, agent, settings):
 ''' Defining parameters to be used in the experiment'''
 
 
-DEFAULT_ENV_CONFIG = or_suite.envs.env_configs.resource_allocation_default_config
+DEFAULT_ENV_CONFIG = or_suite.envs.env_configs.resource_allocation_simple_config
 
 
 # #TODO: Edit algo-list to be the names of the algorithms you created
@@ -39,7 +39,7 @@ for problem in problem_list:
     algo_information = {'Random': or_suite.agents.rl.random.randomAgent(), 'Equal_Allocation': or_suite.agents.resource_allocation.equal_allocation.equalAllocationAgent(epLen, DEFAULT_ENV_CONFIG)}
 
 
-    DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance_graph/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': True, 'epLen' : epLen}
+    DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/allocation/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': True, 'epLen' : epLen}
 
 
     path = {}
