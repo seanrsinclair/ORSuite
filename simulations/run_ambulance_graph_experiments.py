@@ -46,7 +46,7 @@ num_ambulances = [1,3]
 def uniform(step, num_nodes):
     return np.array([1 / num_nodes for i in range(num_nodes)])
 
-def nonuniform(step, num_nodes, arrivals = None):
+def nonuniform(step, num_nodes):
     #TODO: fix so it actually works for a variable number of nodes
     return np.array([0.25, 0.4, 0.25, 0.05, 0.05])
 
@@ -87,7 +87,7 @@ for agent in agents:
                 CONFIG['arrival_dist'] = arrival_dist
                 CONFIG['num_ambulance'] = num_ambulance
                 CONFIG['starting_state'] = [0 for _ in range(num_ambulance)]
-                
+
                 if arrival_dist == from_data:
                     CONFIG['from_data'] = True
                     CONFIG['edges'] = ithaca_edges
@@ -127,7 +127,7 @@ for agent in agents:
                         agent_to_use = or_suite.agents.ambulance.median_graph.medianAgent(CONFIG['epLen'], CONFIG['edges'], CONFIG['num_ambulance'])
                     else:
                         agent_to_use = agents[agent]
-                    run_single_algo(ambulance_graph_env, agents[agent], DEFAULT_SETTINGS)
+                    run_single_algo(ambulance_graph_env, agent_to_use, DEFAULT_SETTINGS)
 
 
 for alpha in alphas:

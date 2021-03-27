@@ -83,13 +83,12 @@ class medianAgent(Agent):
         if timestep == 0:
             return state
         else:
-            num_ambulance = len(self.data[0])
             counts = np.bincount(self.call_locs, minlength=self.num_nodes)
             # print(self.lengths)
             # print(counts)
             score = self.lengths @ counts
             action = []
-            for i in range(num_ambulance):
+            for _ in range(self.num_ambulance):
                 node = np.argmin(score)
                 action.append(node)
                 score[node] = 99999999
