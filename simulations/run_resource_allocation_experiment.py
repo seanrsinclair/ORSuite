@@ -15,7 +15,7 @@ from stable_baselines3.common.evaluation import evaluate_policy
 
 def run_single_algo(env, agent, settings): 
 
-    exp = or_suite.experiment.experiment.Experiment(env, agent, settings)
+    exp = or_suite.experiment.experiment.Ex20periment(env, agent, settings)
     _ = exp.run()
     dt_data = exp.save_data()
 

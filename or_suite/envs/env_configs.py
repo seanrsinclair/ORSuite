@@ -28,7 +28,7 @@ ambulance_graph_default_config = {'epLen': 5,
     'arrival_dist': None, 
     'alpha': 0.25,
     'edges': [(0,4,{'dist':7}), (0,1,{'dist':1}), (1,2,{'dist':3}), (2,3,{'dist':5}), (1,3,{'dist':1}), (1,4,{'dist':17}), (3,4,{'dist':3})],
-                'starting_state': [1,2], 'num_ambulance': 2
+    'starting_state': [1,2], 'num_ambulance': 2
   }
 
 
