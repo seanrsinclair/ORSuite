@@ -12,12 +12,18 @@ class equalAllocationAgent(Agent):
             env_config - parameters used in initialization of environment
             data - all data observed so far
         '''
+
+        self.num_types = env_config['weight_matrix'].shape[0]
+        self.num_resources = self.env_config['weight_matrix'].shape[1]
+        
         self.epLen = epLen
         self.env_config = env_config
         self.data = []
         self.rel_exp_endowments = self.get_expected_endowments()
         print("R")
         print(self.rel_exp_endowments)
+
+
 
     def get_expected_endowments(self,N=1000):
         """

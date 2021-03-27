@@ -31,15 +31,15 @@ problem_list = ['default']
 
 
 for problem in problem_list:
-    nEps = 50
-    numIters = 5
+    nEps = 1
+    numIters = 1
     #initialize resource allocation environment w/ default parameters
     env = gym.make('Resource-v0', config = DEFAULT_ENV_CONFIG)
     epLen = env.epLen
-    algo_information = {'Random': or_suite.agents.rl.random.randomAgent(), 'Equal_Allocation': or_suite.agents.resource_allocation.equal_allocation.equalAllocationAgent(epLen, DEFAULT_ENV_CONFIG)}
+    # algo_information = {'Random': or_suite.agents.rl.random.randomAgent(), 'Equal_Allocation': or_suite.agents.resource_allocation.equal_allocation.equalAllocationAgent(epLen, DEFAULT_ENV_CONFIG)}
+    algo_information = {'Equal_Allocation': or_suite.agents.resource_allocation.equal_allocation.equalAllocationAgent(epLen, DEFAULT_ENV_CONFIG)}
 
-
-    DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/allocation/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': True, 'epLen' : epLen}
+    DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/allocation/', 'deBug': True, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': True, 'epLen' : epLen}
 
 
     path = {}
@@ -47,19 +47,16 @@ for problem in problem_list:
         DEFAULT_SETTINGS['dirPath'] = '../data/allocation_%s_%s'%(algorithm,problem)
         run_single_algo(env, algo_information[algorithm], DEFAULT_SETTINGS)
 
-#below is work on the PPO algorithm, kinda not the greatest atm
-"""
-env = gym.make('Resource-v0', config = DEFAULT_ENV_CONFIG)
 
 
-#gym.check_env(env)
 
-model = PPO(MlpPolicy, env, verbose=1, gamma=1)
-model.learn(total_timesteps=1000)
+# #below is work on the PPO algorithm, kinda not the greatest atm
+# env = gym.make('Resource-v0', config = DEFAULT_ENV_CONFIG)
+# model = PPO(MlpPolicy, env, verbose=1, gamma=1)
+# model.learn(total_timesteps=1000)
 
-env = gym.make('Resource-v0')
-n_episodes = 100
-res_mean, res_std = evaluate_policy(model, env, n_eval_episodes=n_episodes)
+# env = gym.make('Ambulance-v1')
+# n_episodes = 100
+# res_mean, res_std = evaluate_policy(model, env, n_eval_episodes=n_episodes)
 
-print(-res_mean, '+/-', 1.96*res_std/np.sqrt(n_episodes))
-"""
+# print(-res_mean, '+/-', 1.96*res_std/np.sqrt(n_episodes))

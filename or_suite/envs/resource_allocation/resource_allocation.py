@@ -1,13 +1,8 @@
-'''
-Implementation of a basic RL environment for continuous spaces.
-Includes three test problems which were used in generating the figures.
-'''
 
 import numpy as np
 import gym
 from gym import spaces
 import math
-from functools import reduce
 from .. import env_configs
 
 #------------------------------------------------------------------------------
@@ -37,26 +32,30 @@ class ResourceAllocationEnvironment(gym.Env):
         u: utility function, given an allocation x and a type theta, u(x,theta) is how good the fit is
         '''
         super(ResourceAllocationEnvironment, self).__init__()
+
+
         self.config = config
+        
         self.weight_matrix = config['weight_matrix']
-        self.num_types = config['weight_matrix'].shape[0]
+        
+        self.num_types = config['weight_matrix'].shape[0]        
         self.num_commodities = config['K']
         self.epLen = config['num_rounds']
         self.budget = config['init_budget']
         self.type_dist = config['type_dist']
         self.utility_function = config['utility_function']
-        print(config['init_budget'])
-        print(self.type_dist(0))
-        self.starting_state = np.concatenate((config['init_budget'],self.type_dist(0)))
+        
+        self.starting_state = np.concatenate([config['init_budget'],self.type_dist(0)])
+
         self.state = self.starting_state
         self.timestep = 0
 
 
         
-        # Action space will be choosing Kxn-dimensional allocation matrix
+        # Action space will be choosing Kxn-dimensional allocation matrix (represented as a vector for PPO)
         self.action_space = spaces.Box(low=0, high=max(self.budget),
-                                        shape=(self.num_types*self.num_commodities,), dtype=np.float32)
-        # First K entries of observation space is the remaining budget, next K is the type of the location
+                                        shape=(self.num_commodities*self.num_types,), dtype=np.float32)
+        # First K entries of observation space is the remaining budget, next is the number of each type at the location
         self.observation_space = spaces.Box(low=0, high=np.inf,
                                         shape=(self.num_commodities+self.num_types,), dtype=np.float32)
 
@@ -70,7 +69,6 @@ class ResourceAllocationEnvironment(gym.Env):
         self.state = self.starting_state
 
         return self.starting_state
-        ## return a spaces.box object here
     
   def get_config(self):
       return self.config
@@ -87,52 +85,58 @@ class ResourceAllocationEnvironment(gym.Env):
             done - 0/1 - flag for end of the episode
             info - dict - any additional information 
         '''
+
+        # subdividing state of (b,N) into the two components
         old_budget = self.state[:self.num_commodities]
         old_type = self.state[self.num_commodities:]
-        # new state is sampled from the arrivals distribution
+
+        # reshaping the allocation into a matrix
         allocation = np.reshape(np.array(action),(self.num_types,self.num_commodities))
-        #print(allocation)
-        # TODO: CHECK IF ALLOCATION IS VALID
-        if reduce(lambda a,b: a and b, np.sum(allocation, axis=0) <= old_budget):
-            # print('old_state' , old_state)
-            # print('new_type' , new_type)
-            #print("length of obs space:",self.num_commodities+self.num_types)
-            # TODO: INTEGRATE OTHER FAIRNESS METRICS
-        
+
+        # determines if the allocation is valid, i.e. algorithm is able to allocate the allocation
+        # to each of the types, based on the number of people of each type
+
+        print('Allocation: ' + str(allocation))
+        print('Budget: ' + str(old_budget))
+        print('Types: ' + str(old_type))
+
+        print('New Budget: ' + str(old_budget-np.matmul(old_type, allocation)))
+
+        if np.min(old_budget - np.matmul(old_type, allocation)) >= 0:
+            
             reward = (1/np.sum(old_type))*sum(
                 [old_type[theta]*np.log(self.utility_function(allocation[theta,:],self.weight_matrix[theta,:])) for theta in range(self.num_types)]
                 )
-            #print("Reward: %s"%reward)
-            new_budget = old_budget-np.sum(allocation, axis=0)
+
+            # updates the budget by the old budget and the allocation given
+            new_budget = old_budget-np.matmul(old_type, allocation)
+
+            if self.timestep != self.epLen - 1:
+                done = False
+            else:
+                done = True
             
-        else:    
+
+        else:  # algorithm is allocating more than the budget, output a negative infinity reward
             reward = -np.inf
             done=True
-            #end the episode
-            #self.timestep=self.epLen-1
             new_budget = old_budget
         
+
+
         new_type = self.type_dist(self.timestep)
 
-        # print('New state' , newState)
         info = {'type' : new_type}
 
-        if self.timestep != self.epLen - 1:
-            done = False
-            self.reset()
-        else:
-            done = True
 
         
-        self.state = np.concatenate((new_budget, new_type))
-        #print("len of state: ",len(self.state) )
-        #not sure how to make it such the sum across all types is <= budget
+        self.state = np.concatenate([new_budget, new_type])
+
+
         self.action_space = spaces.Box(low=0, high=max(new_budget),
-                                shape=(self.num_types,self.num_commodities), dtype=np.float32)
+                                        shape=(self.num_commodities*self.num_types,), dtype=np.float32)
         
         self.timestep += 1
-        #return self.state and also a box object
-        # can probably return self.state
 
         return self.state, reward,  done, info
 
