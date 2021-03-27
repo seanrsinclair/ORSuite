@@ -4,6 +4,10 @@ sys.path.append('../')
 
 import numpy as np
 import gym
+import networkx as nx
+
+import re
+import ast
 
 import or_suite
 
@@ -29,21 +33,42 @@ agents = {'Random': or_suite.agents.rl.random.randomAgent(), 'Stable': or_suite.
 # agents = {'Random': or_suite.agents.rl.random.randomAgent(), 'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']), 'Median': or_suite.agents.ambulance.median_graph.medianAgent(DEFAULT_CONFIG['epLen'], DEFAULT_CONFIG['edges'], DEFAULT_CONFIG['num_ambulance']), 'Mode': or_suite.agents.ambulance.mode_graph.modeAgent(DEFAULT_CONFIG['epLen'])}
 
 # agents = {'SB_PPO': None}
-nEps = 1000
+nEps = 10
 numIters = 50
 epLen = DEFAULT_CONFIG['epLen']
 DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen' : 5}
 
 alphas = [0, 1, 0.25]
 
-def uniform(step, num_nodes):
+def uniform(step, num_nodes, arrivals = None):
     return np.full(num_nodes, 1/num_nodes)
 
-def nonuniform(step, num_nodes):
+def nonuniform(step, num_nodes, arrivals = None):
     #TODO: fix so it actually works for a variable number of nodes
     return np.array([0.25, 0.4, 0.25, 0.05, 0.05])
 
-arrival_dists = [uniform, nonuniform]
+
+edges_file = open("ithaca.edgelist", "r")
+ithaca_edges = []
+for line in edges_file:
+    travel_dict = ast.literal_eval(re.search('({.+})', line).group(0))
+    split = line.split()
+    ithaca_edges.append((split[0], split[1], travel_dict))
+edges_file.close()
+
+
+arrivals_file = open("arrivals.txt", "r")
+ithaca_arrivals = arrivals_file.read().splitlines()
+ithaca_arrivals = [int(i) for i in ithaca_arrivals]
+arrivals_file.close()
+
+def from_data(step, num_nodes, ithaca_arrivals):
+    node = ithaca_arrivals[step]
+    dist = np.full(num_nodes, 0)
+    dist[node] = 1
+    return dist
+
+arrival_dists = [uniform, nonuniform, from_data]
 
 
 for agent in agents:
@@ -52,7 +77,13 @@ for agent in agents:
             CONFIG = DEFAULT_CONFIG
             CONFIG['alpha'] = alpha
             CONFIG['arrival_dist'] = arrival_dist
-            DEFAULT_SETTINGS['dirPath'] = '../data/ambulance_graph_'+str(agent)+'_'+str(alpha)+'_'+str(arrival_dist)+'/'
+
+            if arrival_dist == from_data:
+                CONFIG['from_data'] = True
+                CONFIG['edges'] = ithaca_edges
+                CONFIG['data'] = ithaca_arrivals
+
+            DEFAULT_SETTINGS['dirPath'] = '../data/ambulance_graph_'+str(agent)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/'
             ambulance_graph_env = gym.make('Ambulance-v1', config=CONFIG)
             if agent == 'SB_PPO':
                 episodes = []

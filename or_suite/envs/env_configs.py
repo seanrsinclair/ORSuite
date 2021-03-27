@@ -25,9 +25,10 @@ ambulance_metric_default_config =  {'epLen': 5,
 
 
 ambulance_graph_default_config = {'epLen': 5, 
-    'arrival_dist': None, 
+    'arrival_dist': lambda step, num_nodes: np.full(num_nodes, 1/num_nodes), 
     'alpha': 0.25,
-    'edges': [(0,4,{'dist':7}), (0,1,{'dist':1}), (1,2,{'dist':3}), (2,3,{'dist':5}), (1,3,{'dist':1}), (1,4,{'dist':17}), (3,4,{'dist':3})],
+    'from_data': False,
+    'edges': [(0,4,{'travel_time':7}), (0,1,{'travel_time':1}), (1,2,{'travel_time':3}), (2,3,{'travel_time':5}), (1,3,{'travel_time':1}), (1,4,{'travel_time':17}), (3,4,{'travel_time':3})],
                 'starting_state': [1,2], 'num_ambulance': 2
   }
 

@@ -13,7 +13,7 @@ def find_lengths(graph):
     """
     nodes = list(graph.nodes)
     num_nodes = len(nodes)
-    dict_lengths = dict(nx.all_pairs_dijkstra_path_length(graph, cutoff=None, weight='dist'))
+    dict_lengths = dict(nx.all_pairs_dijkstra_path_length(graph, cutoff=None, weight='travel_time'))
     lengths = np.zeros((num_nodes, num_nodes))
 
     for node1 in nodes:
