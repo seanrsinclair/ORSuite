@@ -101,7 +101,7 @@ class AmbulanceGraphEnvironment(gym.Env):
         # The location of the new arrival is chosen randomly from among the nodes 
         # in the graph according to the arrival distribution
         prob_list = self.arrival_dist(self.timestep, self.num_nodes, self.arrival_data) if self.from_data else self.arrival_dist(self.timestep, self.num_nodes)
-        new_arrival = np.random.choice(list(self.graph.nodes), p=prob_list)
+        new_arrival = np.random.choice(self.num_nodes, p=prob_list)
 
         # Finds the distance traveled by all the ambulances from the old state to 
         # the chosen action, assuming that each ambulance takes the shortest path,

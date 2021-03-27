@@ -6,18 +6,16 @@ import sklearn_extra.cluster
 import sys
 from .. import Agent
 
-def find_lengths(graph):
+def find_lengths(graph, num_nodes):
     """
     Given a graph, find_lengths first calculates the pairwise shortest distance 
     between all the nodes, which is stored in a (symmetric) matrix.
     """
-    nodes = list(graph.nodes)
-    num_nodes = len(nodes)
     dict_lengths = dict(nx.all_pairs_dijkstra_path_length(graph, cutoff=None, weight='travel_time'))
     lengths = np.zeros((num_nodes, num_nodes))
 
-    for node1 in nodes:
-        for node2 in nodes:
+    for node1 in range(num_nodes):
+        for node2 in range(num_nodes):
             lengths[node1, node2] = dict_lengths[node1][node2]
 
     return lengths
@@ -39,9 +37,9 @@ class medianAgent(Agent):
         self.epLen = epLen
         self.data = []
         self.graph = nx.Graph(edges)
-        self.num_nodes = len(self.graph.nodes)
+        self.num_nodes = self.graph.number_of_nodes()
         self.num_ambulance = num_ambulance
-        self.lengths = find_lengths(self.graph)
+        self.lengths = find_lengths(self.graph, self.num_nodes)
         self.call_locs = []
 
 
@@ -87,6 +85,8 @@ class medianAgent(Agent):
         else:
             num_ambulance = len(self.data[0])
             counts = np.bincount(self.call_locs, minlength=self.num_nodes)
+            # print(self.lengths)
+            # print(counts)
             score = self.lengths @ counts
             action = []
             for i in range(num_ambulance):
