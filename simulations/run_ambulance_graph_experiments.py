@@ -40,9 +40,11 @@ epLen = DEFAULT_CONFIG['epLen']
 DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen' : 5}
 
 alphas = [0, 1, 0.25]
+num_ambulances = [1,3]
+# num_ambulances = [3]
 
-def uniform(step, num_nodes, arrivals = None):
-    return np.full(num_nodes, 1/num_nodes)
+def uniform(step, num_nodes):
+    return np.array([1 / num_nodes for i in range(num_nodes)])
 
 def nonuniform(step, num_nodes, arrivals = None):
     #TODO: fix so it actually works for a variable number of nodes
@@ -73,52 +75,60 @@ arrival_dists = [uniform, nonuniform, from_data]
 
 
 for agent in agents:
-    for alpha in alphas:
-        for arrival_dist in arrival_dists:
-            CONFIG = copy.deepcopy(DEFAULT_CONFIG)
-            CONFIG['alpha'] = alpha
-            CONFIG['arrival_dist'] = arrival_dist
-
-            if arrival_dist == from_data:
-                CONFIG['from_data'] = True
-                CONFIG['edges'] = ithaca_edges
-                CONFIG['data'] = ithaca_arrivals
-
-            DEFAULT_SETTINGS['dirPath'] = '../data/ambulance_graph_'+str(agent)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/'
-            ambulance_graph_env = gym.make('Ambulance-v1', config=CONFIG)
-            if agent == 'SB_PPO':
-                episodes = []
-                iterations = []
-                rewards = []
-                times = []
-                memory = []
-            
-                for i in range(numIters):
-                    sb_env = Monitor(ambulance_graph_env)
-                    model = PPO(MlpPolicy, sb_env, gamma=1, n_steps = epLen)
-                    model.learn(total_timesteps=epLen*nEps)
-
-                    episodes = np.append(episodes,np.arange(0, nEps))
-                    iterations = np.append(iterations, [i for _ in range(nEps)])
-                    rewards =np.append(rewards, sb_env.get_episode_rewards())
-                    times = np.append(times, sb_env.get_episode_times())
-                    memory = np.append(memory, np.zeros(len(sb_env.get_episode_rewards())))
-
-                df = pd.DataFrame({'episode': episodes,
-                        'iteration': iterations,
-                        'epReward': rewards,
-                        'time': times,
-                        'memory': memory})
+    for num_ambulance in num_ambulances:
+        for alpha in alphas:
+            for arrival_dist in arrival_dists:
+                print(agent)
+                print(num_ambulance)
+                print(alpha)
+                print(arrival_dist.__name__)
+                CONFIG = copy.deepcopy(DEFAULT_CONFIG)
+                CONFIG['alpha'] = alpha
+                CONFIG['arrival_dist'] = arrival_dist
+                CONFIG['num_ambulance'] = num_ambulance
+                CONFIG['starting_state'] = [0 for _ in range(num_ambulance)]
                 
-                if not os.path.exists(DEFAULT_SETTINGS['dirPath']):
-                    os.makedirs(DEFAULT_SETTINGS['dirPath'])
-                df.to_csv(DEFAULT_SETTINGS['dirPath']+'data.csv', index=False, float_format='%.2f', mode='w')
-            else:
-                if agent == 'Median':
-                    agent_to_use = or_suite.agents.ambulance.median_graph.medianAgent(CONFIG['epLen'], CONFIG['edges'], CONFIG['num_ambulance'])
+                if arrival_dist == from_data:
+                    CONFIG['from_data'] = True
+                    CONFIG['edges'] = ithaca_edges
+                    CONFIG['data'] = ithaca_arrivals
+
+                DEFAULT_SETTINGS['dirPath'] = '../data/ambulance_graph_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/'
+                ambulance_graph_env = gym.make('Ambulance-v1', config=CONFIG)
+                if agent == 'SB_PPO':
+                    episodes = []
+                    iterations = []
+                    rewards = []
+                    times = []
+                    memory = []
+                
+                    for i in range(numIters):
+                        sb_env = Monitor(ambulance_graph_env)
+                        model = PPO(MlpPolicy, sb_env, gamma=1, n_steps = epLen)
+                        model.learn(total_timesteps=epLen*nEps)
+
+                        episodes = np.append(episodes,np.arange(0, nEps))
+                        iterations = np.append(iterations, [i for _ in range(nEps)])
+                        rewards =np.append(rewards, sb_env.get_episode_rewards())
+                        times = np.append(times, sb_env.get_episode_times())
+                        memory = np.append(memory, np.zeros(len(sb_env.get_episode_rewards())))
+
+                    df = pd.DataFrame({'episode': episodes,
+                            'iteration': iterations,
+                            'epReward': rewards,
+                            'time': times,
+                            'memory': memory})
+                    
+                    if not os.path.exists(DEFAULT_SETTINGS['dirPath']):
+                        os.makedirs(DEFAULT_SETTINGS['dirPath'])
+                    df.to_csv(DEFAULT_SETTINGS['dirPath']+'data.csv', index=False, float_format='%.2f', mode='w')
                 else:
-                    agent_to_use = agents[agent]
-                run_single_algo(ambulance_graph_env, agent_to_use, DEFAULT_SETTINGS)
+                    if agent == 'Median':
+                        agent_to_use = or_suite.agents.ambulance.median_graph.medianAgent(CONFIG['epLen'], CONFIG['edges'], CONFIG['num_ambulance'])
+                    else:
+                        agent_to_use = agents[agent]
+                    run_single_algo(ambulance_graph_env, agents[agent], DEFAULT_SETTINGS)
+
 
 for alpha in alphas:
     for arrival_dist in arrival_dists:
@@ -139,6 +149,24 @@ for alpha in alphas:
         or_suite.plots.plot_line_plots(path_list_line, algo_list_line, fig_path, fig_name)
 
         fig_name = 'ambulance_graph_'+str(alpha)+'_'+str(arrival_dist)+'_radar_plot'+'.pdf'
+        or_suite.plots.plot_radar_plots(path_list_radar, algo_list_radar, fig_path, fig_name)
+        path_list_line = []
+        algo_list_line = []
+
+        path_list_radar = []
+        algo_list_radar = []
+        for agent in agents:
+            path_list_line.append('../data/ambulance_graph_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/data.csv')
+            algo_list_line.append(str(agent))
+            if agent != 'SB_PPO':
+                path_list_radar.append('../data/ambulance_graph_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/data.csv')
+                algo_list_radar.append(str(agent))
+
+        fig_path = '../figures/'
+        fig_name = 'ambulance_graph_'+str(num_ambulance) + '_'+ str(alpha)+'_'+str(arrival_dist.__name__)+'_line_plot'+'.pdf'
+        or_suite.plots.plot_line_plots(path_list_line, algo_list_line, fig_path, fig_name)
+
+        fig_name = 'ambulance_graph_'+str(num_ambulance) + '_' + str(alpha)+'_'+str(arrival_dist.__name__)+'_radar_plot'+'.pdf'
         or_suite.plots.plot_radar_plots(path_list_radar, algo_list_radar, fig_path, fig_name)
 
 

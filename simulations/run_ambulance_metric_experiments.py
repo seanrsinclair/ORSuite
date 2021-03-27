@@ -40,19 +40,19 @@ state_net = np.arange(start=0, stop=1, step=epsilon)
 
 scaling = 0.5
 
-agents = {# 'SB_PPO': None, 'Random': or_suite.agents.rl.random.randomAgent(),
-     # 'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']),
-     # 'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen']), 
+agents = {'SB_PPO': None, 'Random': or_suite.agents.rl.random.randomAgent(),
+     'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']),
+     'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen']), 
      # 'Unif_MB': or_suite.agents.rl.eNet_model_Agent.eNetModelBased(action_net, state_net, epLen, scaling, 0, False),
      # 'Unif_QL': or_suite.agents.rl.eNet_Agent.eNet(action_net, state_net, epLen, scaling),
-     'AdaQL': or_suite.agents.rl.adaptive_Agent.AdaptiveDiscretization(epLen, numIters, scaling)
+     # 'AdaQL': or_suite.agents.rl.adaptive_Agent.AdaptiveDiscretization(epLen, numIters, scaling)
      }
 
 
 nEps = 1000
 numIters = 1
 
-DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance/', 'deBug': True, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen' : 5}
+DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen' : 5}
 
 alphas = [0, 0.25, 1]
 
@@ -74,77 +74,82 @@ def uniform(step):
 def beta(step):
     return np.random.beta(5,2)
 
-# arrival_dists = [shifting, uniform, beta]
-arrival_dists = [beta]
+arrival_dists = [shifting, uniform, beta]
+# arrival_dists = [beta]
+num_ambulances = [1,3]
+
 
 for agent in agents:
+    for num_ambulance in num_ambulances:
+        for alpha in alphas:
+            for arrival_dist in arrival_dists:
+                print(agent)
+                print(alpha)
+                print(arrival_dist.__name__)
+                CONFIG = copy.deepcopy(DEFAULT_CONFIG)
+                CONFIG['alpha'] = alpha
+                CONFIG['arrival_dist'] = arrival_dist
+                CONFIG['num_ambulance'] = num_ambulance
+                CONFIG['starting_state'] = np.array([0 for _ in range(num_ambulance)])
+                DEFAULT_SETTINGS['dirPath'] = '../data/ambulance_metric_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/'
+                ambulance_env = gym.make('Ambulance-v0', config=CONFIG)
+
+                if agent == 'SB_PPO':
+                    episodes = []
+                    iterations = []
+                    rewards = []
+                    times = []
+                    memory = []
+                
+                    for i in range(numIters):
+                        sb_env = Monitor(ambulance_env)
+                        model = PPO(MlpPolicy, sb_env, gamma=1, verbose=0, n_steps = epLen)
+                        model.learn(total_timesteps=epLen*nEps)
+
+
+                        episodes = np.append(episodes,np.arange(0, nEps))
+                        iterations = np.append(iterations, [i for _ in range(nEps)])
+                        rewards =np.append(rewards, sb_env.get_episode_rewards())
+                        times = np.append(times, sb_env.get_episode_times())
+                        memory = np.append(memory, np.zeros(len(sb_env.get_episode_rewards())))
+
+                    df = pd.DataFrame({'episode': episodes,
+                            'iteration': iterations,
+                            'epReward': rewards,
+                            'time': times,
+                            'memory': memory})
+                    
+                    if not os.path.exists(DEFAULT_SETTINGS['dirPath']):
+                        os.makedirs(DEFAULT_SETTINGS['dirPath'])
+                    df.to_csv(DEFAULT_SETTINGS['dirPath']+'data.csv', index=False, float_format='%.2f', mode='w')
+                else:
+                    run_single_algo(ambulance_env, agents[agent], DEFAULT_SETTINGS)
+
+
+
+
+for num_ambulance in num_ambulances:
     for alpha in alphas:
         for arrival_dist in arrival_dists:
-            print(agent)
-            print(alpha)
-            print(arrival_dist.__name__)
-            CONFIG = copy.deepcopy(DEFAULT_CONFIG)
-            CONFIG['alpha'] = alpha
-            CONFIG['arrival_dist'] = arrival_dist
-            DEFAULT_SETTINGS['dirPath'] = '../data/ambulance_metric_'+str(agent)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/'
-            ambulance_env = gym.make('Ambulance-v0', config=CONFIG)
+            path_list_line = []
+            algo_list_line = []
 
-            if agent == 'SB_PPO':
-                episodes = []
-                iterations = []
-                rewards = []
-                times = []
-                memory = []
-            
-                for i in range(numIters):
-                    sb_env = Monitor(ambulance_env)
-                    model = PPO(MlpPolicy, sb_env, gamma=1, verbose=0, n_steps = epLen)
-                    model.learn(total_timesteps=epLen*nEps)
+            path_list_radar = []
+            algo_list_radar = []
+            for agent in agents:
+                path_list_line.append('../data/ambulance_metric_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/data.csv')
+                algo_list_line.append(str(agent))
+                if agent != 'SB_PPO':
+                    path_list_radar.append('../data/ambulance_metric_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/data.csv')
+                    algo_list_radar.append(str(agent))
+
+            fig_path = '../figures/'
+            fig_name = 'ambulance_metric'+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'_line_plot'+'.pdf'
+            or_suite.plots.plot_line_plots(path_list_line, algo_list_line, fig_path, fig_name)
 
 
-                    episodes = np.append(episodes,np.arange(0, nEps))
-                    iterations = np.append(iterations, [i for _ in range(nEps)])
-                    rewards =np.append(rewards, sb_env.get_episode_rewards())
-                    times = np.append(times, sb_env.get_episode_times())
-                    memory = np.append(memory, np.zeros(len(sb_env.get_episode_rewards())))
-
-                df = pd.DataFrame({'episode': episodes,
-                        'iteration': iterations,
-                        'epReward': rewards,
-                        'time': times,
-                        'memory': memory})
-                
-                if not os.path.exists(DEFAULT_SETTINGS['dirPath']):
-                    os.makedirs(DEFAULT_SETTINGS['dirPath'])
-                df.to_csv(DEFAULT_SETTINGS['dirPath']+'data.csv', index=False, float_format='%.2f', mode='w')
-            else:
-                run_single_algo(ambulance_env, agents[agent], DEFAULT_SETTINGS)
-
-
-
-
-
-for alpha in alphas:
-    for arrival_dist in arrival_dists:
-        path_list_line = []
-        algo_list_line = []
-
-        path_list_radar = []
-        algo_list_radar = []
-        for agent in agents:
-            path_list_line.append('../data/ambulance_metric_'+str(agent)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/data.csv')
-            algo_list_line.append(str(agent))
-            if agent != 'SB_PPO':
-                path_list_radar.append('../data/ambulance_metric_'+str(agent)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/data.csv')
-                algo_list_radar.append(str(agent))
-
-        fig_path = '../figures/'
-        fig_name = 'ambulance_metric'+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'_line_plot'+'.pdf'
-        or_suite.plots.plot_line_plots(path_list_line, algo_list_line, fig_path, fig_name)
-
-
-        fig_name = 'ambulance_metric'+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'_radar_plot'+'.pdf'
-        or_suite.plots.plot_radar_plots(path_list_radar, algo_list_radar, fig_path, fig_name)
+            fig_name = 'ambulance_metric'+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'_radar_plot'+'.pdf'
+            or_suite.plots.plot_radar_plots(path_list_radar, algo_list_radar, fig_path, fig_name)
 
 # ######## Testing with Stable Baselines3 PPO Algorithm ########
 

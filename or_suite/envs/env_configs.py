@@ -11,9 +11,9 @@ resource_allocation_default_config = {'K': 2,
 resource_allocation_simple_config = {'K':1,
   'num_rounds':3,
   'weight_matrix': np.array([[1]]),
-  'init_budget': [9],
+  'init_budget': np.array([9]),
   'utility_function': lambda x,theta: x,
-  'type_dist': lambda i: 1+np.random.poisson(size=1, lam = 3)
+  'type_dist': lambda i : np.array([2])
 }
 
 ambulance_metric_default_config =  {'epLen': 5,
