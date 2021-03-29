@@ -9,6 +9,14 @@ import pandas as pd
 from math import pi
 
 
+from matplotlib.patches import Circle, RegularPolygon
+from matplotlib.path import Path
+from matplotlib.projections.polar import PolarAxes
+from matplotlib.projections import register_projection
+from matplotlib.spines import Spine
+from matplotlib.transforms import Affine2D
+
+
 
 
 
@@ -31,76 +39,173 @@ def normalize(df):
 
 
 
-def plot_radar_plots(path_list, algo_list, fig_path , fig_name):
+def radar_factory(num_vars, frame='circle'):
+    """Create a radar chart with `num_vars` axes.
+
+    This function creates a RadarAxes projection and registers it.
+
+    Parameters
+    ----------
+    num_vars : int
+        Number of variables for radar chart.
+    frame : {'circle' | 'polygon'}
+        Shape of frame surrounding axes.
+
+    """
+    # calculate evenly-spaced axis angles
+    theta = np.linspace(0, 2*np.pi, num_vars, endpoint=False)
+
+    class RadarAxes(PolarAxes):
+
+        name = 'radar'
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            # rotate plot such that the first axis is at the top
+            self.set_theta_zero_location('N')
+
+        def fill(self, *args, closed=True, **kwargs):
+            """Override fill so that line is closed by default"""
+            return super().fill(closed=closed, *args, **kwargs)
+
+        def plot(self, *args, **kwargs):
+            """Override plot so that line is closed by default"""
+            lines = super().plot(*args, **kwargs)
+            for line in lines:
+                self._close_line(line)
+
+        def _close_line(self, line):
+            x, y = line.get_data()
+            # FIXME: markers at x[0], y[0] get doubled-up
+            if x[0] != x[-1]:
+                x = np.concatenate((x, [x[0]]))
+                y = np.concatenate((y, [y[0]]))
+                line.set_data(x, y)
+
+        def set_varlabels(self, labels):
+            self.set_thetagrids(np.degrees(theta), labels)
+
+        def _gen_axes_patch(self):
+            # The Axes patch must be centered at (0.5, 0.5) and of radius 0.5
+            # in axes coordinates.
+            if frame == 'circle':
+                return Circle((0.5, 0.5), 0.5)
+            elif frame == 'polygon':
+                return RegularPolygon((0.5, 0.5), num_vars,
+                                      radius=.5, edgecolor="k")
+            else:
+                raise ValueError("unknown value for 'frame': %s" % frame)
+
+        def draw(self, renderer):
+            """ Draw. If frame is polygon, make gridlines polygon-shaped """
+            if frame == 'polygon':
+                gridlines = self.yaxis.get_gridlines()
+                for gl in gridlines:
+                    gl.get_path()._interpolation_steps = num_vars
+            super().draw(renderer)
+
+
+        def _gen_axes_spines(self):
+            if frame == 'circle':
+                return super()._gen_axes_spines()
+            elif frame == 'polygon':
+                # spine_type must be 'left'/'right'/'top'/'bottom'/'circle'.
+                spine = Spine(axes=self,
+                              spine_type='circle',
+                              path=Path.unit_regular_polygon(num_vars))
+                # unit_regular_polygon gives a polygon of radius 1 centered at
+                # (0, 0) but we want a polygon of radius 0.5 centered at (0.5,
+                # 0.5) in axes coordinates.
+                spine.set_transform(Affine2D().scale(.5).translate(.5, .5)
+                                    + self.transAxes)
+
+
+                return {'polar': spine}
+            else:
+                raise ValueError("unknown value for 'frame': %s" % frame)
+
+    register_projection(RadarAxes)
+    return theta
+
+
+
+
+
+
+
+
+def plot_radar_plots(path_list, algo_list, fig_path , fig_name, additional_metric):
     
     # Organizing Data
-    
+
+    plt.style.use('../or_suite/PaperDoubleFig.mplstyle.txt')
+    plt.rc('text', usetex=True)
+
+
+
+
+    # Generating the dataframe
+
     index = 0
-    reward = []
-    time = []
-    space = []
+    values = []
     for algo in algo_list:
-        df = pd.read_csv(path_list[index]).groupby(['episode']).mean()
+        df = pd.read_csv(path_list[index]+'/data.csv').groupby(['episode']).mean()
         df['episode'] = df.index.values 
         df = df[df['episode'] == df.max()['episode']] # THIS IS NOT TOTALLY CORRECT, SHOULD BE SUM OVER EPISODES FOR TIME AND SPACE?
-        reward.append(df.iloc[0]['epReward']) # TODO: Figure out how to get this to work with additional user-defined metrics
-        time.append(df.iloc[0]['time'])
-        space.append(df.iloc[0]['memory'])
-        
+
+        algo_dict = {'Algorithm': algo, 'Reward': df.iloc[0]['epReward'], 'Time':df.iloc[0]['time'], 'Space': df.iloc[0]['memory']}
+
+
+        with open(path_list[index]+'/trajectory.obj', 'rb') as f:
+            x = pickle.load(f)
+            for metric in additional_metric:
+                algo_dict[metric] = additional_metric[metric](x)
+
+        values.append(algo_dict)
+
         index += 1
 
     
 
     # Set data
-    df = pd.DataFrame({'group': algo_list,
-                       'Time': time,
-                       'Space': space,
-                       'Reward': reward})
+    df = pd.DataFrame(values)
 
+    print(df)
     df = normalize(df)
-    # ------- PART 1: Create background
+
+
 
     # number of variable
-    categories=list(df)[1:]
-    N = len(categories)
-
-    # What will be the angle of each axis in the plot? (we divide the plot / number of variable)
-    angles = [n / float(N) * 2 * pi for n in range(N)]
-    angles += angles[:1]
-
-    # Initialise the spider plot
-    ax = plt.subplot(111, polar=True)
-
-    # If you want the first axis to be on top:
-    ax.set_theta_offset(pi / 2)
-    ax.set_theta_direction(-1)
-
-    # Draw one axe per variable + add labels
-    plt.style.use('seaborn')
-    plt.xticks(angles[:-1], categories)
-
-    # Draw ylabels
-    ax.set_rlabel_position(0)
-    plt.yticks([.2,.4,.6,.8], [".2",".4",".6", ".8"], color="grey", size=7)
-    plt.ylim(0,1.1)
+    spoke_labels=list(df)[1:]
+    N = len(spoke_labels)
 
 
-    # ------- PART 2: Add plots
 
-    # Plot each individual = each line of the data
+    theta = radar_factory(N, frame='polygon')
+
+
+    fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(projection='radar'))
+    fig.subplots_adjust(top=0.85, bottom=0.05)
+
+
+    ax.set_rgrids([0.2, 0.4, 0.6, 0.8])
+    ax.set_title('Comparison of Performance Metrics',  position=(0.5, 1.1), ha='center')
 
 
 
     index = 0
 
     for algo in algo_list:
-        values = df.loc[index].drop('group').values.flatten().tolist()
-        values += values[:1]
-        ax.plot(angles, values, linewidth=1, linestyle='solid', label=algo, color = sns.color_palette('colorblind', len(algo_list))[index])
-        ax.fill(angles, values, color = sns.color_palette('colorblind', len(algo_list))[index], alpha=0.1)
+        values = df.loc[index].values[1:]
+        ax.plot(theta, values, linewidth=1, linestyle='solid', label=algo, color = sns.color_palette('colorblind', len(algo_list))[index])
+        ax.fill(theta, values, color = sns.color_palette('colorblind', len(algo_list))[index], alpha=0.25)
         index += 1
 
-    plt.legend(loc='upper right', bbox_to_anchor=(0.1, 0.1), frameon = True)
+    ax.set_varlabels(spoke_labels)
+
+    plt.legend(loc='right', bbox_to_anchor = (1.75 , .5))
+
+
 
 
 
@@ -125,9 +230,9 @@ Create a set of line_plots for the algorithms, comparing the three metrics of re
     Fig_Name: name of the figure
 
 '''
-def plot_line_plots(path_list, algo_list, fig_path , fig_name):
+def plot_line_plots(path_list, algo_list, fig_path , fig_name, plot_freq):
     plt.style.use('../or_suite/PaperDoubleFig.mplstyle.txt')
-    # plt.rc('text', usetex=True)
+    plt.rc('text', usetex=True)
 
     fig, ax = plt.subplots(1, 3, constrained_layout=False, figsize=(15,5))
     fig.suptitle('Comparison of Performance Metrics')
@@ -150,6 +255,7 @@ def plot_line_plots(path_list, algo_list, fig_path , fig_name):
     for algo in algo_list:
         df = pd.read_csv(path_list[index]).groupby(['episode']).mean()
         df['episode'] = df.index.values
+        df = df.iloc[::plot_freq, :]
 
         # PLOT OF OBSERVED REWARDS
         ax[0].plot(df['episode'], df['epReward'], label=algo, dashes = dash_styles[index], color = sns.color_palette('colorblind', len(algo_list))[index])
@@ -158,15 +264,12 @@ def plot_line_plots(path_list, algo_list, fig_path , fig_name):
 
         ax[2].plot(df['episode'], df['memory'], label=algo, dashes = dash_styles[index], color = sns.color_palette('colorblind', len(algo_list))[index])
 
-
-
         index += 1
 
 
     ax[0].set_ylabel('Observed Reward')
-    ax[1].set_ylabel('Observed Time Used')
+    ax[1].set_ylabel('Observed Time Used (log scale)')
     ax[2].set_ylabel('Observed Memory Usage (B)')
-    ax[1].set_yscale('log')
     plt.xlabel('Episode')
     plt.tight_layout()
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')

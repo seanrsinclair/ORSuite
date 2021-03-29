@@ -111,7 +111,7 @@ class Experiment(object):
                 self.data[index, 1] = i
                 self.data[index, 2] = epReward
                 self.data[index, 3] = current
-                self.data[index, 4] = ((end_time) - (start_time))
+                self.data[index, 4] = np.log(((end_time) - (start_time)))
 
                 index += 1
 
@@ -150,7 +150,7 @@ class Experiment(object):
             print('Writing to file ' + data_loc)
 
         if os.path.exists(dir_path):
-            dt.to_csv(os.path.join(dir_path,data_loc), index=False, float_format='%.2f', mode='w')
+            dt.to_csv(os.path.join(dir_path,data_loc), index=False, float_format='%.5f', mode='w')
             if self.save_trajectory:
                 outfile = open(filename, 'wb')
                 pickle.dump(self.trajectory, outfile)

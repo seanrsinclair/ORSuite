@@ -22,17 +22,10 @@ from joblib import Parallel, delayed
 
 
 
-def run_single_algo(env, agent, settings):
-
-    exp = or_suite.experiment.experiment.Experiment(env, agent, settings)
-    _ = exp.run()
-    dt_data = exp.save_data()
-
-
 DEFAULT_CONFIG =  or_suite.envs.env_configs.ambulance_metric_default_config
 epLen = DEFAULT_CONFIG['epLen']
 nEps = 100
-numIters = 1
+numIters = 5
 
 epsilon = (nEps * epLen)**(-1 / 4)
 action_net = np.arange(start=0, stop=1, step=epsilon)
@@ -40,22 +33,11 @@ state_net = np.arange(start=0, stop=1, step=epsilon)
 
 scaling = 0.5
 
-agents = {# 'SB_PPO': None, 'Random': or_suite.agents.rl.random.randomAgent(),
-     # 'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']),
-     # 'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen']), 
-     # 'Unif_MB': or_suite.agents.rl.eNet_model_Agent.eNetModelBased(action_net, state_net, epLen, scaling, 0, False),
-     # 'Unif_QL': or_suite.agents.rl.eNet_Agent.eNet(action_net, state_net, epLen, scaling),
-     # 'AdaQL': or_suite.agents.rl.adaptive_Agent.AdaptiveDiscretization(epLen, numIters, scaling),
-     # 'AdaMB': or_suite.agents.rl.adaptive_model_Agent.AdaptiveModelBasedDiscretization(epLen, numIters, scaling, 0, 2, True, True)
-     # 'Unif_QL': or_suite.agents.rl.eNet_Multiple.eNet(action_net, state_net, epLen, scaling, (3,3))
-     'Unif_MB': or_suite.agents.rl.eNet_model_Agent_Multiple.eNetModelBased(action_net, state_net, epLen, scaling, (3,3), 0, True)
-     }
 
 
 
-DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen' : 5}
 
-alphas = [0, 0.25, 1]
+DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': True, 'epLen' : 5}
 
 def shifting(step):
     if step == 0:
@@ -76,14 +58,34 @@ def beta(step):
     return np.random.beta(5,2)
 
 arrival_dists = [shifting, uniform, beta]
-# arrival_dists = [beta]
+arrival_dists = [beta]
 # num_ambulances = [1,3]
-num_ambulances = [3]
+num_ambulances = [1]
+alphas = [0, 0.25, 1]
+alphas = [1]
 
-for agent in agents:
-    for num_ambulance in num_ambulances:
-        for alpha in alphas:
-            for arrival_dist in arrival_dists:
+for num_ambulance in num_ambulances:
+
+
+
+
+    agents = {'SB PPO': None, 'Random': or_suite.agents.rl.random.randomAgent(),
+     'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']),
+     'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen']), 
+     'AdaQL': or_suite.agents.rl.adaptive_Agent.AdaptiveDiscretization(epLen, numIters, scaling),
+     'AdaMB': or_suite.agents.rl.adaptive_model_Agent.AdaptiveModelBasedDiscretization(epLen, numIters, scaling, 0, 2, True, True),
+     'Unif QL': or_suite.agents.rl.eNet_Multiple.eNet(action_net, state_net, epLen, scaling, (num_ambulance,num_ambulance)),
+     'Unif MB': or_suite.agents.rl.eNet_model_Agent_Multiple.eNetModelBased(action_net, state_net, epLen, scaling, (num_ambulance,num_ambulance), 0, False)
+     }
+
+
+    for alpha in alphas:
+        for arrival_dist in arrival_dists:
+            for agent in agents:
+
+                if num_ambulance > 1 and (agent == 'AdaQL' or agent == 'AdaMB'):
+                    continue
+
                 print(agent)
                 print(alpha)
                 print(arrival_dist.__name__)
@@ -95,7 +97,7 @@ for agent in agents:
                 DEFAULT_SETTINGS['dirPath'] = '../data/ambulance_metric_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/'
                 ambulance_env = gym.make('Ambulance-v0', config=CONFIG)
 
-                if agent == 'SB_PPO':
+                if agent == 'SB PPO':
                     episodes = []
                     iterations = []
                     rewards = []
@@ -117,14 +119,14 @@ for agent in agents:
                     df = pd.DataFrame({'episode': episodes,
                             'iteration': iterations,
                             'epReward': rewards,
-                            'time': times,
+                            'time': np.log(times),
                             'memory': memory})
                     
                     if not os.path.exists(DEFAULT_SETTINGS['dirPath']):
                         os.makedirs(DEFAULT_SETTINGS['dirPath'])
                     df.to_csv(DEFAULT_SETTINGS['dirPath']+'data.csv', index=False, float_format='%.2f', mode='w')
                 else:
-                    run_single_algo(ambulance_env, agents[agent], DEFAULT_SETTINGS)
+                    or_suite.utils.run_single_algo(ambulance_env, agents[agent], DEFAULT_SETTINGS)
 
 
 
@@ -138,30 +140,25 @@ for num_ambulance in num_ambulances:
             path_list_radar = []
             algo_list_radar = []
             for agent in agents:
+                if num_ambulance > 1 and (agent == 'AdaQL' or agent == 'AdaMB'):
+                    continue
                 path_list_line.append('../data/ambulance_metric_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/data.csv')
                 algo_list_line.append(str(agent))
-                if agent != 'SB_PPO':
-                    path_list_radar.append('../data/ambulance_metric_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/data.csv')
+                if agent != 'SB PPO':
+                    path_list_radar.append('../data/ambulance_metric_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__))
                     algo_list_radar.append(str(agent))
 
             fig_path = '../figures/'
             fig_name = 'ambulance_metric'+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'_line_plot'+'.pdf'
-            or_suite.plots.plot_line_plots(path_list_line, algo_list_line, fig_path, fig_name)
+            or_suite.plots.plot_line_plots(path_list_line, algo_list_line, fig_path, fig_name, int(nEps / 40)+1)
 
-
+            additional_metric = {'MRT': lambda traj : or_suite.utils.mean_response_time(traj, lambda x, y : np.abs(x-y))}
             fig_name = 'ambulance_metric'+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'_radar_plot'+'.pdf'
-            or_suite.plots.plot_radar_plots(path_list_radar, algo_list_radar, fig_path, fig_name)
+            or_suite.plots.plot_radar_plots(path_list_radar, algo_list_radar,
+            fig_path, fig_name,
+            additional_metric
+            )
 
-# ######## Testing with Stable Baselines3 PPO Algorithm ########
 
-# env = make_vec_env('Ambulance-v1', n_envs=4)
-# model = PPO(MlpPolicy, env, verbose=1, gamma=1)
-# model.learn(total_timesteps=1000)
-
-# env = gym.make('Ambulance-v1')
-# n_episodes = 100
-# res_mean, res_std = evaluate_policy(model, env, n_eval_episodes=n_episodes)
-
-# print(-res_mean, '+/-', 1.96*res_std/np.sqrt(n_episodes))
 
 

@@ -170,6 +170,3 @@ for alpha in alphas:
         or_suite.plots.plot_radar_plots(path_list_radar, algo_list_radar, fig_path, fig_name)
 
 
-######## Testing with Stable Baselines3 PPO Algorithm ########
-
-
