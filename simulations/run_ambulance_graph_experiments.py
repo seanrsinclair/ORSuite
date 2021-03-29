@@ -147,23 +147,6 @@ for num_ambulance in num_ambulances:
                     path_list_radar.append('../data/ambulance_graph_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/data.csv')
                     algo_list_radar.append(str(agent))
 
-            fig_path = '../figures/'
-            fig_name = 'ambulance_graph_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'_line_plot'+'.pdf'
-            or_suite.plots.plot_line_plots(path_list_line, algo_list_line, fig_path, fig_name)
-
-            fig_name = 'ambulance_graph_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'_radar_plot'+'.pdf'
-            #or_suite.plots.plot_radar_plots(path_list_radar, algo_list_radar, fig_path, fig_name)
-            path_list_line = []
-            algo_list_line = []
-
-            path_list_radar = []
-            algo_list_radar = []
-            for agent in agents:
-                path_list_line.append('../data/ambulance_graph_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/data.csv')
-                algo_list_line.append(str(agent))
-                if agent != 'SB_PPO':
-                    path_list_radar.append('../data/ambulance_graph_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/data.csv')
-                    algo_list_radar.append(str(agent))
 
             fig_path = '../figures/'
             fig_name = 'ambulance_graph_'+str(num_ambulance)+'_'+ str(alpha)+'_'+str(arrival_dist.__name__)+'_line_plot'+'.pdf'

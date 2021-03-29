@@ -1,17 +1,17 @@
 import numpy as np
 
 resource_allocation_default_config = {'K': 2, 
-    'num_rounds': 3,
-    'weight_matrix': np.array([[1,0],[0,1],[1,1]]),
-    'init_budget': 150*np.ones(2),
-    'type_dist': lambda i: 1+np.random.poisson(size=(1, 3), lam = (1,2,3)),
+    'num_rounds': 10,
+    'weight_matrix': np.array([[1,2],[.3,9],[1,1]]),
+    'init_budget': 10*np.ones(2),
+    'type_dist': lambda i: 1+np.random.poisson(size=(3), lam = (1,2,3)),
     'utility_function': lambda x,theta: np.dot(x,theta)
     }
 
 resource_allocation_simple_config = {'K':1,
-  'num_rounds':3,
+  'num_rounds':10,
   'weight_matrix': np.array([[1]]),
-  'init_budget': np.array([9]),
+  'init_budget': np.array([10.]),
   'utility_function': lambda x,theta: x,
   'type_dist': lambda i : np.array([2])
 }

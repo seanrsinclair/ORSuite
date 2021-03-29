@@ -25,7 +25,7 @@ from joblib import Parallel, delayed
 DEFAULT_CONFIG =  or_suite.envs.env_configs.ambulance_metric_default_config
 epLen = DEFAULT_CONFIG['epLen']
 nEps = 1000
-numIters = 25
+numIters = 50
 
 epsilon = (nEps * epLen)**(-1 / 4)
 action_net = np.arange(start=0, stop=1, step=epsilon)
@@ -59,10 +59,10 @@ def beta(step):
 
 arrival_dists = [shifting, uniform, beta]
 arrival_dists = [beta]
-# num_ambulances = [1,3]
-num_ambulances = [1]
+num_ambulances = [1,3]
+# num_ambulances = [1]
 alphas = [0, 0.25, 1]
-alphas = [1]
+# alphas = [1]
 
 for num_ambulance in num_ambulances:
     for alpha in alphas:
@@ -76,10 +76,8 @@ for num_ambulance in num_ambulances:
             CONFIG['num_ambulance'] = num_ambulance
             CONFIG['starting_state'] = np.array([0 for _ in range(num_ambulance)])
             ambulance_env = gym.make('Ambulance-v0', config=CONFIG)
-
-
-
-            agents = {'SB PPO': PPO(MlpPolicy, ambulance_env, gamma=1, verbose=0, n_steps=epLen), 'Random': or_suite.agents.rl.random.randomAgent(),
+            mon_env = Monitor(ambulance_env)
+            agents = {'SB PPO': PPO(MlpPolicy, mon_env, gamma=1, verbose=0, n_steps=epLen), 'Random': or_suite.agents.rl.random.randomAgent(),
             'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']),
             'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen']), 
             'AdaQL': or_suite.agents.rl.adaptive_Agent.AdaptiveDiscretization(epLen, numIters, scaling),
@@ -98,34 +96,7 @@ for num_ambulance in num_ambulances:
 
 
                 if agent == 'SB PPO':
-                    or_suite.utils.run_single_sb_algo(ambulance_env, agents[agent], DEFAULT_SETTINGS)
-                    # episodes = []
-                    # iterations = []
-                    # rewards = []
-                    # times = []
-                    # memory = []
-                
-                    # for i in range(numIters):
-                    #     sb_env = Monitor(ambulance_env)
-                    #     model = PPO(MlpPolicy, sb_env, gamma=1, verbose=0, n_steps = epLen)
-                    #     model.learn(total_timesteps=epLen*nEps)
-
-
-                    #     episodes = np.append(episodes,np.arange(0, nEps))
-                    #     iterations = np.append(iterations, [i for _ in range(nEps)])
-                    #     rewards =np.append(rewards, sb_env.get_episode_rewards())
-                    #     times = np.append(times, sb_env.get_episode_times())
-                    #     memory = np.append(memory, np.zeros(len(sb_env.get_episode_rewards())))
-
-                    # df = pd.DataFrame({'episode': episodes,
-                    #         'iteration': iterations,
-                    #         'epReward': rewards,
-                    #         'time': np.log(times),
-                    #         'memory': memory})
-                    
-                    # if not os.path.exists(DEFAULT_SETTINGS['dirPath']):
-                    #     os.makedirs(DEFAULT_SETTINGS['dirPath'])
-                    # df.to_csv(DEFAULT_SETTINGS['dirPath']+'data.csv', index=False, float_format='%.2f', mode='w')
+                    or_suite.utils.run_single_sb_algo(mon_env, agents[agent], DEFAULT_SETTINGS)
                 else:
                     or_suite.utils.run_single_algo(ambulance_env, agents[agent], DEFAULT_SETTINGS)
 

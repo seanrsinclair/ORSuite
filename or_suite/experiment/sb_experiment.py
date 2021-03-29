@@ -62,8 +62,8 @@ class SB_Experiment(object):
         memory = []
                 
         for i in range(self.num_iters):
-            sb_env = Monitor(self.env)
             tracemalloc.start()
+
             self.model.learn(total_timesteps=self.epLen*self.nEps)
 
             current, peak = tracemalloc.get_traced_memory()
@@ -71,10 +71,11 @@ class SB_Experiment(object):
 
             episodes = np.append(episodes,np.arange(0, self.nEps))
             iterations = np.append(iterations, [i for _ in range(self.nEps)])
-            rewards =np.append(rewards, sb_env.get_episode_rewards())
-            times = np.append(times, sb_env.get_episode_times())
-            memory = np.append(memory, np.ones(len(sb_env.get_episode_rewards()))*current)
 
+            memory = np.append(memory, [current for _ in range(self.nEps)])
+
+        rewards =np.append(rewards, self.env.get_episode_rewards())
+        times = np.append(times, self.env.get_episode_times())
         self.data = pd.DataFrame({'episode': episodes,
                             'iteration': iterations,
                             'epReward': rewards,
@@ -102,8 +103,6 @@ class SB_Experiment(object):
     
         dt = self.data
         dt = dt[(dt.T != 0).any()]
-
-        filename = os.path.join(dir_path, traj_loc)
 
         print('Writing to file ' + data_loc)
     

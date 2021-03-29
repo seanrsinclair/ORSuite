@@ -44,8 +44,12 @@ class ResourceAllocationEnvironment(gym.Env):
         self.budget = config['init_budget']
         self.type_dist = config['type_dist']
         self.utility_function = config['utility_function']
-        
+        print(config['init_budget'])
+        print(self.type_dist(0))
+        print(np.concatenate([config['init_budget'],self.type_dist(0)]))
+
         self.starting_state = np.concatenate([config['init_budget'],self.type_dist(0)])
+        print(np.concatenate([config['init_budget'],self.type_dist(0)]))
 
         self.state = self.starting_state
         self.timestep = 0
@@ -67,7 +71,6 @@ class ResourceAllocationEnvironment(gym.Env):
         # Initialize the timestep
         self.timestep = 0
         self.state = self.starting_state
-
         return self.starting_state
     
   def get_config(self):
@@ -96,13 +99,13 @@ class ResourceAllocationEnvironment(gym.Env):
         # determines if the allocation is valid, i.e. algorithm is able to allocate the allocation
         # to each of the types, based on the number of people of each type
 
-        print('Allocation: ' + str(allocation))
-        print('Budget: ' + str(old_budget))
-        print('Types: ' + str(old_type))
+        # print('Allocation: ' + str(allocation))
+        # print('Budget: ' + str(old_budget))
+        # print('Types: ' + str(old_type))
 
-        print('New Budget: ' + str(old_budget-np.matmul(old_type, allocation)))
+        # print('New Budget: ' + str(old_budget-np.matmul(old_type, allocation)))
 
-        if np.min(old_budget - np.matmul(old_type, allocation)) >= 0:
+        if np.min(old_budget - np.matmul(old_type, allocation)) >= -.0005:
             
             reward = (1/np.sum(old_type))*sum(
                 [old_type[theta]*np.log(self.utility_function(allocation[theta,:],self.weight_matrix[theta,:])) for theta in range(self.num_types)]
@@ -118,6 +121,7 @@ class ResourceAllocationEnvironment(gym.Env):
             
 
         else:  # algorithm is allocating more than the budget, output a negative infinity reward
+            print('Out of Budget!')
             reward = -np.inf
             done=True
             new_budget = old_budget

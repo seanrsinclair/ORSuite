@@ -12,12 +12,14 @@ class equalAllocationAgent(Agent):
             env_config - parameters used in initialization of environment
             data - all data observed so far
         '''
+        self.env_config = env_config
 
         self.num_types = env_config['weight_matrix'].shape[0]
         self.num_resources = self.env_config['weight_matrix'].shape[1]
         
+        self.current_budget = np.copy(self.env_config['init_budget'])
+        print('Starting Budget: ' + str(self.current_budget))
         self.epLen = epLen
-        self.env_config = env_config
         self.data = []
         self.rel_exp_endowments = self.get_expected_endowments()
         print("R")
@@ -34,26 +36,21 @@ class equalAllocationAgent(Agent):
         rel_exp_endowments: matrix containing expected proportion of endowments for location t
         """
         num_types = self.env_config['weight_matrix'].shape[0]
-        rel_exp_endowments = np.zeros((self.env_config['num_rounds'],num_types))
+        exp_size = np.zeros((num_types, self.env_config['num_rounds']))
+        print(num_types)
+        print(self.env_config['num_rounds'])
         for t in range(self.env_config['num_rounds']):
-            mean_endowment = np.zeros(num_types)
-            for i in range(N):
-                endowment = self.env_config['type_dist'](t)
-                mean_endowment += endowment   
-            mean_endowment = (1/N)*mean_endowment
-            rel_exp_endowments[t,:] = mean_endowment
+            for _ in range(N):
+                obs_size = self.env_config['type_dist'](t)
+                exp_size[:, t] += obs_size
+            exp_size[:, t] = (1/N)*exp_size[:, t]
 
-        total = np.sum(rel_exp_endowments)
-        for t in range(self.env_config['num_rounds']):
-            for i in range(num_types):
-                rel_exp_endowments[t,i] = rel_exp_endowments[t,i]/total
-        
-        
-        assert np.sum(rel_exp_endowments) <= 1.5, "{}".format(rel_exp_endowments)
-        return rel_exp_endowments
+        return exp_size
 
     def reset(self):
         # resets data matrix to be empty
+        self.current_budget = np.copy(self.env_config['init_budget'])
+
         self.data = []
     
     def update_config(self, env, config):
@@ -68,6 +65,7 @@ class equalAllocationAgent(Agent):
 
     def update_policy(self, k):
         '''Update internal policy based upon records'''
+        self.current_budget = np.copy(self.env_config['init_budget'])
         self.greedy = self.greedy
 
 
@@ -75,12 +73,17 @@ class equalAllocationAgent(Agent):
         '''
         Select action according to function
         '''
+
         num_types = self.env_config['weight_matrix'].shape[0]
+        sizes = state[self.num_resources:]
         action = np.zeros((num_types, self.env_config['K']))
-        print("timestep: %s"%timestep)
-        for type in range(num_types):
-            action[type,:] = self.env_config['init_budget']*self.rel_exp_endowments[timestep,type]
-        
+
+        for typ in range(num_types):
+            action[typ,:] = (self.env_config['init_budget'] / sizes[typ])*(self.rel_exp_endowments[typ, timestep] / np.sum(self.rel_exp_endowments))
+
+        self.current_budget -= np.sum([action[typ,:] * sizes[typ] for typ in range(num_types)])
+        print('Allocation: ' + str(action))
+
         return action
 
 
