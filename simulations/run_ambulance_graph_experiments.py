@@ -47,8 +47,11 @@ def uniform(step, num_nodes):
     return np.array([1 / num_nodes for i in range(num_nodes)])
 
 def nonuniform(step, num_nodes):
-    #TODO: fix so it actually works for a variable number of nodes
-    return np.array([0.25, 0.4, 0.25, 0.05, 0.05])
+    sample = np.random.beta(5,2)
+    sample = int(np.floor(num_nodes * sample))
+    dist = np.full(num_nodes, 0)
+    dist[sample] = 1
+    return dist
 
 
 edges_file = open("ithaca.edgelist", "r")
@@ -129,47 +132,43 @@ for agent in agents:
                         agent_to_use = agents[agent]
                     run_single_algo(ambulance_graph_env, agent_to_use, DEFAULT_SETTINGS)
 
+for num_ambulance in num_ambulances:
+    for alpha in alphas:
+        for arrival_dist in arrival_dists:
+            path_list_line = []
+            algo_list_line = []
 
-for alpha in alphas:
-    for arrival_dist in arrival_dists:
-        path_list_line = []
-        algo_list_line = []
+            path_list_radar = []
+            algo_list_radar = []
+            for agent in agents:
+                path_list_line.append('../data/ambulance_graph_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/data.csv')
+                algo_list_line.append(str(agent))
+                if agent != 'SB_PPO':
+                    path_list_radar.append('../data/ambulance_graph_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/data.csv')
+                    algo_list_radar.append(str(agent))
 
-        path_list_radar = []
-        algo_list_radar = []
-        for agent in agents:
-            path_list_line.append('../data/ambulance_graph_'+str(agent)+'_'+str(alpha)+'_'+str(arrival_dist)+'/data.csv')
-            algo_list_line.append(str(agent))
-            if agent != 'SB_PPO':
-                path_list_radar.append('../data/ambulance_graph_'+str(agent)+'_'+str(alpha)+'_'+str(arrival_dist)+'/data.csv')
-                algo_list_radar.append(str(agent))
+            fig_path = '../figures/'
+            fig_name = 'ambulance_graph_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'_line_plot'+'.pdf'
+            or_suite.plots.plot_line_plots(path_list_line, algo_list_line, fig_path, fig_name)
 
-        fig_path = '../figures/'
-        fig_name = 'ambulance_graph_'+str(alpha)+'_'+str(arrival_dist)+'_line_plot'+'.pdf'
-        or_suite.plots.plot_line_plots(path_list_line, algo_list_line, fig_path, fig_name)
+            fig_name = 'ambulance_graph_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'_radar_plot'+'.pdf'
+            or_suite.plots.plot_radar_plots(path_list_radar, algo_list_radar, fig_path, fig_name)
+            path_list_line = []
+            algo_list_line = []
 
-        fig_name = 'ambulance_graph_'+str(alpha)+'_'+str(arrival_dist)+'_radar_plot'+'.pdf'
-        or_suite.plots.plot_radar_plots(path_list_radar, algo_list_radar, fig_path, fig_name)
-        path_list_line = []
-        algo_list_line = []
+            path_list_radar = []
+            algo_list_radar = []
+            for agent in agents:
+                path_list_line.append('../data/ambulance_graph_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/data.csv')
+                algo_list_line.append(str(agent))
+                if agent != 'SB_PPO':
+                    path_list_radar.append('../data/ambulance_graph_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/data.csv')
+                    algo_list_radar.append(str(agent))
 
-        path_list_radar = []
-        algo_list_radar = []
-        for agent in agents:
-            path_list_line.append('../data/ambulance_graph_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/data.csv')
-            algo_list_line.append(str(agent))
-            if agent != 'SB_PPO':
-                path_list_radar.append('../data/ambulance_graph_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/data.csv')
-                algo_list_radar.append(str(agent))
+            fig_path = '../figures/'
+            fig_name = 'ambulance_graph_'+str(num_ambulance) + '_'+ str(alpha)+'_'+str(arrival_dist.__name__)+'_line_plot'+'.pdf'
+            or_suite.plots.plot_line_plots(path_list_line, algo_list_line, fig_path, fig_name)
 
-        fig_path = '../figures/'
-        fig_name = 'ambulance_graph_'+str(num_ambulance) + '_'+ str(alpha)+'_'+str(arrival_dist.__name__)+'_line_plot'+'.pdf'
-        or_suite.plots.plot_line_plots(path_list_line, algo_list_line, fig_path, fig_name)
-
-        fig_name = 'ambulance_graph_'+str(num_ambulance) + '_' + str(alpha)+'_'+str(arrival_dist.__name__)+'_radar_plot'+'.pdf'
-        or_suite.plots.plot_radar_plots(path_list_radar, algo_list_radar, fig_path, fig_name)
-
-
-######## Testing with Stable Baselines3 PPO Algorithm ########
-
+            fig_name = 'ambulance_graph_'+str(num_ambulance) + '_' + str(alpha)+'_'+str(arrival_dist.__name__)+'_radar_plot'+'.pdf'
+            or_suite.plots.plot_radar_plots(path_list_radar, algo_list_radar, fig_path, fig_name)
 
