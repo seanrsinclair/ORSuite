@@ -55,6 +55,7 @@ class AmbulanceGraphEnvironment(gym.Env):
         self.from_data = config['from_data']
         if self.from_data:
             self.arrival_data = config['data']
+            self.episode_num = 0
 
 
         # creates an array stored in space_array the length of the number of ambulances
@@ -76,6 +77,9 @@ class AmbulanceGraphEnvironment(gym.Env):
         # Initialize the timestep
         self.timestep = 0
         self.state = self.starting_state
+
+        if self.from_data:
+            self.episode_num += 1
 
 
         return self.starting_state
@@ -100,7 +104,12 @@ class AmbulanceGraphEnvironment(gym.Env):
 
         # The location of the new arrival is chosen randomly from among the nodes 
         # in the graph according to the arrival distribution
-        prob_list = self.arrival_dist(self.timestep, self.num_nodes, self.arrival_data) if self.from_data else self.arrival_dist(self.timestep, self.num_nodes)
+        prob_list = []
+        if self.from_data:
+            dataset_step = (self.episode_num * self.timestep) % len(self.arrival_data)
+            prob_list = self.arrival_dist(dataset_step, self.num_nodes, self.arrival_data)
+        else:
+            prob_list = self.arrival_dist(self.timestep, self.num_nodes)
         new_arrival = np.random.choice(self.num_nodes, p=prob_list)
 
         # Finds the distance traveled by all the ambulances from the old state to 

@@ -35,7 +35,7 @@ agents = {'Random': or_suite.agents.rl.random.randomAgent(), 'Stable': or_suite.
 
 # agents = {'SB_PPO': None}
 nEps = 10
-numIters = 50
+numIters = 2
 epLen = DEFAULT_CONFIG['epLen']
 DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': False, 'epLen' : 5}
 
@@ -152,7 +152,7 @@ for num_ambulance in num_ambulances:
             or_suite.plots.plot_line_plots(path_list_line, algo_list_line, fig_path, fig_name)
 
             fig_name = 'ambulance_graph_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'_radar_plot'+'.pdf'
-            or_suite.plots.plot_radar_plots(path_list_radar, algo_list_radar, fig_path, fig_name)
+            #or_suite.plots.plot_radar_plots(path_list_radar, algo_list_radar, fig_path, fig_name)
             path_list_line = []
             algo_list_line = []
 
@@ -166,9 +166,9 @@ for num_ambulance in num_ambulances:
                     algo_list_radar.append(str(agent))
 
             fig_path = '../figures/'
-            fig_name = 'ambulance_graph_'+str(num_ambulance) + '_'+ str(alpha)+'_'+str(arrival_dist.__name__)+'_line_plot'+'.pdf'
+            fig_name = 'ambulance_graph_'+str(num_ambulance)+'_'+ str(alpha)+'_'+str(arrival_dist.__name__)+'_line_plot'+'.pdf'
             or_suite.plots.plot_line_plots(path_list_line, algo_list_line, fig_path, fig_name)
 
             fig_name = 'ambulance_graph_'+str(num_ambulance) + '_' + str(alpha)+'_'+str(arrival_dist.__name__)+'_radar_plot'+'.pdf'
-            or_suite.plots.plot_radar_plots(path_list_radar, algo_list_radar, fig_path, fig_name)
+            #or_suite.plots.plot_radar_plots(path_list_radar, algo_list_radar, fig_path, fig_name)
 
