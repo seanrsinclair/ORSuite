@@ -24,8 +24,8 @@ from joblib import Parallel, delayed
 
 DEFAULT_CONFIG =  or_suite.envs.env_configs.ambulance_metric_default_config
 epLen = DEFAULT_CONFIG['epLen']
-nEps = 100
-numIters = 5
+nEps = 1000
+numIters = 25
 
 epsilon = (nEps * epLen)**(-1 / 4)
 action_net = np.arange(start=0, stop=1, step=epsilon)
@@ -65,66 +65,67 @@ alphas = [0, 0.25, 1]
 alphas = [1]
 
 for num_ambulance in num_ambulances:
-
-
-
-
-    agents = {'SB PPO': None, 'Random': or_suite.agents.rl.random.randomAgent(),
-     'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']),
-     'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen']), 
-     'AdaQL': or_suite.agents.rl.adaptive_Agent.AdaptiveDiscretization(epLen, numIters, scaling),
-     'AdaMB': or_suite.agents.rl.adaptive_model_Agent.AdaptiveModelBasedDiscretization(epLen, numIters, scaling, 0, 2, True, True),
-     'Unif QL': or_suite.agents.rl.eNet_Multiple.eNet(action_net, state_net, epLen, scaling, (num_ambulance,num_ambulance)),
-     'Unif MB': or_suite.agents.rl.eNet_model_Agent_Multiple.eNetModelBased(action_net, state_net, epLen, scaling, (num_ambulance,num_ambulance), 0, False)
-     }
-
-
     for alpha in alphas:
         for arrival_dist in arrival_dists:
-            for agent in agents:
 
+            print(alpha)
+            print(arrival_dist.__name__)
+            CONFIG = copy.deepcopy(DEFAULT_CONFIG)
+            CONFIG['alpha'] = alpha
+            CONFIG['arrival_dist'] = arrival_dist
+            CONFIG['num_ambulance'] = num_ambulance
+            CONFIG['starting_state'] = np.array([0 for _ in range(num_ambulance)])
+            ambulance_env = gym.make('Ambulance-v0', config=CONFIG)
+
+
+
+            agents = {'SB PPO': PPO(MlpPolicy, ambulance_env, gamma=1, verbose=0, n_steps=epLen), 'Random': or_suite.agents.rl.random.randomAgent(),
+            'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']),
+            'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen']), 
+            'AdaQL': or_suite.agents.rl.adaptive_Agent.AdaptiveDiscretization(epLen, numIters, scaling),
+            'AdaMB': or_suite.agents.rl.adaptive_model_Agent.AdaptiveModelBasedDiscretization(epLen, numIters, scaling, 0, 2, True, True),
+            'Unif QL': or_suite.agents.rl.eNet_Multiple.eNet(action_net, state_net, epLen, scaling, (num_ambulance,num_ambulance)),
+            'Unif MB': or_suite.agents.rl.eNet_model_Agent_Multiple.eNetModelBased(action_net, state_net, epLen, scaling, (num_ambulance,num_ambulance), 0, False)
+            }
+
+
+            for agent in agents:
+                print(agent)
+                DEFAULT_SETTINGS['dirPath'] = '../data/ambulance_metric_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/'
                 if num_ambulance > 1 and (agent == 'AdaQL' or agent == 'AdaMB'):
                     continue
 
-                print(agent)
-                print(alpha)
-                print(arrival_dist.__name__)
-                CONFIG = copy.deepcopy(DEFAULT_CONFIG)
-                CONFIG['alpha'] = alpha
-                CONFIG['arrival_dist'] = arrival_dist
-                CONFIG['num_ambulance'] = num_ambulance
-                CONFIG['starting_state'] = np.array([0 for _ in range(num_ambulance)])
-                DEFAULT_SETTINGS['dirPath'] = '../data/ambulance_metric_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/'
-                ambulance_env = gym.make('Ambulance-v0', config=CONFIG)
+
 
                 if agent == 'SB PPO':
-                    episodes = []
-                    iterations = []
-                    rewards = []
-                    times = []
-                    memory = []
+                    or_suite.utils.run_single_sb_algo(ambulance_env, agents[agent], DEFAULT_SETTINGS)
+                    # episodes = []
+                    # iterations = []
+                    # rewards = []
+                    # times = []
+                    # memory = []
                 
-                    for i in range(numIters):
-                        sb_env = Monitor(ambulance_env)
-                        model = PPO(MlpPolicy, sb_env, gamma=1, verbose=0, n_steps = epLen)
-                        model.learn(total_timesteps=epLen*nEps)
+                    # for i in range(numIters):
+                    #     sb_env = Monitor(ambulance_env)
+                    #     model = PPO(MlpPolicy, sb_env, gamma=1, verbose=0, n_steps = epLen)
+                    #     model.learn(total_timesteps=epLen*nEps)
 
 
-                        episodes = np.append(episodes,np.arange(0, nEps))
-                        iterations = np.append(iterations, [i for _ in range(nEps)])
-                        rewards =np.append(rewards, sb_env.get_episode_rewards())
-                        times = np.append(times, sb_env.get_episode_times())
-                        memory = np.append(memory, np.zeros(len(sb_env.get_episode_rewards())))
+                    #     episodes = np.append(episodes,np.arange(0, nEps))
+                    #     iterations = np.append(iterations, [i for _ in range(nEps)])
+                    #     rewards =np.append(rewards, sb_env.get_episode_rewards())
+                    #     times = np.append(times, sb_env.get_episode_times())
+                    #     memory = np.append(memory, np.zeros(len(sb_env.get_episode_rewards())))
 
-                    df = pd.DataFrame({'episode': episodes,
-                            'iteration': iterations,
-                            'epReward': rewards,
-                            'time': np.log(times),
-                            'memory': memory})
+                    # df = pd.DataFrame({'episode': episodes,
+                    #         'iteration': iterations,
+                    #         'epReward': rewards,
+                    #         'time': np.log(times),
+                    #         'memory': memory})
                     
-                    if not os.path.exists(DEFAULT_SETTINGS['dirPath']):
-                        os.makedirs(DEFAULT_SETTINGS['dirPath'])
-                    df.to_csv(DEFAULT_SETTINGS['dirPath']+'data.csv', index=False, float_format='%.2f', mode='w')
+                    # if not os.path.exists(DEFAULT_SETTINGS['dirPath']):
+                    #     os.makedirs(DEFAULT_SETTINGS['dirPath'])
+                    # df.to_csv(DEFAULT_SETTINGS['dirPath']+'data.csv', index=False, float_format='%.2f', mode='w')
                 else:
                     or_suite.utils.run_single_algo(ambulance_env, agents[agent], DEFAULT_SETTINGS)
 

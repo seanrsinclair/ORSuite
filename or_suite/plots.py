@@ -192,7 +192,6 @@ def plot_radar_plots(path_list, algo_list, fig_path , fig_name, additional_metri
     ax.set_title('Comparison of Performance Metrics',  position=(0.5, 1.1), ha='center')
 
 
-
     index = 0
 
     for algo in algo_list:

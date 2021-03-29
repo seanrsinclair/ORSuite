@@ -5,6 +5,8 @@ import tracemalloc
 import numpy as np
 import pickle
 import os
+from stable_baselines3.common.monitor import Monitor
+
 
 class SB_Experiment(object):
 
@@ -13,7 +15,7 @@ class SB_Experiment(object):
         A simple class to run a MDP Experiment with a stable baselines model.
         Args:
             env - an instance of an Environment
-            agent - an agent
+            model - a stable baselines model
             dict - a dictionary containing the arguments to send for the experiment, including:
                 seed - random seed for experiment
                 recFreq - proportion of episodes to save to file
@@ -35,9 +37,8 @@ class SB_Experiment(object):
         self.epLen = dict['epLen']
         self.num_iters = dict['numIters']
         self.save_trajectory = dict['saveTrajectory']
-        self.agent = agent
+        self.model = model
         # print('epLen: ' + str(self.epLen))
-        self.data = np.zeros([dict['nEps']*self.num_iters, 5])
 
 
         if self.save_trajectory:
@@ -54,67 +55,31 @@ class SB_Experiment(object):
 
         index = 0
         traj_index = 0
-        for i in range(self.num_iters):
-            self.agent.reset()
-            self.agent.update_config(self.env, self.env.get_config())
-            for ep in range(1, self.nEps+1):
-                # print('Episode : ' + str(ep))
-                # Reset the environment
-                self.env.reset()
-                oldState = self.env.state
-                epReward = 0
-
-                self.agent.update_policy(ep)
-
-                done = False
-                h = 0
-
-                start_time = time.time()
-                tracemalloc.start()
-
-                while (not done) and h < self.epLen:
-                    # Step through the episode
-                    if self.deBug:
-                        print('state : ' + str(oldState))
-                    action = self.agent.pick_action(oldState, h)
-                    if self.deBug:
-                        print('action : ' + str(action))
-
-                    newState, reward, done, info = self.env.step(action)
-                    epReward += reward
-
-                    self.agent.update_obs(oldState, action, reward, newState, h, info)
-
-                    if self.save_trajectory: # 
-                        # turn into list, make self.trajectory a list, append. try pickle
-                        record = {'iter': i, 'episode': ep, 'step' : h, 'oldState' : oldState, 'action' : action, 'reward' : reward, 'newState' : newState, 'info' : info}
-                        self.trajectory.append(record)
-
-                    oldState = newState
-                    h = h + 1
-
-                current, peak = tracemalloc.get_traced_memory()
-                tracemalloc.stop()
-                end_time = time.time()
+        episodes = []
+        iterations = []
+        rewards = []
+        times = []
+        memory = []
                 
-                if self.deBug:
-                    print('final state: ' + str(newState))
-                # print('Total Reward: ' + str(epReward))
+        for i in range(self.num_iters):
+            sb_env = Monitor(self.env)
+            tracemalloc.start()
+            self.model.learn(total_timesteps=self.epLen*self.nEps)
 
-                # Logging to dataframe
-                # if ep % self.epFreq == 0:
-                # print('## LOGGING TO DATA FRAME ##')
-                # print('Episode : ' + str(ep))
-                # print('Total Reward: ' + str(epReward))
-                # print('##                       ##')
-                self.data[index, 0] = ep-1
-                self.data[index, 1] = i
-                self.data[index, 2] = epReward
-                self.data[index, 3] = current
-                self.data[index, 4] = ((end_time) - (start_time)) * (10**9)
+            current, peak = tracemalloc.get_traced_memory()
+            tracemalloc.stop()
 
-                index += 1
+            episodes = np.append(episodes,np.arange(0, self.nEps))
+            iterations = np.append(iterations, [i for _ in range(self.nEps)])
+            rewards =np.append(rewards, sb_env.get_episode_rewards())
+            times = np.append(times, sb_env.get_episode_times())
+            memory = np.append(memory, np.ones(len(sb_env.get_episode_rewards()))*current)
 
+        self.data = pd.DataFrame({'episode': episodes,
+                            'iteration': iterations,
+                            'epReward': rewards,
+                            'time': np.log(times),
+                            'memory': memory})
         print('**************************************************')
         print('Experiment complete')
         print('**************************************************')
@@ -132,36 +97,24 @@ class SB_Experiment(object):
         dir_path = self.dirPath
 
         data_loc = 'data.csv'
-        traj_loc = 'trajectory.obj'
 
 
-        if self.save_trajectory:
+    
+        dt = self.data
+        dt = dt[(dt.T != 0).any()]
 
-            dt = pd.DataFrame(self.data, columns=['episode', 'iteration', 'epReward', 'memory', 'time'])
-            dt = dt[(dt.T != 0).any()]
+        filename = os.path.join(dir_path, traj_loc)
 
-            filename = os.path.join(dir_path, traj_loc)
-
-            print('Writing to file ' + data_loc)
-        else:
-
-            dt = pd.DataFrame(self.data, columns=['episode', 'iteration', 'epReward', 'memory', 'time'])
-            dt = dt[(dt.T != 0).any()]
-            print('Writing to file ' + data_loc)
-
+        print('Writing to file ' + data_loc)
+    
+        
         if os.path.exists(dir_path):
             dt.to_csv(os.path.join(dir_path,data_loc), index=False, float_format='%.2f', mode='w')
-            if self.save_trajectory:
-                outfile = open(filename, 'wb')
-                pickle.dump(self.trajectory, outfile)
-                outfile.close()
+
         else:
             os.makedirs(dir_path)
             dt.to_csv(os.path.join(dir_path, data_loc), index=False, float_format='%.2f', mode='w')
-            if self.save_trajectory:
-                outfile = open(filename, 'wb')
-                pickle.dump(self.trajectory, outfile)
-                outfile.close()
+
 
         print('**************************************************')
         print('Data save complete')
