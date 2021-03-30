@@ -12,7 +12,7 @@ class Agent(object):
         ''' Update agent information based on the config__file'''
         pass
 
-    def update_obs(self, obs, action, reward, newObs):
+    def update_obs(self, obs, action, reward, newObs, info):
         '''Add observation to records'''
 
     def update_policy(self, h):

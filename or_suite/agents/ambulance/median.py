@@ -50,22 +50,21 @@ class medianAgent(Agent):
         # located to the locations of previous calls using the k-medoids algorithm
         # For more details about the k-medoids algorithm, see the readme document
         # for the ambulance environment or the sci-kit learn documentation
-        if timestep == 0:
+        if len(self.data) == 0:
             return state
         else:
             num_ambulance = len(self.data[0])
             # print(num_ambulance)
             left_points = [(1 / num_ambulance)*i for i in range(num_ambulance)]
-            # print(left_points)
             quantiles = []
             for j in range(len(left_points)):
                 if j == len(left_points) - 1:
                     quantiles.append(((1 - left_points[j]) / 2) + left_points[j])
                 else:
                     quantiles.append(((left_points[j+1] - left_points[j]) / 2) + left_points[j])
-
+            # print(quantiles)
             action = np.quantile(np.asarray(self.call_locs), quantiles)
-
+            # print(action)
             return action
 
 

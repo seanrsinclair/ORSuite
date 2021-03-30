@@ -25,7 +25,7 @@ class SB_Experiment(object):
                 numIters - the number of iterations to run experiment
                 saveTrajectory - boolean of whether to save trajectory information
         '''
-        # assert isinstance(env, environment.Environment)
+
 
         self.seed = dict['seed']
         self.epFreq = dict['recFreq']
@@ -60,7 +60,10 @@ class SB_Experiment(object):
         rewards = []
         times = []
         memory = []
-                
+        
+        # Running an experiment
+
+        # TODO: Determine how to save trajectory information
         for i in range(self.num_iters):
             tracemalloc.start()
 
@@ -74,8 +77,13 @@ class SB_Experiment(object):
 
             memory = np.append(memory, [current for _ in range(self.nEps)])
 
-        rewards =np.append(rewards, self.env.get_episode_rewards())
-        times = np.append(times, self.env.get_episode_times())
+        rewards = np.append(rewards, self.env.get_episode_rewards())
+
+        # Times are calculated cumulatively so need to calculate the per iteration time complexity
+        orig_times = [0.] + self.env.get_episode_times()
+        times = [orig_times[i] - orig_times[i-1] for i in np.arange(1, len(orig_times))]
+
+        # Combining data in dataframe
         self.data = pd.DataFrame({'episode': episodes,
                             'iteration': iterations,
                             'epReward': rewards,
@@ -86,14 +94,13 @@ class SB_Experiment(object):
         print('**************************************************')
 
     # Saves the data to the file location provided to the algorithm
-    def save_data(self): # TODO: Best way of getting directory locations for both paths? kwargs? 
-                        # remove targetPath - force into data.csv and traj.csv
+    def save_data(self):
+
         print('**************************************************')
         print('Saving data')
         print('**************************************************')
 
         print(self.data)
-
 
         dir_path = self.dirPath
 
@@ -104,15 +111,15 @@ class SB_Experiment(object):
         dt = self.data
         dt = dt[(dt.T != 0).any()]
 
-        print('Writing to file ' + data_loc)
+        print('Writing to file ' + dir_path + data_loc)
     
         
         if os.path.exists(dir_path):
-            dt.to_csv(os.path.join(dir_path,data_loc), index=False, float_format='%.2f', mode='w')
+            dt.to_csv(os.path.join(dir_path,data_loc), index=False, float_format='%.5f', mode='w')
 
         else:
             os.makedirs(dir_path)
-            dt.to_csv(os.path.join(dir_path, data_loc), index=False, float_format='%.2f', mode='w')
+            dt.to_csv(os.path.join(dir_path, data_loc), index=False, float_format='%.5f', mode='w')
 
 
         print('**************************************************')

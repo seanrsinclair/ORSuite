@@ -113,11 +113,6 @@ class AmbulanceEnvironment(gym.Env):
 
         reward = -1 * (self.alpha * np.sum(np.abs(old_state - action)) + (1 - self.alpha) * np.sum(np.abs(action - new_state)))
         
-        # print("First", np.sum(np.abs(old_state - action)))
-        # print("action", action)
-        # print("new state", new_state)
-        # print("Second", np.max(np.abs(action - new_state)))
-        # print("Reward", reward)
         
         # The info dictionary is used to pass the location of the most recent arrival
         # so it can be used by the agent

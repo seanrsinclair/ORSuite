@@ -137,8 +137,12 @@ def radar_factory(num_vars, frame='circle'):
 def plot_radar_plots(path_list, algo_list, fig_path , fig_name, additional_metric):
     
     # Organizing Data
-
-    plt.style.use('../or_suite/PaperDoubleFig.mplstyle.txt')
+    if os.path.isfile('../or_suite/PaperDoubleFig.mplstyle.txt'):
+        plt.style.use('../or_suite/PaperDoubleFig.mplstyle.txt')
+    elif os.path.isfile('./or_suite/PaperDoubleFig.mplstyle.txt'):
+        plt.style.use('./or_suite/PaperDoubleFig.mplstyle.txt')
+    else:
+        pass
     plt.rc('text', usetex=True)
 
 
@@ -230,7 +234,14 @@ Create a set of line_plots for the algorithms, comparing the three metrics of re
 
 '''
 def plot_line_plots(path_list, algo_list, fig_path , fig_name, plot_freq):
-    plt.style.use('../or_suite/PaperDoubleFig.mplstyle.txt')
+    
+    if os.path.isfile('../or_suite/PaperDoubleFig.mplstyle.txt'):
+        plt.style.use('../or_suite/PaperDoubleFig.mplstyle.txt')
+    elif os.path.isfile('./or_suite/PaperDoubleFig.mplstyle.txt'):
+        plt.style.use('./or_suite/PaperDoubleFig.mplstyle.txt')
+    else:
+        pass
+
     plt.rc('text', usetex=True)
 
     fig, ax = plt.subplots(1, 3, constrained_layout=False, figsize=(15,5))

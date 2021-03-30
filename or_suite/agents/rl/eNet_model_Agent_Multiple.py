@@ -52,17 +52,7 @@ class eNetModelBased(Agent):
 
         dim = (timestep,) + tuple(state_discrete) + tuple(action_discrete)
         self.num_visits[dim] += 1
-        # t = self.num_visits[dim]
-        # lr = (self.epLen + 1) / (self.epLen + t)
-        # bonus = self.scaling * np.sqrt(1 / t)
-        #
-        # if timestep == self.epLen-1:
-        #     vFn = 0
-        # else:
-        #     vFn = np.max(self.qVals[(timestep+1,) + tuple(state_new_discrete)])
-        # vFn = min(self.epLen, vFn)
-        #
-        # self.qVals[dim] = (1 - lr) * self.qVals[dim] + lr * (reward + vFn + bonus)
+
         self.pEst[dim+tuple(state_new_discrete)] += 1
         t = self.num_visits[dim]
         self.rEst[dim] = ((t - 1) * self.rEst[dim] + reward) / t
