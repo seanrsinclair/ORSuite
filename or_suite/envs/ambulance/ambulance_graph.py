@@ -106,7 +106,7 @@ class AmbulanceGraphEnvironment(gym.Env):
         # in the graph according to the arrival distribution
         prob_list = []
         if self.from_data:
-            dataset_step = (self.episode_num * self.timestep) % len(self.arrival_data)
+            dataset_step = (self.episode_num * self.epLen + self.timestep) % len(self.arrival_data)
             prob_list = self.arrival_dist(dataset_step, self.num_nodes, self.arrival_data)
         else:
             prob_list = self.arrival_dist(self.timestep, self.num_nodes)

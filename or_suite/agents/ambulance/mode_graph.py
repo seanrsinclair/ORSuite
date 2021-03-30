@@ -48,7 +48,7 @@ class modeAgent(Agent):
         # For the first iteration, choose the starting state
         # After that, choose the locations where calls have occurred most frequently
         # in the past
-        if timestep == 0:
+        if len(self.data) == 0:
             return state
         else:
             num_ambulance = len(self.data[0])

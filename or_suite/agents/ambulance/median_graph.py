@@ -1,7 +1,7 @@
 import numpy as np
 
 import networkx as nx
-import sklearn_extra.cluster
+#import sklearn_extra.cluster
 
 import sys
 from .. import Agent
@@ -80,19 +80,17 @@ class medianAgent(Agent):
         # average distance between that node and other nodes
         # For a concrete example of how this works, see the ambulance environment
         # readme document
-        if timestep == 0:
-            return state
-        else:
-            counts = np.bincount(self.call_locs, minlength=self.num_nodes)
-            # print(self.lengths)
-            # print(counts)
-            score = self.lengths @ counts
-            action = []
-            for _ in range(self.num_ambulance):
-                node = np.argmin(score)
-                action.append(node)
-                score[node] = 99999999
-            return action
+
+        counts = np.bincount(self.call_locs, minlength=self.num_nodes)
+        # print(self.lengths)
+        # print(counts)
+        score = self.lengths @ counts
+        action = []
+        for _ in range(self.num_ambulance):
+            node = np.argmin(score)
+            action.append(node)
+            score[node] = 99999999
+        return action
 
 
     def pick_action(self, state, step):

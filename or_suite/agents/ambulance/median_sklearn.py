@@ -50,17 +50,16 @@ class median_sklearnAgent(Agent):
         # located to the locations of previous calls using the k-medoids algorithm
         # For more details about the k-medoids algorithm, see the readme document
         # for the ambulance environment or the sci-kit learn documentation
-        if timestep == 0:
-            return state
+        num_ambulance = len(self.data[0])
+        action = []
+        if len(self.call_locs) > num_ambulance:
+            reshaped_call_locs = np.asarray(self.call_locs).reshape(-1,1)
+            clusters = sklearn_extra.cluster.KMedoids(n_clusters=num_ambulance, max_iter=50).fit(reshaped_call_locs)
+            action = np.asarray(clusters.cluster_centers_).reshape(-1,)
         else:
-            num_ambulance = len(self.data[0])
-            if len(self.call_locs) > num_ambulance:
-                reshaped_call_locs = np.asarray(self.call_locs).reshape(-1,1)
-                clusters = sklearn_extra.cluster.KMedoids(n_clusters=num_ambulance, max_iter=50).fit(reshaped_call_locs)
-                action = np.asarray(clusters.cluster_centers_).reshape(-1,)
-            else:
-                action = np.full(num_ambulance, np.median(self.call_locs))
-            return action
+            action = np.full(num_ambulance, np.median(self.call_locs))
+            
+        return action
 
 
     def pick_action(self, state, step):

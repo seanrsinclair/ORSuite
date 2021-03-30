@@ -40,7 +40,7 @@ class stableAgent(Agent):
         # For the first iteration, choose the starting state
         # After that, choose the most recently observed state as the new location 
         # for each ambulance. This results in no ambulance movement between calls
-        if timestep == 0:
+        if len(self.data) == 0:
             return state
         else:
             action = self.data[-1]
