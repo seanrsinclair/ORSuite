@@ -57,12 +57,10 @@ class ResourceAllocationEnvironment(gym.Env):
 
 
         
-        # Action space will be choosing Kxn-dimensional allocation matrix (represented as a vector for PPO)
-        self.action_space = spaces.MultiDiscrete(low=0, high=max(self.budget),
-                                        shape=(self.num_commodities*self.num_types,), dtype=np.float32)
+        # Action space will be choosing Kxn-dimensional allocation matrix (represented as a vector)
+        self.action_space = spaces.MultiDiscrete([round(max(self.budget)) for _ in range(self.num_commodities*self.num_types)])
         # First K entries of observation space is the remaining budget, next is the number of each type at the location
-        self.observation_space = spaces.MultiDiscrete(low=0, high=np.inf,
-                                        shape=(self.num_commodities+self.num_types,), dtype=np.float32)
+        self.observation_space = spaces.MultiDiscrete([np.inf for _ in range(self.num_commodities+self.num_types)])
 
   def reset(self):
         """
@@ -138,8 +136,7 @@ class ResourceAllocationEnvironment(gym.Env):
         self.state = np.concatenate([new_budget, new_type])
 
 
-        self.action_space = spaces.MultiDiscrete(low=0, high=max(new_budget),
-                                        shape=(self.num_commodities*self.num_types,), dtype=np.float32)
+        self.action_space = spaces.MultiDiscrete([round(max(self.budget)) for _ in range(self.num_commodities*self.num_types)])
         
         self.timestep += 1
 
