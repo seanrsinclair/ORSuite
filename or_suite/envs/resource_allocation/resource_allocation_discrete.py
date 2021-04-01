@@ -7,11 +7,11 @@ import math
 from .. import env_configs
 
 #------------------------------------------------------------------------------
-'''Sequential Resource Allocation Problem for n agents with K commodities. 
+'''Discrete Sequential Resource Allocation Problem for n locations with K commodities.
 Currently reward is Nash Social Welfare but in the future will integrate more options 
 to determine a fair allocation '''
 
-class ResourceAllocationEnvironment(gym.Env):
+class DiscreteResourceAllocationEnvironment(gym.Env):
   """
   Custom Environment that follows gym interface.
   """
@@ -20,10 +20,9 @@ class ResourceAllocationEnvironment(gym.Env):
   # Define constants for clearer code
 
 
-
   def __init__( self, config=env_configs.resource_allocation_default_config):
         '''
-        Initializes the Sequential Resource Allocation Environment
+        Initializes the Discrete Sequential Resource Allocation Environment
 
         weight_matrix - Weights predefining the commodity needs for each type, every row is a type vector
         K - number of commodities
@@ -32,7 +31,7 @@ class ResourceAllocationEnvironment(gym.Env):
         type_dist: Function determining the number of people of each type at a location
         u: utility function, given an allocation x and a type theta, u(x,theta) is how good the fit is
         '''
-        super(ResourceAllocationEnvironment, self).__init__()
+        super(DiscreteResourceAllocationEnvironment, self).__init__()
 
 
         self.config = config
@@ -145,7 +144,6 @@ class ResourceAllocationEnvironment(gym.Env):
   def render(self, mode='console'):
     if mode != 'console':
       raise NotImplementedError()
-
 
   def close(self):
     pass

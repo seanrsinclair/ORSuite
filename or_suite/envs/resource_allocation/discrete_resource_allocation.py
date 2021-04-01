@@ -1,4 +1,5 @@
 
+#UNFINISHED
 import numpy as np
 import gym
 from gym import spaces
@@ -6,11 +7,11 @@ import math
 from .. import env_configs
 
 #------------------------------------------------------------------------------
-'''Sequential Resource Allocation Problem for n locations with K commodities. 
+'''Discrete Sequential Resource Allocation Problem for n locations with K commodities.
 Currently reward is Nash Social Welfare but in the future will integrate more options 
 to determine a fair allocation '''
 
-class ResourceAllocationEnvironment(gym.Env):
+class DiscreteResourceAllocationEnvironment(gym.Env):
   """
   Custom Environment that follows gym interface.
   """
@@ -19,18 +20,19 @@ class ResourceAllocationEnvironment(gym.Env):
   # Define constants for clearer code
 
 
+
   def __init__( self, config=env_configs.resource_allocation_default_config):
         '''
-        Initializes the Sequential Resource Allocation Environment
+        Initializes the Discrete Sequential Resource Allocation Environment
 
         weight_matrix - Weights predefining the commodity needs for each type, every row is a type vector
         K - number of commodities
-        num_rounds - Number of locations (also the length of an episode)
+        num_rounds - Number of agents (also the length of an episode)
         init_budget - amount of each commodity the principal begins with
         type_dist: Function determining the number of people of each type at a location
         u: utility function, given an allocation x and a type theta, u(x,theta) is how good the fit is
         '''
-        super(ResourceAllocationEnvironment, self).__init__()
+        super(DiscreteResourceAllocationEnvironment, self).__init__()
 
 
         self.config = config
@@ -53,13 +55,12 @@ class ResourceAllocationEnvironment(gym.Env):
         self.state = self.starting_state
         self.timestep = 0
 
+
         
         # Action space will be choosing Kxn-dimensional allocation matrix (represented as a vector)
-        self.action_space = spaces.Box(low=0, high=max(self.budget),
-                                        shape=(self.num_commodities*self.num_types,), dtype=np.float32)
+        self.action_space = spaces.MultiDiscrete([round(max(self.budget)) for _ in range(self.num_commodities*self.num_types)])
         # First K entries of observation space is the remaining budget, next is the number of each type at the location
-        self.observation_space = spaces.Box(low=0, high=np.inf,
-                                        shape=(self.num_commodities+self.num_types,), dtype=np.float32)
+        self.observation_space = spaces.MultiDiscrete([np.inf for _ in range(self.num_commodities+self.num_types)])
 
   def reset(self):
         """
@@ -135,8 +136,7 @@ class ResourceAllocationEnvironment(gym.Env):
         self.state = np.concatenate([new_budget, new_type])
 
 
-        self.action_space = spaces.Box(low=0, high=max(new_budget),
-                                        shape=(self.num_commodities*self.num_types,), dtype=np.float32)
+        self.action_space = spaces.MultiDiscrete([round(max(self.budget)) for _ in range(self.num_commodities*self.num_types)])
         
         self.timestep += 1
 
@@ -145,6 +145,7 @@ class ResourceAllocationEnvironment(gym.Env):
   def render(self, mode='console'):
     if mode != 'console':
       raise NotImplementedError()
+
 
   def close(self):
     pass
