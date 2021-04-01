@@ -54,7 +54,7 @@ class Experiment(object):
         for i in range(self.num_iters):
             self.agent.reset()
             self.agent.update_config(self.env, self.env.get_config())
-            for ep in range(1, self.nEps+1):
+            for ep in range(0, self.nEps):
                 if self.deBug:
                     print('Episode : ' + str(ep))
                 # Reset the environment

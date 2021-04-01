@@ -9,8 +9,6 @@ from .. import env_configs
 
 
 
-
-
 class FiniteBanditEnvironment(gym.Env):
   """
   Custom Environment that follows gym interface.
@@ -33,7 +31,7 @@ class FiniteBanditEnvironment(gym.Env):
         self.epLen = config['epLen']
         self.arm_means = config['arm_means']
 
-        # creates a space where every ambulance can be located at any of the nodes
+        # specifies action space
         self.action_space = spaces.Discrete(len(self.arm_means))
 
         # The definition of the observation space is the same as the action space
@@ -69,7 +67,6 @@ class FiniteBanditEnvironment(gym.Env):
         old_state = self.state
 
         # Update the state of the system according to the action taken and change 
-        # the location of the closest ambulance to the call to the call location
         old_state[action] += 1
         newState = old_state
 

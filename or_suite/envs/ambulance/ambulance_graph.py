@@ -20,18 +20,18 @@ cost of travel.'''
 
 
 class AmbulanceGraphEnvironment(gym.Env):
-  """
-  Custom Environment that follows gym interface.
-  This is a simple env where the arrivals are uniformly distributed across nodes
-  """
+    """
+    Custom Environment that follows gym interface.
+    This is a simple env where the arrivals are uniformly distributed across nodes
+    """
 
-  metadata = {'render.modes': ['human']}
+    metadata = {'render.modes': ['human']}
 
 
-  def __init__(self, config=env_configs.ambulance_graph_default_config):
+    def __init__(self, config=env_configs.ambulance_graph_default_config):
         '''
         For a more detailed description of each parameter, see the readme file
-        
+
         epLen - number of time steps
         arrival_dist - arrival distribution for calls over nodes
         alpha - parameter for proportional difference in costs
@@ -53,6 +53,10 @@ class AmbulanceGraphEnvironment(gym.Env):
         self.arrival_dist = config['arrival_dist']
 
         self.from_data = config['from_data']
+
+
+        self.lengths = self.find_lengths(self.graph, self.num_nodes)
+
         if self.from_data:
             self.arrival_data = config['data']
             self.episode_num = 0
@@ -70,7 +74,7 @@ class AmbulanceGraphEnvironment(gym.Env):
         self.observation_space = spaces.MultiDiscrete(space_array)
 
 
-  def reset(self):
+    def reset(self):
         """
         Reinitializes variables and returns the starting state
         """
@@ -84,10 +88,10 @@ class AmbulanceGraphEnvironment(gym.Env):
 
         return self.starting_state
 
-  def get_config(self):
-      return self.config
+    def get_config(self):
+        return self.config
 
-  def step(self, action):
+    def step(self, action):
         '''
         Move one step in the environment
 
@@ -163,10 +167,24 @@ class AmbulanceGraphEnvironment(gym.Env):
         return self.state, reward,  done, info
 
 
-  def render(self, mode='console'):
-    if mode != 'console':
-      raise NotImplementedError()
+    def render(self, mode='console'):
+        if mode != 'console':
+            raise NotImplementedError()
 
-  def close(self):
-    pass
+    def close(self):
+        pass
 
+
+
+    def find_lengths(self, graph, num_nodes):
+        '''
+        Given a graph, find_lengths first calculates the pairwise shortest distance 
+        between all the nodes, which is stored in a (symmetric) matrix.
+        '''
+        dict_lengths = dict(nx.all_pairs_dijkstra_path_length(graph, cutoff=None, weight='travel_time'))
+        lengths = np.zeros((num_nodes, num_nodes))
+
+        for node1 in range(num_nodes):
+            for node2 in range(num_nodes):
+                lengths[node1, node2] = dict_lengths[node1][node2]
+        return lengths

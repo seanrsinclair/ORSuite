@@ -162,8 +162,9 @@ def plot_radar_plots(path_list, algo_list, fig_path , fig_name, additional_metri
 
         with open(path_list[index]+'/trajectory.obj', 'rb') as f:
             x = pickle.load(f)
-            for metric in additional_metric:
-                algo_dict[metric] = additional_metric[metric](x)
+            if additional_metric != None:
+                for metric in additional_metric:
+                    algo_dict[metric] = additional_metric[metric](x)
 
         values.append(algo_dict)
 
@@ -219,6 +220,7 @@ def plot_radar_plots(path_list, algo_list, fig_path , fig_name, additional_metri
                 os.makedirs(fig_path)
                 plt.savefig(os.path.join(fig_path,fig_name), bbox_inches = 'tight',
                 pad_inches = 0.01)
+    plt.close()
 
 
 
@@ -291,3 +293,4 @@ def plot_line_plots(path_list, algo_list, fig_path , fig_name, plot_freq):
             os.makedirs(fig_path)
             fig.savefig(os.path.join(fig_path,fig_name), bbox_inches = 'tight',
             pad_inches = 0.01, dpi=900)
+    plt.close()
