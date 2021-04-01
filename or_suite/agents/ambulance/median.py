@@ -1,6 +1,6 @@
 import numpy as np
 import sys
-import sklearn_extra.cluster
+
 
 import sys
 from .. import Agent
