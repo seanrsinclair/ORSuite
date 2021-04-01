@@ -18,12 +18,12 @@ class equalAllocationAgent(Agent):
         self.num_resources = self.env_config['weight_matrix'].shape[1]
         
         self.current_budget = np.copy(self.env_config['init_budget'])
-        print('Starting Budget: ' + str(self.current_budget))
+        #print('Starting Budget: ' + str(self.current_budget))
         self.epLen = epLen
         self.data = []
         self.rel_exp_endowments = self.get_expected_endowments()
-        print("R")
-        print(self.rel_exp_endowments)
+        #print("R")
+        #print(self.rel_exp_endowments)
 
 
 
@@ -82,7 +82,7 @@ class equalAllocationAgent(Agent):
             action[typ,:] = (self.env_config['init_budget'] / sizes[typ])*(self.rel_exp_endowments[typ, timestep] / np.sum(self.rel_exp_endowments))
 
         self.current_budget -= np.sum([action[typ,:] * sizes[typ] for typ in range(num_types)])
-        print('Allocation: ' + str(action))
+        #print('Allocation: ' + str(action))
 
         return action
 

@@ -44,12 +44,12 @@ class ResourceAllocationEnvironment(gym.Env):
         self.budget = config['init_budget']
         self.type_dist = config['type_dist']
         self.utility_function = config['utility_function']
-        print(config['init_budget'])
-        print(self.type_dist(0))
-        print(np.concatenate([config['init_budget'],self.type_dist(0)]))
+        #print(config['init_budget'])
+        #print(self.type_dist(0))
+        #print(np.concatenate([config['init_budget'],self.type_dist(0)]))
 
         self.starting_state = np.concatenate([config['init_budget'],self.type_dist(0)])
-        print(np.concatenate([config['init_budget'],self.type_dist(0)]))
+        #print(np.concatenate([config['init_budget'],self.type_dist(0)]))
 
         self.state = self.starting_state
         self.timestep = 0
