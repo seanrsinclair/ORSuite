@@ -8,3 +8,4 @@ or_suite.egg-info/
 *.zip
 .nbgrader.log
 simulations/tmp/
+.DS_Store
