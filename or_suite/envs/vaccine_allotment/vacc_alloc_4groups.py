@@ -6,8 +6,7 @@ from gym import spaces
 import math
 import random
 import dynamics_model_4groups as dm4g
-
-# from .. import env_configs
+from .. import env_configs
 
 #------------------------------------------------------------------------------
 '''A simple vaccine distribution environment.  
@@ -67,14 +66,11 @@ class VaccineEnvironment(gym.Env):
         self.timestep = 0
             
         '''
-        TODO: move most of the detail to readme file
         Action Space (finite):
-        - set of all priority orders
-        - Priority orders are permutations of {1,2,3,4}
-        
-        - Action space = {0, 1, 2, ..., 25} where each number maps to a permutation of {1, 2, 3, 4}
-        - In this case, action is an index i and the corresponding permutation is all_priority_orders[i]
+        - set of all possible actions (priority orders in this case)
+        - An action is an index i and the corresponding permutation is all_priority_orders[i]
         - 0 corresponds to [], which means no priority order
+        See vaccine_allocation_readme.ipynb for more detail.
         '''
         self.action_space = spaces.Discrete(25)
         self.all_priority_orders = [[], ["c1","c2","c3","c4"],["c2","c1","c3","c4"],["c3","c1","c2","c4"],["c1","c3","c2","c4"],
@@ -85,17 +81,9 @@ class VaccineEnvironment(gym.Env):
                                ["c2","c4","c3","c1"],["c4","c2","c3","c1"],["c3","c2","c4","c1"],["c2","c3","c4","c1"]] 
     
         '''
-        TODO: move most of the detail to readme file
         Observation space (finite):
         A tuple of integer values representing certain population stats. 
-        Example:
-        (S1, S2, S3, S4, A1, A2, A3, A4, I, H, N) \in {0,1,2,...,total_population}^11
-        where 
-            S1,S2,S3,S4 = the total # of susceptible people in groups 1, 2, 3 and 4, resp
-            A1,A2,A3,A4 = the total # of asymptomatically infected people in groups 1, 2, 3 and 4, resp
-            I = total # of mild symptomatic infections 
-            H = total # of hospitalized infections
-            N = total # of NEW infections (includes asymptomatic and symptomatic) that occurred
+        See vaccine_allocation_readme.ipynb for more detail.
         '''
                                  
         
@@ -137,8 +125,8 @@ class VaccineEnvironment(gym.Env):
         newState, info = dm4g.dynamics_model(self.parameters, self.state)
         # print('New state' , newState)
         
-        # 'reward' is number of new infections
-        reward = newState[len(newState)-1]
+        # 'reward' is number of new infections times -1
+        reward = -1*newState[len(newState)-1]
 
         if self.timestep != (self.epLen-1):
             done = False
