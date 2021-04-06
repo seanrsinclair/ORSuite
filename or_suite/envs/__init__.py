@@ -23,6 +23,7 @@ register(id = 'Resource-v0',
 )
 
 # Finite Armed Bandit
+
 register(id = 'Bandit-v0',
     entry_point = 'or_suite.envs.finite_armed_bandit.finite_bandit:FiniteBanditEnvironment'
 )

@@ -17,7 +17,7 @@ class Experiment(object):
             dict - a dictionary containing the arguments to send for the experiment, including:
                 seed - random seed for experiment
                 recFreq - proportion of episodes to save to file
-                targetPath - path to the file for saving
+                dirPath - path to the file for saving
                 deBug - boolean of whether to include
                 nEps - number of episodes
                 numIters - the number of iterations to run experiment
@@ -52,13 +52,15 @@ class Experiment(object):
         index = 0
         traj_index = 0
         for i in range(self.num_iters):
-            self.agent.reset()
+            self.agent.reset() # resets algorithm, updates based on environment's configuration
             self.agent.update_config(self.env, self.env.get_config())
             for ep in range(0, self.nEps):
                 if self.deBug:
                     print('Episode : ' + str(ep))
                 # Reset the environment
                 self.env.reset()
+
+
                 oldState = self.env.state
                 epReward = 0
 
@@ -68,8 +70,9 @@ class Experiment(object):
                 h = 0
 
                 start_time = time.time()
-                tracemalloc.start()
+                tracemalloc.start() # starts time and memory tracker
 
+                # repeats until episode is finished
                 while (not done) and h < self.epLen:
                     # Step through the episode
                     if self.deBug:
@@ -88,14 +91,14 @@ class Experiment(object):
 
                     self.agent.update_obs(oldState, action, reward, newState, h, info)
 
-                    if self.save_trajectory:
+                    if self.save_trajectory: # saves trajectory step is desired
                         record = {'iter': i, 'episode': ep, 'step' : h, 'oldState' : oldState, 'action' : action, 'reward' : reward, 'newState' : newState, 'info' : info}
                         self.trajectory.append(record)
 
                     oldState = newState
                     h = h + 1
 
-                current, peak = tracemalloc.get_traced_memory()
+                current, peak = tracemalloc.get_traced_memory() # collects memory / time usage
                 tracemalloc.stop()
                 end_time = time.time()
                 
@@ -104,7 +107,7 @@ class Experiment(object):
 
 
                 # Logging to dataframe
-                self.data[index, 0] = ep-1
+                self.data[index, 0] = ep
                 self.data[index, 1] = i
                 self.data[index, 2] = epReward
                 self.data[index, 3] = current
@@ -130,6 +133,7 @@ class Experiment(object):
         traj_loc = 'trajectory.obj'
 
 
+        # Determines if we are saving the trajectory
         if self.save_trajectory:
 
             dt = pd.DataFrame(self.data, columns=['episode', 'iteration', 'epReward', 'memory', 'time'])
@@ -145,12 +149,13 @@ class Experiment(object):
             print('Writing to file ' + data_loc)
 
         if os.path.exists(dir_path):
+            # saves the collected dataset
             dt.to_csv(os.path.join(dir_path,data_loc), index=False, float_format='%.5f', mode='w')
-            if self.save_trajectory:
+            if self.save_trajectory: # saves trajectory to filename
                 outfile = open(filename, 'wb')
                 pickle.dump(self.trajectory, outfile)
                 outfile.close()
-        else:
+        else: # same as before, but first makes the directory
             os.makedirs(dir_path)
             dt.to_csv(os.path.join(dir_path, data_loc), index=False, float_format='%.5f', mode='w')
             if self.save_trajectory:

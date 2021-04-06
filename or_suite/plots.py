@@ -135,8 +135,19 @@ def radar_factory(num_vars, frame='circle'):
 
 
 def plot_radar_plots(path_list, algo_list, fig_path , fig_name, additional_metric):
-    
+    '''
+        Generates radar plots based on original metrics (time, space, reward) and additional metrics.
+            - path_list: list of locations storing data.csv files for each algorithm
+            - algo_list: list of algorithms (in names they will appear)
+            - fig_path: location to save the figure
+            - fig_name: name of the figure
+            - additional_metric: dictionary of the form {NAME: function} where function takes in a trajectory and outputs a value
+    '''
+
+
     # Organizing Data
+
+    # Setting matplotlib parameters
     if os.path.isfile('../or_suite/PaperDoubleFig.mplstyle.txt'):
         plt.style.use('../or_suite/PaperDoubleFig.mplstyle.txt')
     elif os.path.isfile('./or_suite/PaperDoubleFig.mplstyle.txt'):
@@ -149,17 +160,17 @@ def plot_radar_plots(path_list, algo_list, fig_path , fig_name, additional_metri
 
 
     # Generating the dataframe
-
     index = 0
     values = []
     for algo in algo_list:
-        df = pd.read_csv(path_list[index]+'/data.csv').groupby(['episode']).mean()
+        df = pd.read_csv(path_list[index]+'/data.csv').groupby(['episode']).mean() # reads in the data
         df['episode'] = df.index.values 
         df = df[df['episode'] == df.max()['episode']] # THIS IS NOT TOTALLY CORRECT, SHOULD BE SUM OVER EPISODES FOR TIME AND SPACE?
-
+        # Calculates the original metrics for that algorithm
         algo_dict = {'Algorithm': algo, 'Reward': df.iloc[0]['epReward'], 'Time':df.iloc[0]['time'], 'Space': df.iloc[0]['memory']}
 
 
+        # Calculates each additional metric
         with open(path_list[index]+'/trajectory.obj', 'rb') as f:
             x = pickle.load(f)
             if additional_metric != None:
@@ -176,7 +187,7 @@ def plot_radar_plots(path_list, algo_list, fig_path , fig_name, additional_metri
     df = pd.DataFrame(values)
 
     print(df)
-    df = normalize(df)
+    df = normalize(df) # normalize it
 
 
 
@@ -186,7 +197,7 @@ def plot_radar_plots(path_list, algo_list, fig_path , fig_name, additional_metri
 
 
 
-    theta = radar_factory(N, frame='polygon')
+    theta = radar_factory(N, frame='polygon') # generates axis
 
 
     fig, ax = plt.subplots(figsize=(10, 10), subplot_kw=dict(projection='radar'))
@@ -199,7 +210,7 @@ def plot_radar_plots(path_list, algo_list, fig_path , fig_name, additional_metri
 
     index = 0
 
-    for algo in algo_list:
+    for algo in algo_list: # plots the values for each algorithm on the axes
         values = df.loc[index].values[1:]
         ax.plot(theta, values, linewidth=1, linestyle='solid', label=algo, color = sns.color_palette('colorblind', len(algo_list))[index])
         ax.fill(theta, values, color = sns.color_palette('colorblind', len(algo_list))[index], alpha=0.25)
@@ -212,7 +223,7 @@ def plot_radar_plots(path_list, algo_list, fig_path , fig_name, additional_metri
 
 
 
-
+    # saves the figure at the desired location
     if os.path.exists(fig_path):
                 plt.savefig(os.path.join(fig_path,fig_name), bbox_inches = 'tight',
                 pad_inches = 0.01)
@@ -225,18 +236,20 @@ def plot_radar_plots(path_list, algo_list, fig_path , fig_name, additional_metri
 
 
 
-'''
 
-Create a set of line_plots for the algorithms, comparing the three metrics of reward, time, and space complexity
+def plot_line_plots(path_list, algo_list, fig_path , fig_name, plot_freq):
+    '''
+
+    Create a set of line_plots for the algorithms, comparing the three metrics of reward, time, and space complexity
 
     Path_List: list of the paths to the folders containing the data.csv files
     Algo_List: list of the algorithm name
     Fig_Path: Path for the location to save the figure
     Fig_Name: name of the figure
 
-'''
-def plot_line_plots(path_list, algo_list, fig_path , fig_name, plot_freq):
+    '''
     
+    # Sets up plot parameters
     if os.path.isfile('../or_suite/PaperDoubleFig.mplstyle.txt'):
         plt.style.use('../or_suite/PaperDoubleFig.mplstyle.txt')
     elif os.path.isfile('./or_suite/PaperDoubleFig.mplstyle.txt'):
@@ -264,6 +277,8 @@ def plot_line_plots(path_list, algo_list, fig_path , fig_name, plot_freq):
 
     index = 0
 
+
+    # reads in data for each algorithm
     for algo in algo_list:
         df = pd.read_csv(path_list[index]).groupby(['episode']).mean()
         df['episode'] = df.index.values
@@ -271,14 +286,15 @@ def plot_line_plots(path_list, algo_list, fig_path , fig_name, plot_freq):
 
         # PLOT OF OBSERVED REWARDS
         ax[0].plot(df['episode'], df['epReward'], label=algo, dashes = dash_styles[index], color = sns.color_palette('colorblind', len(algo_list))[index])
-
+        # PLOT TIME
         ax[1].plot(df['episode'], df['time'], label=algo, dashes = dash_styles[index], color = sns.color_palette('colorblind', len(algo_list))[index])
-
+        # PLOT MEMORY
         ax[2].plot(df['episode'], df['memory'], label=algo, dashes = dash_styles[index], color = sns.color_palette('colorblind', len(algo_list))[index])
 
         index += 1
 
 
+    # Updates axis
     ax[0].set_ylabel('Observed Reward')
     ax[1].set_ylabel('Observed Time Used (log scale)')
     ax[2].set_ylabel('Observed Memory Usage (B)')
@@ -286,6 +302,7 @@ def plot_line_plots(path_list, algo_list, fig_path , fig_name, plot_freq):
     plt.tight_layout()
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     
+    # Saves figure
     if os.path.exists(fig_path):
             fig.savefig(os.path.join(fig_path,fig_name), bbox_inches = 'tight',
             pad_inches = 0.01, dpi=900)

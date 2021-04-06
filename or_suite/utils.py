@@ -3,10 +3,19 @@ import cvxpy as cp
 import or_suite
 
 
-# Helper code to run experiment for single algorithm
+'''
+
+Helper code to run a single simulation of either an ORSuite experiment or the wrapper for a stable baselines algorithm.
+
+'''
 
 def run_single_algo(env, agent, settings):
-
+    '''
+        Runs a single experiment
+        env - environment
+        agent - agent
+        setting - dictionary containing experiment settings
+    '''
     exp = or_suite.experiment.experiment.Experiment(env, agent, settings)
     _ = exp.run()
     dt_data = exp.save_data()
@@ -14,14 +23,29 @@ def run_single_algo(env, agent, settings):
 # Helper code to run single stable baseline experiment
 
 def run_single_sb_algo(env, agent, settings):
+    '''
+        Runs a single experiment
+        env - environment
+        agent - agent
+        setting - dictionary containing experiment settings
+    '''
+
 
     exp = or_suite.experiment.sb_experiment.SB_Experiment(env, agent, settings)
     _ = exp.run()
     dt_data = exp.save_data()
 
 
-# Calculating mean response time for ambulance environment on the trajectory datafile
 
+'''
+PROBLEM DEPENDENT METRICS
+
+Sample implementation of problem dependent metrics.  Each one of them should take in a trajectory (as output and saved in an experiment)
+and return a corresponding value, where large corresponds to 'good'.
+
+'''
+
+# Calculating mean response time for ambulance environment on the trajectory datafile
 def mean_response_time(traj, dist):
     mrt = 0
     for i in range(len(traj)):
@@ -30,7 +54,6 @@ def mean_response_time(traj, dist):
     return mrt / len(traj)
 
 # Resoucre Allocation Metrics/Helper functions
-
 def delta_OPT(traj, env_config):
     """
     Calculates the distance to X_opt w.r.t supremum norm
