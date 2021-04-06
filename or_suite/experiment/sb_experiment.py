@@ -19,7 +19,7 @@ class SB_Experiment(object):
             dict - a dictionary containing the arguments to send for the experiment, including:
                 seed - random seed for experiment
                 recFreq - proportion of episodes to save to file
-                targetPath - path to the file for saving
+                dirPath - path to the file for saving
                 deBug - boolean of whether to include
                 nEps - number of episodes
                 numIters - the number of iterations to run experiment
@@ -30,7 +30,6 @@ class SB_Experiment(object):
         self.seed = dict['seed']
         self.epFreq = dict['recFreq']
         self.dirPath = dict['dirPath']
-        # self.targetPath = dict['targetPath']
         self.deBug = dict['deBug']
         self.nEps = dict['nEps']
         self.env = env
@@ -65,13 +64,15 @@ class SB_Experiment(object):
 
         # TODO: Determine how to save trajectory information
         for i in range(self.num_iters):
-            tracemalloc.start()
+            tracemalloc.start() # starts timer for memory information
 
-            self.model.learn(total_timesteps=self.epLen*self.nEps)
+            self.model.learn(total_timesteps=self.epLen*self.nEps) # learns over all of the iterations
 
-            current, peak = tracemalloc.get_traced_memory()
+            current, peak = tracemalloc.get_traced_memory() # collects memory information
             tracemalloc.stop()
 
+
+            # appends data to dataset
             episodes = np.append(episodes,np.arange(0, self.nEps))
             iterations = np.append(iterations, [i for _ in range(self.nEps)])
 

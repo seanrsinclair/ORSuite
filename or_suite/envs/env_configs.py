@@ -1,3 +1,9 @@
+'''
+
+File containing default configurations for the various environments implemented in ORSuite.
+
+'''
+
 import numpy as np
 
 resource_allocation_default_config = {'K': 2, 
