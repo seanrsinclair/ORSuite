@@ -38,18 +38,11 @@ class VaccineEnvironment(gym.Env):
 
     def __init__( self, config = DEFAULT_CONFIG):
     
-        # TODO: shorten this; add more detail to readme file
         '''
         Input: a dictionary with the following keys (and corresponding values)
-        o epLen - number of time steps (note that one single time step could be 1 day, 7 days, even a whole month)
+        o epLen - number of time steps 
         o alpha - parameter for difference in costs/loss
-        o priority_order - starting priority order
         o starting_state - np.array of initial population group sizes
-            ~ [s1, s2, s3, s4, a1, a2, a3, a4, I, H] where
-                o s1-s4 = susceptible persons in groups 1-4
-                o a1-a4 = asymptomatic persons in groups 1-4
-                o I = total number of mildy symptomatic persons across all groups
-                o H = total number of hospitalized persons across all groups
         o parameters - dictionary of parameter values to pass to dynamics model
         '''
         
