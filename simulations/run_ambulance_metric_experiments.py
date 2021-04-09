@@ -24,7 +24,7 @@ from joblib import Parallel, delayed
 
 DEFAULT_CONFIG =  or_suite.envs.env_configs.ambulance_metric_default_config
 epLen = DEFAULT_CONFIG['epLen']
-nEps = 50
+nEps = 5
 numIters = 2
 
 epsilon = (nEps * epLen)**(-1 / 4)
@@ -61,8 +61,8 @@ def beta(step):
 arrival_dists = [beta]
 # num_ambulances = [1,3]
 num_ambulances = [3]
-alphas = [0, 0.25, 1]
-# alphas = [0]
+# alphas = [0, 0.25, 1]
+alphas = [0]
 
 for num_ambulance in num_ambulances:
     for alpha in alphas:

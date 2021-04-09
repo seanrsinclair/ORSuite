@@ -9,6 +9,7 @@ from gym import spaces
 import math
 from .. import env_configs
 from gym.envs.classic_control import rendering
+import pyglet
 
 #------------------------------------------------------------------------------
 '''An ambulance environment over [0,1].  An agent interacts through the environment
@@ -165,6 +166,27 @@ class AmbulanceEnvironment(gym.Env):
     else:
         for n, ambulance_loc in enumerate(self.state):
             globals()["amb_trans%d"%n].set_translation(line_0[0] + (line_1[0] - line_0[0]) * ambulance_loc, line_0[1])
+
+
+
+    # glClearColor(1, 1, 1, 1)
+    self.viewer.window.clear()
+    self.viewer.window.switch_to()
+    self.viewer.window.dispatch_events()
+    self.viewer.transform.enable()
+    for geom in self.viewer.geoms:
+        geom.render()
+    for geom in self.viewer.onetime_geoms:
+        geom.render()
+    self.viewer.transform.disable()
+
+    label = pyglet.text.Label('Hello, world',
+                          font_name='Times New Roman',
+                          font_size=36,
+                          x=self.viewer.width//2, y=self.viewer.height//2,
+                          anchor_x='center', anchor_y='center')
+    # label.draw()
+    # self.viewer.add_geom(label)
 
     return self.viewer.render(return_rgb_array=mode == 'rgb_array')
 
