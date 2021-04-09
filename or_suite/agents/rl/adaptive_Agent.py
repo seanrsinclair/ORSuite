@@ -4,7 +4,7 @@ from or_suite.agents.rl.utils.tree import Tree, Node
 
 class AdaptiveDiscretization(Agent):
 
-    def __init__(self, epLen, scaling, dim):
+    def __init__(self, epLen, scaling, inherit_flag, dim):
         '''args:
             epLen - number of steps per episode
             numIters - total number of iterations
@@ -12,8 +12,7 @@ class AdaptiveDiscretization(Agent):
         '''
         self.epLen = epLen
         self.scaling = scaling
-
-
+        self.inherit_flag = inherit_flag
         self.dim = dim
 
         # List of tree's, one for each step
@@ -48,6 +47,7 @@ class AdaptiveDiscretization(Agent):
     def update_obs(self, obs, action, reward, newObs, timestep, info):
         '''Add observation to records'''
         # Gets the active tree based on current timestep
+        # print(obs, action, newObs)
         tree = self.tree_list[timestep]
 
         # Gets the active ball by finding the argmax of Q values of relevant
@@ -75,8 +75,8 @@ class AdaptiveDiscretization(Agent):
         active_node.qVal = (1 - lr) * active_node.qVal + lr * (reward + vFn + bonus)
 
         '''determines if it is time to split the current ball'''
-        if t >= 4**active_node.depth:
-            active_node.split_node()
+        if t >= 2**(2*active_node.depth):
+            active_node.split_node(self.inherit_flag)
 
 
     def greedy(self, state, timestep, epsilon=0):
@@ -99,7 +99,6 @@ class AdaptiveDiscretization(Agent):
         # Picks an action uniformly in that ball
         # action = np.random.uniform(active_node.action_val - active_node.radius, active_node.action_val + active_node.radius)
         action_dim = self.dim - len(state)
-
         action = np.random.uniform(active_node.bounds[action_dim:, 0], active_node.bounds[action_dim:, 1])
         return action
 
