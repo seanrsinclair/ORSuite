@@ -14,8 +14,6 @@ from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.evaluation import evaluate_policy
 
 
-
-
 ''' Defining parameters to be used in the experiment'''
 
 
@@ -34,7 +32,9 @@ for problem in problem_config_list:
     env = gym.make('Resource-v0', config = problem_config_list[problem])
     epLen = env.epLen
     # algo_information = {'Random': or_suite.agents.rl.random.randomAgent(), 'Equal_Allocation': or_suite.agents.resource_allocation.equal_allocation.equalAllocationAgent(epLen, DEFAULT_ENV_CONFIG)}
-    algo_information = {'Equal Allocation': or_suite.agents.resource_allocation.equal_allocation.equalAllocationAgent(epLen, DEFAULT_ENV_CONFIG)}
+    algo_information = {'Equal Allocation': or_suite.agents.resource_allocation.equal_allocation.equalAllocationAgent(epLen, DEFAULT_ENV_CONFIG),
+                        'Fixed Threshold': or_suite.agents.resource_allocation.fixed_threshold.fixedThresholdAgent(epLen, DEFAULT_ENV_CONFIG)
+                        }
 
     DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/allocation/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': True, 'epLen' : epLen}
 
@@ -42,6 +42,7 @@ for problem in problem_config_list:
     path = {}
     path_list_line = []
     algo_list_line = []
+
     for agent in algo_information:
         algorithm = algo_information[agent]
         path_list_line.append('../data/allocation_%s_%s/data.csv'%(agent,problem))
