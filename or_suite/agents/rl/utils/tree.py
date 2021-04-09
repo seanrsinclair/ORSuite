@@ -2,167 +2,165 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib as mpl
-''' Implementation of a tree structured used in the Adaptive Discretization Algorithm'''
+
+from or_suite.agents.rl.utils.bounds_utils import bounds_contains, split_bounds
 
 
-''' First defines the node class by storing all relevant information'''
+
+
+
 class Node():
-    def __init__(self, qVal, num_visits, num_splits, state_val, action_val, radius):
-        '''args:
-        qVal - estimate of the q value
-        num_visits - number of visits to the node or its ancestors
-        num_splits - number of times the ancestors of the node has been split
-        state_val - value of state at center
-        action_val - value of action at center
-        radius - radius of the node '''
+
+    """
+    Node representing an l-infinity ball in R^d, that points
+    to sub-balls (defined via node children).
+    Stores a value for the q_estimate, a number of visits, and 
+    
+        TODO: (possibly) rewards and transition probability to a list of other nodes.
+
+
+    This class is used to represent (and store data about)
+    a tuple (state, action, stage) = (x, a, h).
+
+
+    Parameters
+    ----------
+    bounds : numpy.ndarray
+        Bounds of each dimension [ [x0, y0], [x1, y1], ..., [xd, yd] ],
+        representing the cartesian product in R^d:
+        [x0, y0] X [x1, y1] X ... X [xd, yd]
+    depth: int
+        Node depth, root is at depth 0.
+    qVal : double, default: 0
+        Initial node Q value
+    num_visits : int, default = 0
+        Number of visits to the node.
+    """
+
+
+
+    def __init__(self, bounds, depth, qVal, num_visits):
+
+        self.dim = len(bounds)
+        # print(bounds)
+        self.radius = (bounds[:, 1] - bounds[:, 0]).max() / 2.0
+        # print(self.radius)
+        assert self.radius > 0.0
+
+        self.bounds = bounds
+        self.depth = depth
         self.qVal = qVal
         self.num_visits = num_visits
-        self.num_splits = num_splits
-        self.state_val = state_val
-        self.action_val = action_val
-        self.radius = radius
-        self.flag = False
-        self.children = None
 
-        # Splits a node by covering it with four children, as here S times A is [0,1]^2
-        # each with half the radius
+        self.children = []
+
+
+    def is_leaf(self):
+        return len(self.children) == None
+
+    def contains(self, state):
+        return bounds_contains(self.bounds, state)
+
+
+
+    # Splits a node
     def split_node(self):
-        child_1 = Node(self.qVal, self.num_visits, self.num_splits+1, self.state_val+self.radius/2, self.action_val+self.radius/2, self.radius*(1/2))
-        child_2 = Node(self.qVal, self.num_visits, self.num_splits+1, self.state_val+self.radius/2, self.action_val-self.radius/2, self.radius*(1/2))
-        child_3 = Node(self.qVal, self.num_visits, self.num_splits+1, self.state_val-self.radius/2, self.action_val+self.radius/2, self.radius*(1/2))
-        child_4 = Node(self.qVal, self.num_visits, self.num_splits+1, self.state_val-self.radius/2, self.action_val-self.radius/2, self.radius*(1/2))
-        self.children = [child_1, child_2, child_3, child_4]
+        child_bounds = split_bounds(self.bounds)
+        for bounds in child_bounds:
+            self.children.append(
+                Node(bounds, self.depth+1, self.qVal, self.num_visits)
+            )
+
         return self.children
 
-'''The tree class consists of a hierarchy of nodes'''
+
+
+
 class Tree():
+
+    """
+        Tree-based partition of an l-infinity ball in R^d.
+        Each node is of type TreeNode.
+    """
+
     # Defines a tree by the number of steps for the initialization
-    def __init__(self, epLen):
-        self.head = Node(epLen, 0, 0, 0.5, 0.5, 0.5)
+    def __init__(self, epLen, dim):
+        self.dim = dim
+
+        bounds = np.asarray([[0.0,1.0] for _ in range(dim)])
+
+        self.head = Node(bounds, 0, epLen, 0)
         self.epLen = epLen
         
     # Returns the head of the tree
     def get_head(self):
         return self.head
 
-    def get_max_help(self, node):
-        if node.children == None:
+    def get_max(self, node = None, root = True):
+        if root:
+            node = self.head
+
+        if len(node.children) == 0:
             return node.qVal
         else:
-            return np.max([self.get_max_help(child) for child in node.children])
+            return np.max([self.get_max(child, False) for child in node.children])
 
-    def get_max(self):
-        return self.get_max_help(self.head)
 
-    def get_min_help(self, node):
-        if node.children == None:
+    def get_min(self, node = None, root = True):
+        if root:
+            node = self.head
+
+
+        if len(node.children) == 0:
             return node.qVal
         else:
-            return np.min([self.get_min_help(child) for child in node.children])
+            return np.min([self.get_min(child, False) for child in node.children])
 
-    def get_min(self):
-        return self.get_min_help(self.head)
-
-
-
-    # Plot function which plots the tree on a graph on [0,1]^2 with the discretization
-    def plot(self, fig):
-        ax = plt.gca()
-        self.plot_node(self.head, ax)
-        plt.xlabel('State Space')
-        plt.ylabel('Action Space')
-        return fig
-
-    # Recursive method which plots all subchildren
-    def plot_node(self, node, ax):
-        if node.children == None:
-            # print('Child Node!')
-            rect = patches.Rectangle((node.state_val - node.radius,node.action_val-node.radius),node.radius*2,node.radius*2,linewidth=1,edgecolor='k',facecolor='none')
-            ax.add_patch(rect)
-            # plt.text(node.state_val, node.action_val, np.around(node.qVal, 3))
+    # TODO: Might need to make some edits to this
+    def plot(self, figname = 'tree plot', colormap_name = 'cool', max_value = 10, node=None, root=True,):
+        if root:
+            assert self.dim == 2, "Plot only available for 2-dimensional spaces."
+            plt.figure(fignum)
+        
+        if node.is_leaf():
+            x0, x1 = node.bounds[0, :]
+            y_1, y_1 = node.bounds[1, :]
+            colormap_fn = plt.get_cmap(colormap_name)
+            color = colormap_fn(node.qVal / max_value)
+            rectangle = plt.Rectangle((x0, y0), x1-x0, y1-y0, ec='black', color=color)
+            plt.gca().add_patch(rectangle)
+            plt.axis('scaled')
         else:
-            for child in node.children:
-                self.plot_node(child, ax)
+            for cc in node.children:
+                self.plot(max_value = max_value, colormap_name = colormap_name, node=cc, root=False)
 
 
     # Recursive method which gets number of subchildren
-    def get_num_balls(self, node):
-        num_balls = 0
-        if node.children == None:
-            return 1
-        else:
-            for child in node.children:
-                num_balls += self.get_num_balls(child)
+    def get_num_balls(self, node = None, root = True):
+        if root:
+            node = self.head
+
+        num_balls = 1
+        for child in node.children:
+            num_balls += self.get_num_balls(child, False)
         return num_balls
 
-    def get_number_of_active_balls(self):
-        return self.get_num_balls(self.head)
 
 
-    # A method which implements recursion and greedily selects the selected ball
-    # to have the largest qValue and contain the state being considered
+    def get_active_ball(self, state, node = None, root = True):
+        if root:
+            node = self.head
 
-    def get_active_ball_recursion(self, state, node):
-        # If the node doesn't have any children, then the largest one
-        # in the subtree must be itself
-        # print('Getting active node in state: ' + str(state))
-        if node.children == None:
+        if len(node.children) == 0:
             return node, node.qVal
+        
         else:
-            # Otherwise checks each child node
-            active_node, qVal = node, node.qVal
-            qVal = (-1)*np.inf
-            # print(len(node.children))
-            index = 0
+            best_node = node
+            best_qVal = node.qVal
+
             for child in node.children:
-                # print(index)
-                index += 1
-                # if the child node contains the current state
-                # print (child.state_val, child.action_val, child.radius)
-                if self.state_within_node(state, child):
-                    # print('State is within node')
-                    # recursively check that node for the max one, and compare against all of them
-                    new_node, new_qVal = self.get_active_ball_recursion(state, child)
-                    if new_qVal >= qVal:
-                        active_node, qVal = new_node, new_qVal
-                else:
-                    # print('State is not within node')
-                    continue
-                    
-            return active_node, qVal
-
-    # Recursive method which plots all subchildren
-    def plot_q_help(self, node, ax, timestep,colors, max_q, min_q):
-        if node.children == None:
-            # print('Child Node!')
-            rect = patches.Rectangle((node.state_val - node.radius, node.action_val - node.radius), node.radius * 2,
-                                     node.radius * 2, linewidth=1, facecolor=colors(int(255*(node.qVal-min_q)/(max_q-min_q))), edgecolor='k')
-            ax.add_patch(rect)
-            # plt.text(node.state_val, node.action_val, np.around(node.qVal, 3))
-        else:
-            for child in node.children:
-                self.plot_q_help(child, ax,timestep,colors, max_q, min_q)
-    # Plot function which plots the tree on a graph on [0,1]^2 with the discretization
-    def plot_q(self, fig, timestep):
-        max_q = self.get_max()
-        min_q = self.get_min()
-
-        colors = plt.cm.RdYlGn
-        ax = plt.gca()
-        self.plot_q_help(self.head, ax, timestep,colors, max_q, min_q)
-        plt.xlabel('State Space')
-        plt.ylabel('Action Space')
-        plt.title('Heat Map of Q Values')
-        norm = mpl.colors.Normalize(vmin=0, vmax=1)
-        sm = plt.cm.ScalarMappable(cmap=colors, norm=norm)
-        sm.set_array([])
-        return fig
-
-
-    def get_active_ball(self, state):
-        active_node, qVal = self.get_active_ball_recursion(state, self.head)
-        return active_node, qVal
-
-    # Helper method which checks if a state is within the node
-    def state_within_node(self, state, node):
-        return np.abs(state - node.state_val) <= node.radius
+                if child.contains(state):
+                    nn, nn_qVal = self.get_active_ball(state, child, False)
+                    if nn_qVal >= best_qVal:
+                        best_node, best_qVal = nn, nn_qVal
+            return best_node, best_qVal

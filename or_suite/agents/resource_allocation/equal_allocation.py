@@ -37,8 +37,8 @@ class equalAllocationAgent(Agent):
         """
         num_types = self.env_config['weight_matrix'].shape[0]
         exp_size = np.zeros((num_types, self.env_config['num_rounds']))
-        print(num_types)
-        print(self.env_config['num_rounds'])
+        #print(num_types)
+        #print(self.env_config['num_rounds'])
         for t in range(self.env_config['num_rounds']):
             for _ in range(N):
                 obs_size = self.env_config['type_dist'](t)
@@ -76,7 +76,7 @@ class equalAllocationAgent(Agent):
 
         num_types = self.env_config['weight_matrix'].shape[0]
         sizes = state[self.num_resources:]
-        action = np.zeros((num_types, self.env_config['K']))
+        action = np.zeros((num_types, self.num_resources))
 
         for typ in range(num_types):
             action[typ,:] = (self.env_config['init_budget'] / sizes[typ])*(self.rel_exp_endowments[typ, timestep] / np.sum(self.rel_exp_endowments))

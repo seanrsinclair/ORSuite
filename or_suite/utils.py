@@ -3,10 +3,19 @@ import cvxpy as cp
 import or_suite
 
 
-# Helper code to run experiment for single algorithm
+'''
+
+Helper code to run a single simulation of either an ORSuite experiment or the wrapper for a stable baselines algorithm.
+
+'''
 
 def run_single_algo(env, agent, settings):
-
+    '''
+        Runs a single experiment
+        env - environment
+        agent - agent
+        setting - dictionary containing experiment settings
+    '''
     exp = or_suite.experiment.experiment.Experiment(env, agent, settings)
     _ = exp.run()
     dt_data = exp.save_data()
@@ -14,14 +23,29 @@ def run_single_algo(env, agent, settings):
 # Helper code to run single stable baseline experiment
 
 def run_single_sb_algo(env, agent, settings):
+    '''
+        Runs a single experiment
+        env - environment
+        agent - agent
+        setting - dictionary containing experiment settings
+    '''
+
 
     exp = or_suite.experiment.sb_experiment.SB_Experiment(env, agent, settings)
     _ = exp.run()
     dt_data = exp.save_data()
 
 
-# Calculating mean response time for ambulance environment on the trajectory datafile
 
+'''
+PROBLEM DEPENDENT METRICS
+
+Sample implementation of problem dependent metrics.  Each one of them should take in a trajectory (as output and saved in an experiment)
+and return a corresponding value, where large corresponds to 'good'.
+
+'''
+
+# Calculating mean response time for ambulance environment on the trajectory datafile
 def mean_response_time(traj, dist):
     mrt = 0
     for i in range(len(traj)):
@@ -30,7 +54,6 @@ def mean_response_time(traj, dist):
     return mrt / len(traj)
 
 # Resoucre Allocation Metrics/Helper functions
-
 def delta_OPT(traj, env_config):
     """
     Calculates the distance to X_opt w.r.t supremum norm
@@ -40,20 +63,19 @@ def delta_OPT(traj, env_config):
         env_config: configuration of the environment
     Returns:
         final_avg_dist: array of the average dist to X_opt for each episode
-        
-    WHY ARE EPISODES INDEXED BY 1 PLEASE FIX
+
     """
     num_iter = traj[-1]['iter']+1
     num_eps = traj[-1]['episode']+1
     num_steps = traj[-1]['step']+1
     #print('Iters: %s, Eps: %s, Steps: %s'%(num_iter,num_eps,num_steps))
     num_types,num_commodities = traj[-1]['action'].shape 
-    final_avg_dist = np.zeros(num_eps-1)
+    final_avg_dist = np.zeros(num_eps)
     
     for iteration in range(num_iter):      
         iteration_traj = list(filter(lambda d: d['iter']==iteration, traj))
         
-        for ep in range(1,num_eps):
+        for ep in range(num_eps):
             ep_traj = list(filter(lambda d: d['episode']==ep, traj))
             sizes = np.zeros((num_steps,num_types))
 
@@ -69,7 +91,7 @@ def delta_OPT(traj, env_config):
                 X_alg[idx,:,:] = step_dict['action']
             
             dist = np.max(np.absolute(X_opt-X_alg))
-            final_avg_dist[ep-1] += (1/num_iter)*dist
+            final_avg_dist[ep] += (1/num_iter)*dist
             #print("Dist to OPT for episode %s: %s"%(ep,dist))
             
     return np.mean(final_avg_dist)
@@ -84,22 +106,20 @@ def delta_proportionality(traj, env_config):
         env_config: configuration of the environment
     Returns:
         final_avg_efficiency: array containing average waste per episode 
-    
-    WHY ARE EPISODES 1 INDEXED BUT ITERATIONS AND STEPS NOT PLEASE FIX
+
     """
-    import cvxpy as cp
     
     num_iter = traj[-1]['iter']+1
     num_eps = traj[-1]['episode']+1
     num_steps = traj[-1]['step']+1
     #print('Iters: %s, Eps: %s, Steps: %s'%(num_iter,num_eps,num_steps))
     num_types,num_commodities = traj[-1]['action'].shape 
-    final_avg_efficiency = np.zeros(num_eps-1)
+    final_avg_efficiency = np.zeros(num_eps)
     
     for iteration in range(num_iter):      
         iteration_traj = list(filter(lambda d: d['iter']==iteration, traj))
 
-        for ep in range(1,num_eps):
+        for ep in range(num_eps):
 
             ep_traj = list(filter(lambda d: d['episode']==ep, traj))
             sizes = np.zeros((num_steps,num_types))
@@ -114,7 +134,7 @@ def delta_proportionality(traj, env_config):
                 X_alg[idx,:,:] = step_dict['action']
             
             prop = get_proportionality(X_alg,sizes,env_config)
-            final_avg_efficiency[ep-1] += (1/num_iter)*prop
+            final_avg_efficiency[ep] += (1/num_iter)*prop
             #print("Proportionality for episode %s: %s"%(ep,prop))
             
     return np.mean(final_avg_efficiency)
@@ -130,18 +150,17 @@ def delta_efficiency(traj, env_config):
     Returns:
         final_avg_efficiency: array containing average waste per episode 
 
-    WHY ARE EPISODES 1 INDEXED BUT ITERATIONS AND STEPS NOT PLEASE FIX
     """
     num_iter = traj[-1]['iter']+1
     num_eps = traj[-1]['episode']+1
     num_steps = traj[-1]['step']+1
     #print('Iters: %s, Eps: %s, Steps: %s'%(num_iter,num_eps,num_steps))
     num_types,num_commodities = traj[-1]['action'].shape 
-    final_avg_efficiency = np.zeros(num_eps-1)
+    final_avg_efficiency = np.zeros(num_eps)
     for iteration in range(num_iter):      
         iteration_traj = list(filter(lambda d: d['iter']==iteration, traj))
 
-        for ep in range(1,num_eps):
+        for ep in range(num_eps):
             ep_traj = list(filter(lambda d: d['episode']==ep, traj))
             sizes = np.zeros((num_steps,num_types))
 
@@ -155,7 +174,7 @@ def delta_efficiency(traj, env_config):
                 X_alg[idx,:,:] = step_dict['action']
             
             eff = get_efficiency(X_alg,sizes,env_config)
-            final_avg_efficiency[ep-1] += (1/num_iter)*eff
+            final_avg_efficiency[ep] += (1/num_iter)*eff
             #print("Efficiency for episode %s: %s"%(ep,eff))
 
     return np.mean(final_avg_efficiency)
@@ -170,20 +189,19 @@ def delta_envy(traj, env_config):
         env_config: configuration of the environment
     Returns:
         final_avg_envies: array of the average envy for each episode
-        
-    WHY ARE EPISODES INDEXED BY 1 PLEASE FIX
+
     """
     num_iter = traj[-1]['iter']+1
     num_eps = traj[-1]['episode']+1
     num_steps = traj[-1]['step']+1
     #print('Iters: %s, Eps: %s, Steps: %s'%(num_iter,num_eps,num_steps))
     num_types,num_commodities = traj[-1]['action'].shape 
-    final_avg_envies = np.zeros(num_eps-1)
+    final_avg_envies = np.zeros(num_eps)
     
     for iteration in range(num_iter):      
         iteration_traj = list(filter(lambda d: d['iter']==iteration, traj))
         
-        for ep in range(1,num_eps):
+        for ep in range(num_eps):
             ep_traj = list(filter(lambda d: d['episode']==ep, traj))
             sizes = np.zeros((num_steps,num_types))
 
@@ -199,7 +217,7 @@ def delta_envy(traj, env_config):
                 X_alg[idx,:,:] = step_dict['action']
             
             envy = get_envy(X_alg,X_opt,env_config)
-            final_avg_envies[ep-1] += (1/num_iter)*envy
+            final_avg_envies[ep] += (1/num_iter)*envy
             #print("Envy for episode %s: %s"%(ep,envy))
             
     return np.mean(final_avg_envies)

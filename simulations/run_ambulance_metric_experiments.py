@@ -24,8 +24,8 @@ from joblib import Parallel, delayed
 
 DEFAULT_CONFIG =  or_suite.envs.env_configs.ambulance_metric_default_config
 epLen = DEFAULT_CONFIG['epLen']
-nEps = 1
-numIters = 1
+nEps = 50
+numIters = 2
 
 epsilon = (nEps * epLen)**(-1 / 4)
 action_net = np.arange(start=0, stop=1, step=epsilon)
@@ -60,9 +60,9 @@ def beta(step):
 # arrival_dists = [shifting, uniform, beta]
 arrival_dists = [beta]
 # num_ambulances = [1,3]
-num_ambulances = [2]
-# alphas = [0, 0.25, 1]
-alphas = [0]
+num_ambulances = [3]
+alphas = [0, 0.25, 1]
+# alphas = [0]
 
 for num_ambulance in num_ambulances:
     for alpha in alphas:
@@ -77,28 +77,20 @@ for num_ambulance in num_ambulances:
             CONFIG['starting_state'] = np.array([0 for _ in range(num_ambulance)])
             ambulance_env = gym.make('Ambulance-v0', config=CONFIG)
             mon_env = Monitor(ambulance_env)
-
-            agents = {'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen'])}
-
-            # agents = {'SB PPO': PPO(MlpPolicy, mon_env, gamma=1, verbose=0, n_steps=epLen),
+            agents = {# 'SB PPO': PPO(MlpPolicy, mon_env, gamma=1, verbose=0, n_steps=epLen),
             # 'Random': or_suite.agents.rl.random.randomAgent(),
             # 'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']),
-            # 'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen']),
-            # 'AdaQL': or_suite.agents.rl.adaptive_Agent.AdaptiveDiscretization(epLen, numIters, scaling),
+            # 'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen'])
+            'AdaQL': or_suite.agents.rl.adaptive_Agent.AdaptiveDiscretization(epLen, scaling, 6),
             # 'AdaMB': or_suite.agents.rl.adaptive_model_Agent.AdaptiveModelBasedDiscretization(epLen, numIters, scaling, 0, 2, True, True),
             # 'Unif QL': or_suite.agents.rl.eNet_Multiple.eNet(action_net, state_net, epLen, scaling, (num_ambulance,num_ambulance)),
             # 'Unif MB': or_suite.agents.rl.eNet_model_Agent_Multiple.eNetModelBased(action_net, state_net, epLen, scaling, (num_ambulance,num_ambulance), 0, False)
-            # }
+            }
 
 
             for agent in agents:
                 print(agent)
                 DEFAULT_SETTINGS['dirPath'] = '../data/ambulance_metric_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/'
-                if num_ambulance > 1 and (agent == 'AdaQL' or agent == 'AdaMB'):
-                    continue
-
-
-
                 if agent == 'SB PPO':
                     or_suite.utils.run_single_sb_algo(mon_env, agents[agent], DEFAULT_SETTINGS)
                 else:

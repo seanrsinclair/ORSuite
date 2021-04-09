@@ -1,5 +1,12 @@
 from .. import Agent
 
+'''
+
+Implementation of a randomized algorithm which employs a policy which samples uniformly at random from the action space
+
+'''
+
+
 class randomAgent(Agent):
 
     def __init__(self):

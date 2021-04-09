@@ -3,6 +3,7 @@ import sys
 sys.path.append('../')
 
 import numpy as np
+import copy
 import gym
 
 import or_suite
@@ -13,34 +14,45 @@ from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.evaluation import evaluate_policy
 
 
-
-
 ''' Defining parameters to be used in the experiment'''
 
 
-DEFAULT_ENV_CONFIG = or_suite.envs.env_configs.resource_allocation_simple_config
-#DEFAULT_ENV_CONFIG = or_suite.envs.env_configs.resource_allocation_default_config
+SIMPLE_ENV_CONFIG = or_suite.envs.env_configs.resource_allocation_simple_config
+DEFAULT_ENV_CONFIG = or_suite.envs.env_configs.resource_allocation_default_config
 
 # #TODO: Edit algo-list to be the names of the algorithms you created
-problem_list = ['simple']#,'default']
+problem_config_list = {'default':DEFAULT_ENV_CONFIG} #'simple':SIMPLE_ENV_CONFIG,
 
 
-for problem in problem_list:
-    nEps = 2
-    numIters = 1
+for problem in problem_config_list:
+    nEps = 500
+    numIters = 30
     #initialize resource allocation environment w/ default parameters
-    env = gym.make('Resource-v0', config = DEFAULT_ENV_CONFIG)
+    
+    env = gym.make('Resource-v0', config = problem_config_list[problem])
     epLen = env.epLen
     # algo_information = {'Random': or_suite.agents.rl.random.randomAgent(), 'Equal_Allocation': or_suite.agents.resource_allocation.equal_allocation.equalAllocationAgent(epLen, DEFAULT_ENV_CONFIG)}
-    algo_information = {'Equal_Allocation': or_suite.agents.resource_allocation.equal_allocation.equalAllocationAgent(epLen, DEFAULT_ENV_CONFIG)}
+    algo_information = {'Equal Allocation': or_suite.agents.resource_allocation.equal_allocation.equalAllocationAgent(epLen, DEFAULT_ENV_CONFIG),
+                        'Fixed Threshold': or_suite.agents.resource_allocation.fixed_threshold.fixedThresholdAgent(epLen, DEFAULT_ENV_CONFIG)
+                        }
 
     DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/allocation/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': True, 'epLen' : epLen}
 
 
     path = {}
-    for algorithm in algo_information:
-        DEFAULT_SETTINGS['dirPath'] = '../data/allocation_%s_%s'%(algorithm,problem)
-        or_suite.utils.run_single_algo(env, algo_information[algorithm], DEFAULT_SETTINGS)
+    path_list_line = []
+    algo_list_line = []
+
+    for agent in algo_information:
+        algorithm = algo_information[agent]
+        path_list_line.append('../data/allocation_%s_%s/data.csv'%(agent,problem))
+        algo_list_line.append(str(agent))
+        DEFAULT_SETTINGS['dirPath'] = '../data/allocation_%s_%s'%(agent,problem)
+        or_suite.utils.run_single_algo(env, algorithm, DEFAULT_SETTINGS)
+        fig_path = '../figures/'
+        fig_name = 'allocation_{}_{}_line_plot.pdf'.format(problem,agent)
+        or_suite.plots.plot_line_plots(path_list_line, algo_list_line, fig_path, fig_name, int(nEps / 40)+1)
+        CONFIG = copy.deepcopy(DEFAULT_ENV_CONFIG)
 
 
 
