@@ -60,6 +60,8 @@ class Experiment(object):
                 # Reset the environment
                 self.env.reset()
 
+                # self.env.render()
+                # time.sleep(2)
 
                 oldState = self.env.state
                 epReward = 0
@@ -98,6 +100,9 @@ class Experiment(object):
                     oldState = newState
                     h = h + 1
 
+                    # self.env.render()
+                    # time.sleep(2)
+
                 current, peak = tracemalloc.get_traced_memory() # collects memory / time usage
                 tracemalloc.stop()
                 end_time = time.time()
@@ -114,6 +119,8 @@ class Experiment(object):
                 self.data[index, 4] = np.log(((end_time) - (start_time)))
 
                 index += 1
+
+            self.env.close()
 
         print('**************************************************')
         print('Experiment complete')

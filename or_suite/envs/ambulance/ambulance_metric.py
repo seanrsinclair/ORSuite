@@ -8,6 +8,7 @@ import gym
 from gym import spaces
 import math
 from .. import env_configs
+from gym.envs.classic_control import rendering
 
 #------------------------------------------------------------------------------
 '''An ambulance environment over [0,1].  An agent interacts through the environment
@@ -136,63 +137,39 @@ class AmbulanceEnvironment(gym.Env):
   def render(self, mode='human'):
     screen_width = 600
     screen_height = 400
-
-    #world_width = self.x_threshold * 2
-    #scale = screen_width/world_width
-    #carty = 100  # TOP OF CART
-    #polewidth = 10.0
-    #polelen = scale * (2 * self.length)
-    #cartwidth = 50.0
-    #cartheight = 30.0
+    line_0 = (50, 100)
+    line_1 = (550, 100)
 
     if self.viewer is None:
-        from gym.envs.classic_control import rendering
         self.viewer = rendering.Viewer(screen_width, screen_height)
-        # l, r, t, b = -cartwidth / 2, cartwidth / 2, cartheight / 2, -cartheight / 2
-        # axleoffset = cartheight / 4.0
-        # cart = rendering.FilledPolygon([(l, b), (l, t), (r, t), (r, b)])
-        # self.carttrans = rendering.Transform()
-        # cart.add_attr(self.carttrans)
-        line_0 = (50, 100)
-        line_1 = (550, 100)
+
         self.number_line = rendering.Line(line_0, line_1)
         self.number_line.set_color(0, 0, 0)
         self.viewer.add_geom(self.number_line)
 
-        # self.viewer.add_geom(cart)
-        # l, r, t, b = -polewidth / 2, polewidth / 2, polelen - polewidth / 2, -polewidth / 2
-        # pole = rendering.FilledPolygon([(l, b), (l, t), (r, t), (r, b)])
-        # pole.set_color(.8, .6, .4)
-        # self.poletrans = rendering.Transform(translation=(0, axleoffset))
-        # pole.add_attr(self.poletrans)
-        # pole.add_attr(self.carttrans)
-        # self.viewer.add_geom(pole)
-        # self.axle = rendering.make_circle(polewidth/2)
-        # self.axle.add_attr(self.poletrans)
-        # self.axle.add_attr(self.carttrans)
-        # self.axle.set_color(.5, .5, .8)
-        # self.viewer.add_geom(self.axle)
-        # self.track = rendering.Line((0, carty), (screen_width, carty))
-        # self.track.set_color(0, 0, 0)
-        # self.viewer.add_geom(self.track)
+        self.ambulance_render_list = []
+        for n, ambulance_loc in enumerate(self.state):
 
-        # self._pole_geom = pole
+            # this is kind of questionable and I still want to find a better way to do this
+            globals()["amb%d"%n] = rendering.make_circle(radius=3)
+            globals()["amb_trans%d"%n] = rendering.Transform(translation=(line_0[0] + (line_1[0] - line_0[0]) * ambulance_loc, line_0[1]))
+            globals()["amb%d"%n].add_attr(globals()["amb_trans%d"%n])
+
+            self.ambulance_render_list.append(globals()["amb%d"%n])
+            self.viewer.add_geom(globals()["amb%d"%n])
+
 
     if self.state is None:
         return None
 
-    # Edit the pole polygon vertex
-    # pole = self._pole_geom
-    # l, r, t, b = -polewidth / 2, polewidth / 2, polelen - polewidth / 2, -polewidth / 2
-    # pole.v = [(l, b), (l, t), (r, t), (r, b)]
-
-    # x = self.state
-    # cartx = x[0] * scale + screen_width / 2.0  # MIDDLE OF CART
-    # self.carttrans.set_translation(cartx, carty)
-    # self.poletrans.set_rotation(-x[2])
+    else:
+        for n, ambulance_loc in enumerate(self.state):
+            globals()["amb_trans%d"%n].set_translation(line_0[0] + (line_1[0] - line_0[0]) * ambulance_loc, line_0[1])
 
     return self.viewer.render(return_rgb_array=mode == 'rgb_array')
 
   def close(self):
-    pass
+    if self.viewer:
+        self.viewer.close()
+        self.viewer = None
 

@@ -64,12 +64,17 @@ class Node():
 
 
     # Splits a node
-    def split_node(self):
+    def split_node(self, inherit_flag = True, value = 1):
         child_bounds = split_bounds(self.bounds)
         for bounds in child_bounds:
-            self.children.append(
-                Node(bounds, self.depth+1, self.qVal, self.num_visits)
-            )
+            if inherit_flag:
+                self.children.append(
+                    Node(bounds, self.depth+1, self.qVal, self.num_visits)
+                )
+            else:
+                self.children.append(
+                    Node(bounds, self.depth+1, value, 0)
+                )
 
         return self.children
 
@@ -164,3 +169,4 @@ class Tree():
                     if nn_qVal >= best_qVal:
                         best_node, best_qVal = nn, nn_qVal
             return best_node, best_qVal
+
