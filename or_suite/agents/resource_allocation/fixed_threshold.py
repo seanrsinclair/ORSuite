@@ -21,10 +21,10 @@ class fixedThresholdAgent(Agent):
         
         self.epLen = epLen
         self.data = []
-        
+        self.first_allocation_done = False
         self.exp_endowments = self.get_expected_endowments()
         self.prob, self.solver = self.generate_cvxpy_solver()
-        self.lower_sol = self.get_lower_upper_sol()
+        self.lower_sol = np.zeros((self.num_types,self.num_resources))
         #print("R")
         #print(self.rel_exp_endowments)
 
@@ -60,7 +60,7 @@ class fixedThresholdAgent(Agent):
             return prob.value, np.around(x.value, 5)
         return prob, solver
     
-    def get_lower_upper_sol(self):
+    def get_lower_upper_sol(self,init_sizes):
         """
         uses solver to get the lower and upper
         """
@@ -68,7 +68,7 @@ class fixedThresholdAgent(Agent):
         weights = self.env_config['weight_matrix']
         n = self.env_config['num_rounds']
         mean_size =  np.sum(self.exp_endowments, axis=1)
-        future_size = self.env_config['type_dist'](0) + np.sum(self.exp_endowments[:,1:], axis=1)
+        future_size = init_sizes + np.sum(self.exp_endowments[:,1:], axis=1)
         lower_exp_size = future_size*(1 + np.max(np.sqrt(mean_size*n) / future_size))
         _, lower_sol = self.solver(lower_exp_size, weights, budget)
 
@@ -129,7 +129,11 @@ class fixedThresholdAgent(Agent):
         #print("State:%s"%state)
         budget_remaining = state[:self.num_resources]
         sizes = state[self.num_resources:]
-        allocation = np.zeros( (self.num_types, self.num_resources))
+        
+        if not self.first_allocation_done:
+            self.lower_sol = self.get_lower_upper_sol(sizes)
+            self.first_allocation_done = True
+        
         lower_thresh = self.lower_sol
         #print(lower_thresh.shape)
         resource_index = budget_remaining - np.matmul(sizes, self.lower_sol) > 0
