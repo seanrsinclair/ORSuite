@@ -80,7 +80,7 @@ class Experiment(object):
 
 
         index = 0
-        traj_index = 0
+        
         for i in range(self.num_iters):  # loops over the numer of iterations
             self.agent.reset() # resets algorithm, updates based on environment's configuration
             self.agent.update_config(self.env, self.env.get_config())  # updates agent configuration based on environment
@@ -142,7 +142,7 @@ class Experiment(object):
                         self.env.render()
                         time.sleep(2)
 
-                current, peak = tracemalloc.get_traced_memory() # collects memory / time usage
+                current, _ = tracemalloc.get_traced_memory() # collects memory / time usage
                 tracemalloc.stop()
                 end_time = time.time()
                 

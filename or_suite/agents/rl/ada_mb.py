@@ -1,11 +1,11 @@
 import numpy as np
 from .. import Agent
-from or_suite.agents.rl.utils.tree import Tree, Node
+from or_suite.agents.rl.utils.tree_model_based import MBTree, MBNode
 
 
-class AdaptiveModelBasedDiscretization(Agent):
+class AdaptiveDiscretizationMB(Agent):
 
-    def __init__(self, epLen, scaling, alpha, split_threshold, inherit_flag, flag, dim):
+    def __init__(self, epLen, scaling, alpha, split_threshold, inherit_flag, flag, state_dim, action_dim):
         '''args:
             epLen - number of steps per episode
             numIters - total number of iterations
@@ -21,7 +21,9 @@ class AdaptiveModelBasedDiscretization(Agent):
         self.split_threshold = split_threshold
         self.inherit_flag = inherit_flag
         self.flag = flag
-        self.dim = dim
+        self.dim = state_dim + action_dim
+        self.state_dim = state_dim
+        self.action_dim = action_dim
 
         # List of tree's, one for each step
         self.tree_list = []
@@ -29,7 +31,7 @@ class AdaptiveModelBasedDiscretization(Agent):
         # Makes a new partition for each step and adds it to the list of trees
         for _ in range(epLen):
             # print(h)
-            tree = Tree(epLen, self.dim)
+            tree = MBTree(epLen, self.state_dim, self.action_dim)
             self.tree_list.append(tree)
 
     def reset(self):
@@ -39,7 +41,7 @@ class AdaptiveModelBasedDiscretization(Agent):
 
         # Makes a new partition for each step and adds it to the list of trees
         for _ in range(self.epLen):
-            tree = Tree(self.epLen, self.dim)
+            tree = MBTree(self.epLen, self.state_dim, self.action_dim)
             self.tree_list.append(tree)
 
 
@@ -75,8 +77,7 @@ class AdaptiveModelBasedDiscretization(Agent):
 
         # Increments the number of visits
         active_node.num_visits += 1
-        active_node.num_unique_visits += 1
-        t = active_node.num_unique_visits
+        t = active_node.num_visits
         # print('Num visits: ' + str(t))
 
         # Update empirical estimate of average reward for that node
@@ -140,10 +141,10 @@ class AdaptiveModelBasedDiscretization(Agent):
 
                 # Gets the current tree for this specific time step
                 tree = self.tree_list[h]
-                for node in tree.tree_leaves:
+                for node in tree.leaves:
                     # If the node has not been visited before - set its Q Value
                     # to be optimistic
-                    if node.num_unique_visits == 0:
+                    if node.num_visits == 0:
                         node.qVal = self.epLen
                     else:
                         # Otherwise solve for the Q Values with the bonus term
@@ -171,13 +172,10 @@ class AdaptiveModelBasedDiscretization(Agent):
                 # print(tree.vEst)
                 # print('#### DDONEE ###')
 
-        # TODO: Verify if this is needed
-        # self.greedy = self.greedy
         pass
 
     
-
-    def greedy(self, state, timestep, epsilon=0):
+    def pick_action(self, state, timestep):
         '''
         Select action according to a greedy policy
 
@@ -199,8 +197,4 @@ class AdaptiveModelBasedDiscretization(Agent):
 
         action = np.random.uniform(active_node.bounds[action_dim:, 0], active_node.bounds[action_dim:, 1])
 
-        return action
-
-    def pick_action(self, state, timestep):
-        action = self.greedy(state, timestep)
         return action

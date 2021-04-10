@@ -3,16 +3,15 @@ def bounds_contains(bounds, state):
     Returns True if `state` is contained in the bounds, and False otherwise.
 
 
-    Parameters
-    ----------
-    bounds : numpy.ndarray
-        Array of shape (d, 2).
-        Bounds of each dimension [ [x0, y0], [x1, y1], ..., [xd, yd] ],
-        representing the following cartesian product in R^d:
-        [x0, y0] X [x1, y1] X ... X [xd, yd].
-    state : numpy.ndarray
-        Array of shape (d_1,)
-    
+    Args:
+        bounds : numpy.ndarray
+            Array of shape (d, 2).
+            Bounds of each dimension [ [x0, y0], [x1, y1], ..., [xd, yd] ],
+            representing the following cartesian product in R^d:
+            [x0, y0] X [x1, y1] X ... X [xd, yd].
+        state : numpy.ndarray
+            Array of shape (d_1,)
+        
     Note that here d_1 can be smaller than d
     """
     dim = state.shape[0]
@@ -27,18 +26,17 @@ def split_bounds(bounds, dim=0):
     """
     Split an array representing an l-infinity ball in R^d in R^d
     into a list of 2^d arrays representing the ball split.
-    Parameters
-    ----------
-    bounds : numpy.ndarray
-        Array of shape (d, 2).
-        Bounds of each dimension [ [x0, y0], [x1, y1], ..., [xd, yd] ],
-        representing the cartesian product in R^d:
-        [x0, y0] X [x1, y1] X ... X [xd, yd].
-    dim : int, default: 0
-        Dimension from which to start splitting.
-    Returns
-    -------
-    List of arrays of shape (d, 2) containing the bounds to be split.
+
+    Args:
+        bounds : numpy.ndarray
+            Array of shape (d, 2).
+            Bounds of each dimension [ [x0, y0], [x1, y1], ..., [xd, yd] ],
+            representing the cartesian product in R^d:
+            [x0, y0] X [x1, y1] X ... X [xd, yd].
+        dim : int, default: 0
+            Dimension from which to start splitting.
+    Returns:
+        List of arrays of shape (d, 2) containing the bounds to be split.
     """
     if dim == bounds.shape[0]:
         return [bounds]

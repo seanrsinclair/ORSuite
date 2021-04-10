@@ -100,7 +100,7 @@ class SB_Experiment(object):
 
             self.model.learn(total_timesteps=self.epLen*self.nEps) # learns over all of the episodes
 
-            current, peak = tracemalloc.get_traced_memory() # collects memory information
+            current, _ = tracemalloc.get_traced_memory() # collects memory information
             tracemalloc.stop()
 
 
