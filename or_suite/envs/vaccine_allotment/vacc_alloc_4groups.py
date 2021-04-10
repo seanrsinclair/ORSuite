@@ -41,7 +41,6 @@ class VaccineEnvironment(gym.Env):
         '''
         Input: a dictionary with the following keys (and corresponding values)
         o epLen - number of time steps 
-        o alpha - parameter for difference in costs/loss
         o starting_state - np.array of initial population group sizes
         o parameters - dictionary of parameter values to pass to dynamics model
         '''
@@ -49,13 +48,11 @@ class VaccineEnvironment(gym.Env):
         self.config = config
         self.epLen = config['epLen']
         self.vaccines = config['parameters']['vaccines']
-        self.alpha = config['alpha']
         self.priority_order = config['parameters']['priority_order']
         self.parameters = config['parameters']
         self.total_pop = np.sum(config['starting_state'])
         self.state = config['starting_state']
         self.starting_state = config['starting_state']
-        # self.new_infs = 0
         self.timestep = 0
             
         '''
