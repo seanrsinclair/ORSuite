@@ -1,3 +1,9 @@
+'''
+
+File containing default configurations for the various environments implemented in ORSuite.
+
+'''
+
 import numpy as np
 
 resource_allocation_default_config = {'K': 2, 
@@ -11,10 +17,19 @@ resource_allocation_default_config = {'K': 2,
 resource_allocation_simple_config = {'K':1,
   'num_rounds':10,
   'weight_matrix': np.array([[1]]),
-  'init_budget': np.array([10.]),
+  'init_budget': np.array([20.]),
   'utility_function': lambda x,theta: x,
   'type_dist': lambda i : np.array([2])
 }
+
+resource_allocation_simple_poisson_config = {'K':1,
+  'num_rounds':10,
+  'weight_matrix': np.array([[1]]),
+  'init_budget': np.array([15.]),
+  'utility_function': lambda x,theta: x,
+  'type_dist': lambda i : [1+np.random.poisson(lam = .5)]
+}
+
 
 ambulance_metric_default_config =  {'epLen': 5,
     'arrival_dist': lambda x : np.random.beta(5,2), 

@@ -1,11 +1,11 @@
 import numpy as np
 from .. import Agent
-from or_suite.agents.rl.utils.tree_model_based import Tree, Node
+from or_suite.agents.rl.utils.tree_model_based import MBTree, MBNode
 
 
-class AdaptiveModelBasedDiscretization(Agent):
+class AdaptiveDiscretizationMB(Agent):
 
-    def __init__(self, epLen, numIters, scaling, alpha, split_threshold, inherit_flag, flag):
+    def __init__(self, epLen, scaling, alpha, split_threshold, inherit_flag, flag, state_dim, action_dim):
         '''args:
             epLen - number of steps per episode
             numIters - total number of iterations
@@ -16,20 +16,22 @@ class AdaptiveModelBasedDiscretization(Agent):
         '''
 
         self.epLen = epLen
-        self.numIters = numIters
         self.scaling = scaling
         self.alpha = alpha
         self.split_threshold = split_threshold
-
         self.inherit_flag = inherit_flag
         self.flag = flag
+        self.dim = state_dim + action_dim
+        self.state_dim = state_dim
+        self.action_dim = action_dim
+
         # List of tree's, one for each step
         self.tree_list = []
 
         # Makes a new partition for each step and adds it to the list of trees
         for _ in range(epLen):
             # print(h)
-            tree = Tree(epLen, self.inherit_flag)
+            tree = MBTree(epLen, self.state_dim, self.action_dim)
             self.tree_list.append(tree)
 
     def reset(self):
@@ -39,8 +41,11 @@ class AdaptiveModelBasedDiscretization(Agent):
 
         # Makes a new partition for each step and adds it to the list of trees
         for _ in range(self.epLen):
-            tree = Tree(self.epLen, self.inherit_flag)
+            tree = MBTree(self.epLen, self.state_dim, self.action_dim)
             self.tree_list.append(tree)
+
+
+
 
     def update_config(self, env, config):
         ''' Update agent information based on the config__file'''
@@ -53,6 +58,9 @@ class AdaptiveModelBasedDiscretization(Agent):
         for tree in self.tree_list:
             total_size += tree.get_number_of_active_balls()
         return total_size
+
+
+
 
     def update_obs(self, obs, action, reward, newObs, timestep, info):
         '''Add observation to records'''
@@ -69,13 +77,15 @@ class AdaptiveModelBasedDiscretization(Agent):
 
         # Increments the number of visits
         active_node.num_visits += 1
-        active_node.num_unique_visits += 1
-        t = active_node.num_unique_visits
+        t = active_node.num_visits
         # print('Num visits: ' + str(t))
 
         # Update empirical estimate of average reward for that node
         active_node.rEst = ((t-1)*active_node.rEst + reward) / t
         # print('Mean reward: ' + str(active_node.rEst))
+
+
+        ###### TODO ##########
 
         # If it is not the last timestep - updates the empirical estimate
         # of the transition kernel based on the induced state partition at the next step
@@ -104,7 +114,13 @@ class AdaptiveModelBasedDiscretization(Agent):
                 index += 1
 
         '''determines if it is time to split the current ball'''
-        if t >= 2**(self.split_threshold * active_node.num_splits):
+        if t >= 2**(self.split_threshold * active_node.depth):
+
+            ## TODO:
+            # SHOULD JUST BE
+
+            active_node.split_node(self.inherit_flag, self.epLen)
+
             # print('Splitting a ball!!!!')
             if timestep >= 1:
                 _ = tree.split_node(active_node, timestep, self.tree_list[timestep-1])
@@ -125,10 +141,10 @@ class AdaptiveModelBasedDiscretization(Agent):
 
                 # Gets the current tree for this specific time step
                 tree = self.tree_list[h]
-                for node in tree.tree_leaves:
+                for node in tree.leaves:
                     # If the node has not been visited before - set its Q Value
                     # to be optimistic
-                    if node.num_unique_visits == 0:
+                    if node.num_visits == 0:
                         node.qVal = self.epLen
                     else:
                         # Otherwise solve for the Q Values with the bonus term
@@ -156,16 +172,10 @@ class AdaptiveModelBasedDiscretization(Agent):
                 # print(tree.vEst)
                 # print('#### DDONEE ###')
 
-        # TODO: Verify if this is needed
-        # self.greedy = self.greedy
-
         pass
 
-    def split_ball(self, node):
-        children = node.split_ball()
-        return children
-
-    def greedy(self, state, timestep, epsilon=0):
+    
+    def pick_action(self, state, timestep):
         '''
         Select action according to a greedy policy
 
@@ -183,10 +193,8 @@ class AdaptiveModelBasedDiscretization(Agent):
         active_node, _ = tree.get_active_ball(state)
 
         # Picks an action uniformly in that ball
-        action = np.random.uniform(active_node.action_val - active_node.radius, active_node.action_val + active_node.radius)
+        action_dim = self.dim - len(state)
 
-        return [action]
+        action = np.random.uniform(active_node.bounds[action_dim:, 0], active_node.bounds[action_dim:, 1])
 
-    def pick_action(self, state, timestep):
-        action = self.greedy(state, timestep)
         return action

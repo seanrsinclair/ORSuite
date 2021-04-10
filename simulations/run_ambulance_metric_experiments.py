@@ -31,13 +31,22 @@ epsilon = (nEps * epLen)**(-1 / 4)
 action_net = np.arange(start=0, stop=1, step=epsilon)
 state_net = np.arange(start=0, stop=1, step=epsilon)
 
-scaling = 0.5
+scaling_list = [.001, 0.01, 0.1, 0.5, 1., 2.]
 
 
 
 
 
-DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': True, 'epLen' : 5}
+DEFAULT_SETTINGS = {'seed': 1, 
+                    'recFreq': 1, 
+                    'dirPath': '../data/ambulance/', 
+                    'deBug': False, 
+                    'nEps': nEps, 
+                    'numIters': numIters, 
+                    'saveTrajectory': True, 
+                    'epLen' : 5,
+                    'render': False
+                    }
 
 def shifting(step):
     if step == 0:
@@ -59,65 +68,49 @@ def beta(step):
 
 # arrival_dists = [shifting, uniform, beta]
 arrival_dists = [beta]
-num_ambulances = [1,3]
-# num_ambulances = [1]
-alphas = [0, 0.25, 1]
-# alphas = [0]
-
-# for num_ambulance in num_ambulances:
-#     for alpha in alphas:
-#         for arrival_dist in arrival_dists:
-
-#             print(alpha)
-#             print(arrival_dist.__name__)
-#             CONFIG = copy.deepcopy(DEFAULT_CONFIG)
-#             CONFIG['alpha'] = alpha
-#             CONFIG['arrival_dist'] = arrival_dist
-#             CONFIG['num_ambulance'] = num_ambulance
-#             CONFIG['starting_state'] = np.array([0 for _ in range(num_ambulance)])
-#             ambulance_env = gym.make('Ambulance-v0', config=CONFIG)
-#             mon_env = Monitor(ambulance_env)
-#             agents = {'SB PPO': PPO(MlpPolicy, mon_env, gamma=1, verbose=0, n_steps=epLen),
-#             # 'Random': or_suite.agents.rl.random.randomAgent(),
-#             # 'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']),
-#             # 'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen'])
-#             # 'AdaQL': or_suite.agents.rl.adaptive_Agent.AdaptiveDiscretization(epLen, numIters, scaling),
-#             # 'AdaMB': or_suite.agents.rl.adaptive_model_Agent.AdaptiveModelBasedDiscretization(epLen, numIters, scaling, 0, 2, True, True),
-#             # 'Unif QL': or_suite.agents.rl.eNet_Multiple.eNet(action_net, state_net, epLen, scaling, (num_ambulance,num_ambulance)),
-#             # 'Unif MB': or_suite.agents.rl.eNet_model_Agent_Multiple.eNetModelBased(action_net, state_net, epLen, scaling, (num_ambulance,num_ambulance), 0, False)
-#             }
-
-
-#             for agent in agents:
-#                 print(agent)
-#                 DEFAULT_SETTINGS['dirPath'] = '../data/ambulance_metric_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/'
-#                 if num_ambulance > 1 and (agent == 'AdaQL' or agent == 'AdaMB'):
-#                     continue
-
-
-
-#                 if agent == 'SB PPO':
-#                     or_suite.utils.run_single_sb_algo(mon_env, agents[agent], DEFAULT_SETTINGS)
-#                 else:
-#                     or_suite.utils.run_single_algo(ambulance_env, agents[agent], DEFAULT_SETTINGS)
-
-
-
-agents = {'SB PPO': None, 'Random': None, 'Stable': None, 'Median':None, 'AdaQL': None, 'AdaMB': None, 'Unif QL': None, 'Unif MB': None}
-
+# num_ambulances = [1,3]
+num_ambulances = [1, 3]
+# alphas = [0, 0.25, 1]
+alphas = [0]
 
 for num_ambulance in num_ambulances:
     for alpha in alphas:
         for arrival_dist in arrival_dists:
+
+            print(alpha)
+            print(arrival_dist.__name__)
+            CONFIG = copy.deepcopy(DEFAULT_CONFIG)
+            CONFIG['alpha'] = alpha
+            CONFIG['arrival_dist'] = arrival_dist
+            CONFIG['num_ambulance'] = num_ambulance
+            CONFIG['starting_state'] = np.array([0 for _ in range(num_ambulance)])
+            ambulance_env = gym.make('Ambulance-v0', config=CONFIG)
+            mon_env = Monitor(ambulance_env)
+            agents = {# 'SB PPO': PPO(MlpPolicy, mon_env, gamma=1, verbose=0, n_steps=epLen),
+            'Random': or_suite.agents.rl.random.randomAgent(),
+            'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']),
+            'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen']),
+            'AdaQL': or_suite.agents.rl.ada_ql.AdaptiveDiscretizationQL(epLen, scaling_list[0], True, num_ambulance*2),
+            # 'AdaMB': or_suite.agents.rl.ada_mb.AdaptiveDiscretizationMB(epLen, scaling_list[0], 0, 2, True, False, num_ambulance, num_ambulance),
+            'Unif QL': or_suite.agents.rl.enet_ql.eNetQL(action_net, state_net, epLen, scaling_list[0], (num_ambulance,num_ambulance)),
+            'Unif MB': or_suite.agents.rl.enet_mb.eNetMB(action_net, state_net, epLen, scaling_list[0], (num_ambulance,num_ambulance), 0, False)
+            }
+
             path_list_line = []
             algo_list_line = []
-
             path_list_radar = []
-            algo_list_radar = []
+            algo_list_radar= []
             for agent in agents:
-                if num_ambulance > 1 and (agent == 'AdaQL' or agent == 'AdaMB'):
-                    continue
-                path_list_line.append('../data/ambulance_metric_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/data.csv')
+                print(agent)
+                DEFAULT_SETTINGS['dirPath'] = '../data/ambulance_metric_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/'
+                if agent == 'SB PPO':
+                    or_suite.utils.run_single_sb_algo(mon_env, agents[agent], DEFAULT_SETTINGS)
+                elif agent == 'AdaQL' or agent == 'Unif QL' or agent == 'AdaMB' or agent == 'Unif MB':
+                    or_suite.utils.run_single_algo_tune(ambulance_env, agents[agent], scaling_list, DEFAULT_SETTINGS)
+                else:
+                    or_suite.utils.run_single_algo(ambulance_env, agents[agent], DEFAULT_SETTINGS)
+
+                path_list_line.append('../data/ambulance_metric_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__))
                 algo_list_line.append(str(agent))
                 if agent != 'SB PPO':
                     path_list_radar.append('../data/ambulance_metric_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__))
@@ -133,7 +126,6 @@ for num_ambulance in num_ambulances:
             fig_path, fig_name,
             additional_metric
             )
-
 
 
 
