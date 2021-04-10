@@ -123,7 +123,7 @@ for num_ambulance in num_ambulances:
             for agent in agents:
                 if num_ambulance > 1 and (agent == 'AdaQL' or agent == 'AdaMB'):
                     continue
-                path_list_line.append('../data/ambulance_graph_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/data.csv')
+                path_list_line.append('../data/ambulance_graph_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__))
                 algo_list_line.append(str(agent))
                 if agent != 'SB PPO':
                     path_list_radar.append('../data/ambulance_graph_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__))

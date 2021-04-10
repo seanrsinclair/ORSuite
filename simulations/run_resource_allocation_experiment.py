@@ -21,40 +21,51 @@ SIMPLE_ENV_CONFIG = or_suite.envs.env_configs.resource_allocation_simple_config
 DEFAULT_ENV_CONFIG = or_suite.envs.env_configs.resource_allocation_default_config
 
 # #TODO: Edit algo-list to be the names of the algorithms you created
-problem_config_list = {'default':DEFAULT_ENV_CONFIG} #'simple':SIMPLE_ENV_CONFIG,
+problem_config_list = {'simple':SIMPLE_ENV_CONFIG, 
+                'simple_poisson': or_suite.envs.env_configs.resource_allocation_simple_poisson_config,
+                'multi': or_suite.envs.env_configs.resource_allocation_default_config} #'simple':SIMPLE_ENV_CONFIG,
+
+
 
 
 for problem in problem_config_list:
-    nEps = 500
-    numIters = 30
+    nEps = 100
+    numIters = 1
     #initialize resource allocation environment w/ default parameters
     
     env = gym.make('Resource-v0', config = problem_config_list[problem])
     epLen = env.epLen
     # algo_information = {'Random': or_suite.agents.rl.random.randomAgent(), 'Equal_Allocation': or_suite.agents.resource_allocation.equal_allocation.equalAllocationAgent(epLen, DEFAULT_ENV_CONFIG)}
-    algo_information = {'Equal Allocation': or_suite.agents.resource_allocation.equal_allocation.equalAllocationAgent(epLen, DEFAULT_ENV_CONFIG),
-                        'Fixed Threshold': or_suite.agents.resource_allocation.fixed_threshold.fixedThresholdAgent(epLen, DEFAULT_ENV_CONFIG)
+    algo_information = {'EqualAllocation': or_suite.agents.resource_allocation.equal_allocation.equalAllocationAgent(epLen, problem_config_list[problem]),
+                        'FixedThreshold': or_suite.agents.resource_allocation.fixed_threshold.fixedThresholdAgent(epLen, problem_config_list[problem])
                         }
 
     DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/allocation/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': True, 'epLen' : epLen}
 
 
     path = {}
-    path_list_line = []
-    algo_list_line = []
+    path_list = []
+    algo_list = []
 
     for agent in algo_information:
         algorithm = algo_information[agent]
-        path_list_line.append('../data/allocation_%s_%s/data.csv'%(agent,problem))
-        algo_list_line.append(str(agent))
+        path_list.append('../data/allocation_%s_%s'%(agent,problem))
+        algo_list.append(str(agent))
         DEFAULT_SETTINGS['dirPath'] = '../data/allocation_%s_%s'%(agent,problem)
         or_suite.utils.run_single_algo(env, algorithm, DEFAULT_SETTINGS)
-        fig_path = '../figures/'
-        fig_name = 'allocation_{}_{}_line_plot.pdf'.format(problem,agent)
-        or_suite.plots.plot_line_plots(path_list_line, algo_list_line, fig_path, fig_name, int(nEps / 40)+1)
-        CONFIG = copy.deepcopy(DEFAULT_ENV_CONFIG)
 
+    fig_path = '../figures/'
+    fig_name = 'allocation_{}_line_plot.pdf'.format(problem)
+    or_suite.plots.plot_line_plots(path_list, algo_list, fig_path, fig_name, int(nEps / 40)+1)
 
+    fig_radar_name = 'allocation_{}_radar_plot.pdf'.format(problem)
+
+    additional_metric = {'Waste': lambda traj : or_suite.utils.delta_efficiency(traj, problem_config_list[problem]),
+                        'Envy': lambda traj : or_suite.utils.delta_envy(traj, problem_config_list[problem]),
+                        'Prop': lambda traj : or_suite.utils.delta_proportionality(traj, problem_config_list[problem]),
+                        'OPT': lambda traj : or_suite.utils.delta_OPT(traj, problem_config_list[problem])}
+
+    or_suite.plots.plot_radar_plots(path_list, algo_list, fig_path, fig_radar_name, additional_metric)
 
 
 # #below is work on the PPO algorithm, kinda not the greatest atm
