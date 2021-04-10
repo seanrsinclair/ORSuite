@@ -65,6 +65,9 @@ and return a corresponding value, where large corresponds to 'good'.
 
 '''
 
+
+
+
 # Calculating mean response time for ambulance environment on the trajectory datafile
 def mean_response_time(traj, dist):
     mrt = 0

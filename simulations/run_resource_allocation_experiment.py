@@ -40,7 +40,7 @@ for problem in problem_config_list:
                         'FixedThreshold': or_suite.agents.resource_allocation.fixed_threshold.fixedThresholdAgent(epLen, problem_config_list[problem])
                         }
 
-    DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/allocation/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': True, 'epLen' : epLen}
+    DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'render': False, 'dirPath': '../data/allocation/', 'deBug': True, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': True, 'epLen' : epLen}
 
 
     path = {}
