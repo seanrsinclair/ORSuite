@@ -209,6 +209,7 @@ class Tree():
             TODO: Fix to only iterate over leaves? Might improve computational complexity
         """
 
+
         if root:
             node = self.head
 
@@ -216,8 +217,7 @@ class Tree():
             return node, node.qVal
         
         else:
-            best_node = node
-            best_qVal = node.qVal
+            best_qVal = (-1)*np.inf
 
             for child in node.children:
                 if child.contains(state):

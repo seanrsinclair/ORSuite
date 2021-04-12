@@ -50,9 +50,7 @@ class MBNode(Node):
     def __init__(self, bounds, depth, qVal, rEst, pEst, num_visits):
 
         self.dim = len(bounds)
-        # print(bounds)
         self.radius = (bounds[:, 1] - bounds[:, 0]).max() / 2.0
-        # print(self.radius)
         assert self.radius > 0.0
 
         self.bounds = bounds
@@ -70,14 +68,13 @@ class MBNode(Node):
 
         child_bounds = split_bounds(self.bounds)
         for bounds in child_bounds:
-            if inherit_flag:
+            if inherit_flag:  # updates estimates based on whether we are inheriting estimates or not
                 self.children.append(
-                    MBNode(bounds, self.depth+1, self.qVal, self.rEst, self.pEst, self.num_visits)
+                    MBNode(bounds, self.depth+1, self.qVal, self.rEst, self.pEst.copy(), self.num_visits)
                 )
             else:
-                # TODO: Update transitions here?
                 self.children.append(
-                    MBNode(bounds, self.depth+1, value, 0, 0*np.asarray(self.pEst), 0)
+                    MBNode(bounds, self.depth+1, value, 0, [0 for _ in range(len(self.pEst))], 0)
                 )
 
         return self.children
@@ -126,7 +123,7 @@ class MBTree(Tree):
     def get_leaves(self):
         return self.leaves
 
-    def split_node(self, node, inherit_flag = True, value = 1, timestep = 0, previous_tree = None):
+    def tr_split_node(self, node, timestep = 0, inherit_flag = True, value = 1, previous_tree = None):
         """
         Splits a node, while simultaneously updating the estimate of the transition kernels for all nodes if needed.
 
@@ -135,11 +132,11 @@ class MBTree(Tree):
             inherit_flag: (bool) boolean of whether to inherit estimates of not
             value: (float) default qVal estimate
         """
-
         # Splits a node and updates the list of leaves
         self.leaves.remove(node)
         children = node.split_node(inherit_flag, value)
         self.leaves = self.leaves + children
+
 
         # Determines if we also need to adjust the state_leaves and carry those
         # estimates down as well
@@ -156,10 +153,11 @@ class MBTree(Tree):
             node_radius = (node.bounds[:, 1] - node.bounds[:, 0]).max() / 2.0
             node_state = node.bounds[:self.state_dim, 0] + node_radius
 
+            # location of node in the larger state_leaves list
+            parent_index = np.argmin(np.max(np.abs(np.asarray(self.state_leaves) - node_state), axis=1))
 
-            # gets their index in the list
-            parent_index = self.state_leaves.index(node_state)
             parent_vEst = self.vEst[parent_index]
+
 
             # pops their estimate
             self.state_leaves.pop(parent_index)
@@ -170,7 +168,10 @@ class MBTree(Tree):
             for child in node.children:
                 child_radius = (child.bounds[:,1] - child.bounds[:,0]).max() / 2.0
                 child_state = child.bounds[:self.state_dim, 0] + child_radius # gets the state portion of the node
-                if child_state not in self.state_leaves: # checks whether the childs state is already in the list
+
+
+                # determines if this child state has been added before
+                if len(self.state_leaves) == 0 or np.min(np.max(np.abs(np.asarray(self.state_leaves) - child_state), axis=1)) > 0: 
                     num_add += 1 
                     self.state_leaves.append(child_state)
                     self.vEst.append(parent_vEst) # updates estimates based on the parent
@@ -178,11 +179,11 @@ class MBTree(Tree):
             # updates the transition distribution for all leaves in the previous tree
             if timestep >= 1:
                 previous_tree.update_transitions_after_split(parent_index, num_add)
-                
+
         return children
 
 
-    def update_transitions_after_split(self, parent_index, num_children):
+    def update_transitions_after_split(self, parent_index, num_add):
         """
             Helper function in order to update the transition estimates after a split.
             Args:
@@ -190,9 +191,10 @@ class MBTree(Tree):
                 num_children: the numer of new nodes that were added for redistributing transition kernel estimate
 
         """
+
         for node in self.leaves:
             pEst_parent = node.pEst[parent_index]
             node.pEst.pop(parent_index)
 
-            for _ in range(num_children):
-                node.pEst.append(pEst_parent / num_children)
+            for _ in range(num_add):
+                node.pEst.append(pEst_parent / num_add)
