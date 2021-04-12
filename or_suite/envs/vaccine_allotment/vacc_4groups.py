@@ -9,53 +9,52 @@ import dynamics_model_4groups as dm4g
 from .. import env_configs
 
 #------------------------------------------------------------------------------
-'''A simple vaccine distribution environment.  
+'''
+A simple vaccine distribution environment.  
 Agent interacts w/ environment by picking a vaccine priority group order for vaccine distribution to a population over a set time period. 
 Vaccines are distributed to the first priority group until there are no vaccines left or no people in the first priority group. 
 If there are still vaccines available, they are distributed to the next priority group. 
 We go down the priority list until vaccine supply is exhausted or there are no vaccine candidates left. 
 There is a penalty for new infections in this time period.
-Only 4 groups are considered (e.g. medical workers, essential non-medical workers, low-risk, others)'''
-
-# TODO: these configs should be from env_configs
-MODEL_PARAMETERS = {'contact_matrix': np.tril(np.ones((4,4)))*0.2, 'lambda_hosp': 0.4,'rec': 0, 'p1': 0.3, 'p2': 0.3, 'p3': 0.6, 'p4': 0.3,
-                        'h1': 0.1, 'h2': 0.1, 'h3': 0.5,'h4': 0.1, 'gamma': 50, 'beta': 1.5, 'priority_order': [], 'vaccines': 400, 'time_step': 14}
-
-DEFAULT_CONFIG = {'epLen': 6, 'alpha': 0.25, 'starting_state': np.array([1990, 1990, 1990, 1990, 10, 10, 10, 10, 0, 0]), 'parameters': MODEL_PARAMETERS}
+Only 4 groups are considered (e.g. medical workers, essential non-medical workers, low-risk, others)
+    - TOTAL population size and vaccine supply for each time period is kept constant. 
+    - Each group is split into susceptible (S), asymptomatically infected (A)
+    - We keep track of agreggate mildly symptomatically infected (I) and hospitalized (H) individuals. 
+'''
 
 #------------------------------------------------------------------------------
 class VaccineEnvironment(gym.Env):
     """
     Custom Environment that follows gym interface.
-    - TOTAL population size and vaccine supply for each time period is kept constant. 
-    - There are four possible groups (risk classes) total.
-    -- Each group is split into susceptible (S), asymptomatically infected (A)
-    -- We keep track of agreggate mildly symptomatically infected (I) and hospitalized (H) individuals. 
+    
+    TODO: description
     """
     # don't worry about this, has to do with how gym exports text/info to the termial
     metadata = {'render.modes': ['human']}
 
 
-    def __init__( self, config = DEFAULT_CONFIG):
-    
-        '''
-        Input: a dictionary with the following keys (and corresponding values)
+    def __init__( self, config = env_configs.vaccine_4groups_default_config):
+        """
+        TODO: brief description.
+        
+        Argument(s): a dictionary with the following keys (and corresponding values)
         o epLen - number of time steps 
-        o alpha - parameter for difference in costs/loss
         o starting_state - np.array of initial population group sizes
         o parameters - dictionary of parameter values to pass to dynamics model
-        '''
+        For more detailed information, see the file vaccine_allocation_readme.ipynb
+        
+        Typical usage example:
+        TODO
+        """
         
         self.config = config
         self.epLen = config['epLen']
         self.vaccines = config['parameters']['vaccines']
-        self.alpha = config['alpha']
         self.priority_order = config['parameters']['priority_order']
         self.parameters = config['parameters']
         self.total_pop = np.sum(config['starting_state'])
         self.state = config['starting_state']
         self.starting_state = config['starting_state']
-        # self.new_infs = 0
         self.timestep = 0
             
         '''
@@ -85,30 +84,33 @@ class VaccineEnvironment(gym.Env):
     
     
     def reset(self):
-        '''
-        Reinitializes variables and returns the starting state
-        '''
+        """
+        Reinitializes variables and returns the starting state.
+        """
         self.timestep = 0
         self.state = self.starting_state
         return self.starting_state
       
       
-    def get_config(self)
+    def get_config(self):
+        """
+        Returns the current configuration.
+        """
         return self.config
 
 
     def step(self, action):
-        '''
-        Move one step in the environment
+        """
+        Moves one step in the environment.
 
-        Args:
+        Arguments:
         action - int - chosen action 
         Returns:
             reward - double - reward based on chosen action
             newState - np.array of integers - new state
             done - 0/1 - flag for end of the episode
             info - dict - information we can use to plot things related to disease dynamics
-        '''
+        """
         old_state = self.state
         # print('old_state' , old_state)
         

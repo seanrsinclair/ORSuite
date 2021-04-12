@@ -1,5 +1,6 @@
 import numpy as np
 import cvxpy as cp
+import pandas as pd
 import or_suite
 
 
@@ -19,6 +20,25 @@ def run_single_algo(env, agent, settings):
     exp = or_suite.experiment.experiment.Experiment(env, agent, settings)
     _ = exp.run()
     dt_data = exp.save_data()
+
+def run_single_algo_tune(env, agent, scaling_list, settings):
+    best_reward = (-1)*np.inf
+    best_scaling = scaling_list[0]
+
+    for scaling in scaling_list:
+        agent.reset()
+        agent.scaling = scaling
+
+        exp = or_suite.experiment.experiment.Experiment(env, agent, settings)
+        exp.run()
+        dt = pd.DataFrame(exp.data, columns=['episode', 'iteration', 'epReward', 'memory', 'time'])
+        avg_end_reward = dt[dt['episode'] == dt.max()['episode']].iloc[0]['epReward']
+        if avg_end_reward >= best_reward:
+            best_reward = avg_end_reward
+            best_scaling = scaling_list[0]
+            best_exp = exp
+    best_exp.save_data()
+    print(best_scaling)
 
 # Helper code to run single stable baseline experiment
 
@@ -44,6 +64,9 @@ Sample implementation of problem dependent metrics.  Each one of them should tak
 and return a corresponding value, where large corresponds to 'good'.
 
 '''
+
+
+
 
 # Calculating mean response time for ambulance environment on the trajectory datafile
 def mean_response_time(traj, dist):
@@ -94,7 +117,7 @@ def delta_OPT(traj, env_config):
             final_avg_dist[ep] += (1/num_iter)*dist
             #print("Dist to OPT for episode %s: %s"%(ep,dist))
             
-    return np.mean(final_avg_dist)
+    return (-1)*np.mean(final_avg_dist)
 
 
 def delta_proportionality(traj, env_config):
@@ -137,7 +160,7 @@ def delta_proportionality(traj, env_config):
             final_avg_efficiency[ep] += (1/num_iter)*prop
             #print("Proportionality for episode %s: %s"%(ep,prop))
             
-    return np.mean(final_avg_efficiency)
+    return (-1)*np.mean(final_avg_efficiency)
 
 
 def delta_efficiency(traj, env_config):
@@ -177,7 +200,7 @@ def delta_efficiency(traj, env_config):
             final_avg_efficiency[ep] += (1/num_iter)*eff
             #print("Efficiency for episode %s: %s"%(ep,eff))
 
-    return np.mean(final_avg_efficiency)
+    return (-1)*np.mean(final_avg_efficiency)
 
 
 def delta_envy(traj, env_config):
@@ -220,7 +243,7 @@ def delta_envy(traj, env_config):
             final_avg_envies[ep] += (1/num_iter)*envy
             #print("Envy for episode %s: %s"%(ep,envy))
             
-    return np.mean(final_avg_envies)
+    return (-1)*np.mean(final_avg_envies)
 
 
 def offline_opt(budget, size, weights, solver):

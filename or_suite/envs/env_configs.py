@@ -17,10 +17,19 @@ resource_allocation_default_config = {'K': 2,
 resource_allocation_simple_config = {'K':1,
   'num_rounds':10,
   'weight_matrix': np.array([[1]]),
-  'init_budget': np.array([10.]),
+  'init_budget': np.array([20.]),
   'utility_function': lambda x,theta: x,
   'type_dist': lambda i : np.array([2])
 }
+
+resource_allocation_simple_poisson_config = {'K':1,
+  'num_rounds':10,
+  'weight_matrix': np.array([[1]]),
+  'init_budget': np.array([15.]),
+  'utility_function': lambda x,theta: x,
+  'type_dist': lambda i : [1+np.random.poisson(lam = .5)]
+}
+
 
 ambulance_metric_default_config =  {'epLen': 5,
     'arrival_dist': lambda x : np.random.beta(5,2), 
@@ -43,4 +52,16 @@ finite_bandit_default_config =  {'epLen': 5,
     'arm_means': np.array([.1, .7, .2, 1])
   }
 
-
+vaccine_4groups_default_config = {'epLen': 4, 
+    'starting_state': np.array([1990, 1990, 1990, 1990, 10, 10, 10, 10, 0, 0]), 
+    'parameters': {'contact_matrix': np.tril(np.ones((4,4)))*0.2, 
+                   'lambda_hosp': 0.4,
+                   'rec': 0,
+                   'p1': 0.3, 'p2': 0.3, 'p3': 0.6, 'p4': 0.3,
+                   'h1': 0.1, 'h2': 0.1, 'h3': 0.5,'h4': 0.1, 
+                   'gamma': 50, 
+                   'beta': 1.5, 
+                   'priority_order': [], 
+                   'vaccines': 400, 
+                   'time_step': 14}
+  }

@@ -1,21 +1,20 @@
+"""
+Adapted from code by Cornell University students Mohammad Kamil (mk848), Carrie Rucker (cmr284), Jacob Shusko (jws383), Kevin Van Vorst (kpv23)
+"""
 import numpy as np
-import pandas as pd
-from scipy import stats
-import math
-import matplotlib.pyplot as plt
-from matplotlib import colors
-from sklearn.linear_model import LinearRegression
-from IPython.display import clear_output
-from time import sleep
-import random
 master_seed = 1
 
 def dynamics_model(parameters, population):
-    '''
-    - Adapted from code by Cornell University students Mohammad Kamil (mk848), Carrie Rucker (cmr284), Jacob Shusko (jws383), Kevin Van Vorst (kpv23)
-    - function to run SIR disease dynamics for for groups
-    - TODO: see file_name for more detail
-    '''
+    """
+    A function to run SIR disease dynamics for 4 groups.
+    
+    Inputs: parameters (a dictionary) and population (a numpy array)
+    Outputs: newState (a numpy array) and output_dictionary (a dictionary)
+    See vaccine_allocation_readme.ipynb for more detail about the inputs and outputs.
+    
+    Typical usage example:
+    newState, info = dynamics_model(parameters, population)
+    """
     
     # extract population sizes from population np.array
     c1_s, c2_s, c3_s, c4_s = population[0], population[1], population[2], population[3] # susceptible people per class 
@@ -50,7 +49,7 @@ def dynamics_model(parameters, population):
     Rs = [R]
     total_infected = c1_ia + c2_ia + c3_ia + c4_ia + Is + Hs
     total_hospitalized = Hs
-    failed_vaccines = 0
+    # failed_vaccines = 0
     hosp_flag = False
     new_infections = total_infected 
 
@@ -264,11 +263,11 @@ def dynamics_model(parameters, population):
 
 
 def intraclass_meeting(ia,s,p,h,Hs,infected,Is,flag=False):
-    '''
-    - Function to represent an interaction within a group (i.e. group i with group i)
-    - Adapted from code by Cornell University students Mohammad Kamil (mk848), Carrie Rucker (cmr284), Jacob Shusko (jws383), Kevin Van Vorst (kpv23)
-    - TODO: see file_name for more detail
-    '''
+    """
+    A function to represent an interaction within a group (i.e. group i with group i).
+    
+    This function is called by dynamics_model and shouldn't be called externally by the user.
+    """
     U = np.random.uniform()
     infs = infected
     infs_mild = Is
@@ -288,11 +287,11 @@ def intraclass_meeting(ia,s,p,h,Hs,infected,Is,flag=False):
 
 
 def interclass_meeting(ia_1st,s_1st,ia_2nd,s_2nd,p_1st,p_2nd,h_1st,h_2nd,Hs,infected,Is,flag=False):
-    '''
-    - Function to represent an interaction between two different group (i.e. group i with group j where i =/= j)
-    - Adapted from code by Cornell University students Mohammad Kamil (mk848), Carrie Rucker (cmr284), Jacob Shusko (jws383), Kevin Van Vorst (kpv23)
-    - TODO: see file_name for more detail
-    '''
+    """
+    A function implementing an interaction between two different groups (i.e. group i with group j where i =/= j).
+    
+    This function is called by dynamics_model and shouldn't be called externally by the user.
+    """
     prop = (ia_1st + s_2nd) / (s_1st + ia_1st + s_2nd + ia_2nd)
     U1 = np.random.uniform()
     U2 = np.random.uniform()

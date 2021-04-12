@@ -69,6 +69,8 @@ class fixedThresholdAgent(Agent):
         n = self.env_config['num_rounds']
         mean_size =  np.sum(self.exp_endowments, axis=1)
         future_size = init_sizes + np.sum(self.exp_endowments[:,1:], axis=1)
+        # print(future_size)
+        # TODO: The np.sqrt(mean_size * n) should be different
         lower_exp_size = future_size*(1 + np.max(np.sqrt(mean_size*n) / future_size))
         _, lower_sol = self.solver(lower_exp_size, weights, budget)
 
@@ -76,7 +78,7 @@ class fixedThresholdAgent(Agent):
         #print(c)
         #upper_exp_size_12 = future_size*(1 - c)
         #_, upper_sol_12 = solver(upper_exp_size_12, weights, budget)
-        
+        # print('lower sol: ' + str(lower_sol))
         return lower_sol
 
 
@@ -90,14 +92,14 @@ class fixedThresholdAgent(Agent):
         """
         num_types = self.env_config['weight_matrix'].shape[0]
         exp_size = np.zeros((num_types, self.env_config['num_rounds']))
-        #print(num_types)
-        #print(self.env_config['num_rounds'])
+        # print(num_types)
+        # print(self.env_config['num_rounds'])
         for t in range(self.env_config['num_rounds']):
             for _ in range(N):
                 obs_size = self.env_config['type_dist'](t)
                 exp_size[:, t] += obs_size
             exp_size[:, t] = (1/N)*exp_size[:, t]
-
+        # print(exp_size)
         return exp_size
 
     def reset(self):

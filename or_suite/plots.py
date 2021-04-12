@@ -167,7 +167,7 @@ def plot_radar_plots(path_list, algo_list, fig_path , fig_name, additional_metri
         df['episode'] = df.index.values 
         df = df[df['episode'] == df.max()['episode']] # THIS IS NOT TOTALLY CORRECT, SHOULD BE SUM OVER EPISODES FOR TIME AND SPACE?
         # Calculates the original metrics for that algorithm
-        algo_dict = {'Algorithm': algo, 'Reward': df.iloc[0]['epReward'], 'Time':df.iloc[0]['time'], 'Space': df.iloc[0]['memory']}
+        algo_dict = {'Algorithm': algo, 'Reward': df.iloc[0]['epReward'], 'Time': (-1)*df.iloc[0]['time'], 'Space': (-1)*df.iloc[0]['memory']}
 
 
         # Calculates each additional metric
@@ -280,7 +280,7 @@ def plot_line_plots(path_list, algo_list, fig_path , fig_name, plot_freq):
 
     # reads in data for each algorithm
     for algo in algo_list:
-        df = pd.read_csv(path_list[index]).groupby(['episode']).mean()
+        df = pd.read_csv(path_list[index]+'/data.csv').groupby(['episode']).mean()
         df['episode'] = df.index.values
         df = df.iloc[::plot_freq, :]
 

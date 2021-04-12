@@ -2,14 +2,22 @@ import numpy as np
 from .. import Agent
 from or_suite.agents.rl.utils.tree import Tree, Node
 
-class AdaptiveDiscretization(Agent):
+class AdaptiveDiscretizationQL(Agent):
+    """
+    Adaptive Q-Learning algorithm  implemented for enviroments
+    with continuous states and actions using the metric induces by the l_inf norm
+
+
+    Attributes:
+        epLen: (int) number of steps per episode
+        scaling: (float) scaling parameter for confidence intervals
+        inherit_flag: (bool) boolean of whether to inherit estimates
+        dim: (int) dimension of R^d the state_action space is represented in
+    """
+
+
 
     def __init__(self, epLen, scaling, inherit_flag, dim):
-        '''args:
-            epLen - number of steps per episode
-            numIters - total number of iterations
-            scaling - scaling parameter for UCB term
-        '''
         self.epLen = epLen
         self.scaling = scaling
         self.inherit_flag = inherit_flag
@@ -35,8 +43,8 @@ class AdaptiveDiscretization(Agent):
         pass
 
     
-    # Gets the number of arms for each tree and adds them together
-    def get_num_arms(self):
+    # Gets the number of balls for each tree and adds them together
+    def get_num_balls(self):
         total_size = 0
         for tree in self.tree_list:
             total_size += tree.get_number_of_active_balls()
@@ -45,9 +53,11 @@ class AdaptiveDiscretization(Agent):
 
 
     def update_obs(self, obs, action, reward, newObs, timestep, info):
-        '''Add observation to records'''
+        """
+        Updates estimate of the Q function for the ball used in a given state
+        """
+
         # Gets the active tree based on current timestep
-        # print(obs, action, newObs)
         tree = self.tree_list[timestep]
 
         # Gets the active ball by finding the argmax of Q values of relevant
@@ -78,8 +88,12 @@ class AdaptiveDiscretization(Agent):
         if t >= 2**(2*active_node.depth):
             active_node.split_node(self.inherit_flag)
 
+    def update_policy(self, k):
+        '''Update internal policy based upon records'''
+        return
 
-    def greedy(self, state, timestep, epsilon=0):
+
+    def pick_action(self, state, timestep):
         '''
         Select action according to a greedy policy
 
@@ -97,18 +111,6 @@ class AdaptiveDiscretization(Agent):
         active_node, _ = tree.get_active_ball(state)
 
         # Picks an action uniformly in that ball
-        # action = np.random.uniform(active_node.action_val - active_node.radius, active_node.action_val + active_node.radius)
         action_dim = self.dim - len(state)
         action = np.random.uniform(active_node.bounds[action_dim:, 0], active_node.bounds[action_dim:, 1])
-        return action
-
-    def update_policy(self, k):
-        '''Update internal policy based upon records'''
-        # TODO: Verify this is needed.
-        # self.greedy = self.greedy
-        return
-
-
-    def pick_action(self, state, timestep):
-        action = self.greedy(state, timestep)
         return action
