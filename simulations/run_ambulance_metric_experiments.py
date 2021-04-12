@@ -80,8 +80,8 @@ for num_ambulance in num_ambulances:
             agents = {# 'SB PPO': PPO(MlpPolicy, mon_env, gamma=1, verbose=0, n_steps=epLen),
             # 'Random': or_suite.agents.rl.random.randomAgent(),
             # 'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']),
-            # 'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen'])
-            'AdaQL': or_suite.agents.rl.adaptive_Agent.AdaptiveDiscretization(epLen, scaling, 6),
+            'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen'])
+            # 'AdaQL': or_suite.agents.rl.adaptive_Agent.AdaptiveDiscretization(epLen, scaling, 6),
             # 'AdaMB': or_suite.agents.rl.adaptive_model_Agent.AdaptiveModelBasedDiscretization(epLen, numIters, scaling, 0, 2, True, True),
             # 'Unif QL': or_suite.agents.rl.eNet_Multiple.eNet(action_net, state_net, epLen, scaling, (num_ambulance,num_ambulance)),
             # 'Unif MB': or_suite.agents.rl.eNet_model_Agent_Multiple.eNetModelBased(action_net, state_net, epLen, scaling, (num_ambulance,num_ambulance), 0, False)

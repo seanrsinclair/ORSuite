@@ -60,8 +60,8 @@ class Experiment(object):
                 # Reset the environment
                 self.env.reset()
 
-                # self.env.render()
-                # time.sleep(2)
+                self.env.render()
+                time.sleep(2)
 
                 oldState = self.env.state
                 epReward = 0
@@ -100,8 +100,8 @@ class Experiment(object):
                     oldState = newState
                     h = h + 1
 
-                    # self.env.render()
-                    # time.sleep(2)
+                    self.env.render()
+                    time.sleep(2)
 
                 current, peak = tracemalloc.get_traced_memory() # collects memory / time usage
                 tracemalloc.stop()
