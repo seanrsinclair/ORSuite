@@ -69,7 +69,7 @@ def beta(step):
 # arrival_dists = [shifting, uniform, beta]
 arrival_dists = [beta]
 # num_ambulances = [1,3]
-num_ambulances = [1, 3]
+num_ambulances = [1]
 # alphas = [0, 0.25, 1]
 alphas = [0]
 
@@ -87,13 +87,13 @@ for num_ambulance in num_ambulances:
             ambulance_env = gym.make('Ambulance-v0', config=CONFIG)
             mon_env = Monitor(ambulance_env)
             agents = {# 'SB PPO': PPO(MlpPolicy, mon_env, gamma=1, verbose=0, n_steps=epLen),
-            'Random': or_suite.agents.rl.random.randomAgent(),
-            'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']),
-            'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen']),
-            'AdaQL': or_suite.agents.rl.ada_ql.AdaptiveDiscretizationQL(epLen, scaling_list[0], True, num_ambulance*2),
-            # 'AdaMB': or_suite.agents.rl.ada_mb.AdaptiveDiscretizationMB(epLen, scaling_list[0], 0, 2, True, False, num_ambulance, num_ambulance),
-            'Unif QL': or_suite.agents.rl.enet_ql.eNetQL(action_net, state_net, epLen, scaling_list[0], (num_ambulance,num_ambulance)),
-            'Unif MB': or_suite.agents.rl.enet_mb.eNetMB(action_net, state_net, epLen, scaling_list[0], (num_ambulance,num_ambulance), 0, False)
+            # 'Random': or_suite.agents.rl.random.randomAgent(),
+            # 'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']),
+            # 'Median': or_suite.agents.ambulance.median.medianAgent(DEFAULT_CONFIG['epLen']),
+            # 'AdaQL': or_suite.agents.rl.ada_ql.AdaptiveDiscretizationQL(epLen, scaling_list[0], True, num_ambulance*2),
+            'AdaMB': or_suite.agents.rl.ada_mb.AdaptiveDiscretizationMB(epLen, scaling_list[0], 0, 2, True, True, num_ambulance, num_ambulance),
+            # 'Unif QL': or_suite.agents.rl.enet_ql.eNetQL(action_net, state_net, epLen, scaling_list[0], (num_ambulance,num_ambulance)),
+            # 'Unif MB': or_suite.agents.rl.enet_mb.eNetMB(action_net, state_net, epLen, scaling_list[0], (num_ambulance,num_ambulance), 0, False)
             }
 
             path_list_line = []
