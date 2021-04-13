@@ -142,9 +142,6 @@ class Experiment(object):
                         self.env.render()
                         time.sleep(2)
 
-                    self.env.render()
-                    time.sleep(2)
-
                 current, _ = tracemalloc.get_traced_memory() # collects memory / time usage
                 tracemalloc.stop()
                 end_time = time.time()

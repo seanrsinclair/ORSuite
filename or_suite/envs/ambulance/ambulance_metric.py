@@ -8,8 +8,11 @@ import gym
 from gym import spaces
 import math
 from .. import env_configs
-from gym.envs.classic_control import rendering
-import pyglet
+# from gym.envs.classic_control import rendering
+# import pyglet
+# import sys
+# sys.path.append('..')
+from .rendering import PygletWindow, WHITE, RED
 
 #------------------------------------------------------------------------------
 '''An ambulance environment over [0,1].  An agent interacts through the environment
@@ -136,59 +139,108 @@ class AmbulanceEnvironment(gym.Env):
   #     raise NotImplementedError()
 
   def render(self, mode='human'):
-    screen_width = 600
-    screen_height = 400
-    line_0 = (50, 100)
-    line_1 = (550, 100)
+      screen_width = 600
+      screen_height = 400
+      line_x1 = 50
+      line_x2 = 550
+      line_y = 300
 
-    if self.viewer is None:
-        self.viewer = rendering.Viewer(screen_width, screen_height)
+      if self.viewer is None:
+          self.viewer = PygletWindow(screen_width + 50, screen_height + 50)
 
-        self.number_line = rendering.Line(line_0, line_1)
-        self.number_line.set_color(0, 0, 0)
-        self.viewer.add_geom(self.number_line)
+      self.viewer.reset()
 
-        self.ambulance_render_list = []
-        for n, ambulance_loc in enumerate(self.state):
+      self.viewer.line(line_x1, line_x2, line_y, width=2, color=WHITE)
 
-            # this is kind of questionable and I still want to find a better way to do this
-            globals()["amb%d"%n] = rendering.make_circle(radius=3)
-            globals()["amb_trans%d"%n] = rendering.Transform(translation=(line_0[0] + (line_1[0] - line_0[0]) * ambulance_loc, line_0[1]))
-            globals()["amb%d"%n].add_attr(globals()["amb_trans%d"%n])
+      for loc in self.state:
+          self.viewer.circle(line_x1 + (line_x2 - line_x1) * loc, line_y, radius=5, color=RED)
 
-            self.ambulance_render_list.append(globals()["amb%d"%n])
-            self.viewer.add_geom(globals()["amb%d"%n])
+      text = "Current timestep: " + str(self.timestep)
+      self.viewer.text(text, line_x1, 100)
 
-
-    if self.state is None:
-        return None
-
-    else:
-        for n, ambulance_loc in enumerate(self.state):
-            globals()["amb_trans%d"%n].set_translation(line_0[0] + (line_1[0] - line_0[0]) * ambulance_loc, line_0[1])
+      self.viewer.update()
 
 
 
-    # glClearColor(1, 1, 1, 1)
-    self.viewer.window.clear()
-    self.viewer.window.switch_to()
-    self.viewer.window.dispatch_events()
-    self.viewer.transform.enable()
-    for geom in self.viewer.geoms:
-        geom.render()
-    for geom in self.viewer.onetime_geoms:
-        geom.render()
-    self.viewer.transform.disable()
 
-    label = pyglet.text.Label('Hello, world',
-                          font_name='Times New Roman',
-                          font_size=36,
-                          x=self.viewer.width//2, y=self.viewer.height//2,
-                          anchor_x='center', anchor_y='center')
-    # label.draw()
-    # self.viewer.add_geom(label)
+    #   radius = 5
+    #   width = 6
 
-    return self.viewer.render(return_rgb_array=mode == 'rgb_array')
+    #   if self.viewer is None:
+    #       self.viewer = pyglet.window.Window(width=screen_width, height=screen_height)
+    #       self.viewer.switch_to()
+    #     #   self.reset()
+
+    #   batch = pyglet.graphics.Batch()
+    #   pyglet.shapes.Line(line_x1, line_y, line_x2, line_y, width=width, batch=batch)
+
+    #   for loc in self.state:
+    #       pyglet.shapes.Circle(loc, line_y, radius=radius, batch=batch)
+        
+    # #   self.viewer.clear()
+    # #   batch.draw()
+    #   @self.viewer.event
+    #   def on_draw():
+    #       self.viewer.clear()
+    #       batch.draw()
+
+    #   pyglet.app.run()
+
+
+
+    # screen_width = 600
+    # screen_height = 400
+    # line_0 = (50, 100)
+    # line_1 = (550, 100)
+
+    # if self.viewer is None:
+    #     self.viewer = rendering.Viewer(screen_width, screen_height)
+
+    #     self.number_line = rendering.Line(line_0, line_1)
+    #     self.number_line.set_color(0, 0, 0)
+    #     self.viewer.add_geom(self.number_line)
+
+    #     self.ambulance_render_list = []
+    #     for n, ambulance_loc in enumerate(self.state):
+
+    #         # this is kind of questionable and I still want to find a better way to do this
+    #         globals()["amb%d"%n] = rendering.make_circle(radius=3)
+    #         globals()["amb_trans%d"%n] = rendering.Transform(translation=(line_0[0] + (line_1[0] - line_0[0]) * ambulance_loc, line_0[1]))
+    #         globals()["amb%d"%n].add_attr(globals()["amb_trans%d"%n])
+
+    #         self.ambulance_render_list.append(globals()["amb%d"%n])
+    #         self.viewer.add_geom(globals()["amb%d"%n])
+
+
+    # if self.state is None:
+    #     return None
+
+    # else:
+    #     for n, ambulance_loc in enumerate(self.state):
+    #         globals()["amb_trans%d"%n].set_translation(line_0[0] + (line_1[0] - line_0[0]) * ambulance_loc, line_0[1])
+
+
+
+    # # glClearColor(1, 1, 1, 1)
+    # self.viewer.window.clear()
+    # self.viewer.window.switch_to()
+    # self.viewer.window.dispatch_events()
+    # self.viewer.transform.enable()
+    # for geom in self.viewer.geoms:
+    #     geom.render()
+    # for geom in self.viewer.onetime_geoms:
+    #     geom.render()
+    # self.viewer.transform.disable()
+
+    # label = pyglet.text.Label('Hello, world',
+    #                       font_name='Times New Roman',
+    #                       font_size=36,
+    #                       x=self.viewer.width//2, y=self.viewer.height//2,
+    #                       anchor_x='center', anchor_y='center')
+    # # label.draw()
+    # # self.viewer.add_geom(label)
+
+    # return self.viewer.render(return_rgb_array=mode == 'rgb_array')
 
   def close(self):
     if self.viewer:

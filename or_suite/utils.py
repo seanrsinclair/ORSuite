@@ -76,6 +76,14 @@ def mean_response_time(traj, dist):
         mrt += (-1)*np.min(dist(np.array(cur_data['action']),cur_data['info']['arrival']))
     return mrt / len(traj)
 
+# Calculating the variance in the response time for ambulance environment on the trajectory datafile
+def response_time_variance(traj, dist):
+    dists = []
+    for i in range(len(traj)):
+        cur_data = traj[i]
+        dists.append((-1)*np.min(dist(np.array(cur_data['action']),cur_data['info']['arrival'])))
+    return np.var(dists)
+
 # Resoucre Allocation Metrics/Helper functions
 def delta_OPT(traj, env_config):
     """

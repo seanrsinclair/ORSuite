@@ -9,12 +9,8 @@ https://github.com/dickreuter/neuron_poker/blob/master/gym_env/rendering.py
 """
 
 
-WHITE = list(np.array([255, 255, 255, 255]))
-GREEN = list(np.array([0, 255, 0, 123]))
-BLUE = list(np.array([0, 0, 128, 255]))
-BLACK = list(np.array([0, 0, 0, 0]) / 255)
-RED = list(np.array([255, 0, 0, 123]))
-LIGHT = list(np.array([255, 150, 150, 123]))
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
 
 
 # pylint: skip-file
@@ -32,27 +28,17 @@ class PygletWindow:
         self.display_surface.switch_to()
         self.reset()
 
-    def circle(self, x_pos, y_pos, radius, color, thickness, numPoints=100):
+    def circle(self, x_pos, y_pos, radius, color):
         """Draw a circle"""
-        verts = []
         y_pos = self.top - y_pos
-        from pyglet.gl import glColor4f
-        glColor4f(*[int(c) for c in color])
-        for i in range(numPoints):
-            angle = radians(float(i) / numPoints * 360.0)
-            x = radius * cos(angle) + x_pos
-            y = radius * sin(angle) + y_pos
-            verts += [x, y]
-        circle = pyglet.graphics.vertex_list(numPoints, ('v2f', verts))
-        from pyglet.gl import GL_LINE_LOOP
-        circle.draw(GL_LINE_LOOP)
+        circle = pyglet.shapes.Circle(x_pos, y_pos, radius, color=color)
+        circle.draw()
 
-    def text(self, text, x, y, font_size=20, color=None):
+    def text(self, text, x, y, font_size=20):
         """Draw text"""
         y = self.top - y
         label = pyglet.text.Label(text, font_size=font_size,
-                                  x=x, y=y, anchor_x='left', anchor_y='top',
-                                  color=[int(c) for c in color])
+                                  x=x, y=y, anchor_x='left', anchor_y='top')
         label.draw()
 
     def rectangle(self, x, y, dx, dy, color):
@@ -65,6 +51,11 @@ class PygletWindow:
         rect = pyglet.graphics.draw(4, pyglet.gl.GL_QUADS, ('v2f', [x, y, x + dx, y, x + dx, y + dy, x, y + dy]))
         rect.draw()
 
+    def line(self, x1, x2, y_pos, width, color):
+        y_pos = self.top - y_pos
+        line = pyglet.shapes.Line(x1, y_pos, x2, y_pos, width, color)
+        line.draw()
+
     def reset(self):
         """New frame"""
         pyglet.clock.tick()
@@ -75,6 +66,9 @@ class PygletWindow:
     def update(self):
         """Draw the current state on screen"""
         self.display_surface.flip()
+
+    def close(self):
+        self.display_surface.close()
 
 
 if __name__ == '__main__':
