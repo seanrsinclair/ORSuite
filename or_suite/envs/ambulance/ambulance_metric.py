@@ -87,6 +87,9 @@ class AmbulanceEnvironment(gym.Env):
             newState - float list - new state
             done - 0/1 - flag for end of the episode
         '''
+
+        assert self.action_space.contains(action)
+
         old_state = np.array(self.state)
 
         # The location of the new arrival is chosen randomly from the arrivals 
@@ -130,6 +133,8 @@ class AmbulanceEnvironment(gym.Env):
 
         self.state = new_state
         self.timestep += 1
+
+        assert self.observation_space.contains(self.state)
 
         return self.state, reward,  done, info
 

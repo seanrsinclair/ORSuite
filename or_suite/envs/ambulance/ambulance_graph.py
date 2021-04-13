@@ -104,6 +104,9 @@ class AmbulanceGraphEnvironment(gym.Env):
             newState - int list - new state of the system
             done - 0/1 - flag for end of the episode
         '''
+
+        assert self.action_space.contains(action)
+
         old_state = self.state
 
         # The location of the new arrival is chosen randomly from among the nodes 
@@ -163,6 +166,8 @@ class AmbulanceGraphEnvironment(gym.Env):
 
         self.state = newState
         self.timestep += 1
+
+        assert self.observation_space.contains(self.state)
 
         return self.state, reward,  done, info
 

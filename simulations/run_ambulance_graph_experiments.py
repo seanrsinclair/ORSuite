@@ -27,7 +27,15 @@ DEFAULT_CONFIG = or_suite.envs.env_configs.ambulance_graph_default_config
 nEps = 1000
 numIters = 50
 epLen = DEFAULT_CONFIG['epLen']
-DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'dirPath': '../data/ambulance/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': True, 'epLen' : 5}
+DEFAULT_SETTINGS = {'seed': 1, 
+                    'recFreq': 1, 
+                    'dirPath': '../data/ambulance/', 
+                    'deBug': False, 
+                    'nEps': nEps, 
+                    'numIters': numIters, 
+                    'saveTrajectory': True, 
+                    'epLen' : 5,
+                    'render': False}
 
 alphas = [0, 1, 0.25]
 num_ambulances = [1,3]
@@ -67,42 +75,42 @@ def from_data(step, num_nodes, ithaca_arrivals):
 # arrival_dists = [uniform, nonuniform, from_data]
 arrival_dists = [from_data, uniform]
 
-# for num_ambulance in num_ambulances:
-#     for alpha in alphas:
-#         for arrival_dist in arrival_dists:
+for num_ambulance in num_ambulances:
+    for alpha in alphas:
+        for arrival_dist in arrival_dists:
 
-#             print(num_ambulance)
-#             print(alpha)
-#             print(arrival_dist.__name__)
-#             CONFIG = copy.deepcopy(DEFAULT_CONFIG)
-#             CONFIG['alpha'] = alpha
-#             CONFIG['arrival_dist'] = arrival_dist
-#             CONFIG['num_ambulance'] = num_ambulance
-#             CONFIG['starting_state'] = [0 for _ in range(num_ambulance)]
+            print(num_ambulance)
+            print(alpha)
+            print(arrival_dist.__name__)
+            CONFIG = copy.deepcopy(DEFAULT_CONFIG)
+            CONFIG['alpha'] = alpha
+            CONFIG['arrival_dist'] = arrival_dist
+            CONFIG['num_ambulance'] = num_ambulance
+            CONFIG['starting_state'] = [0 for _ in range(num_ambulance)]
 
-#             if arrival_dist == from_data:
-#                 CONFIG['from_data'] = True
-#                 CONFIG['edges'] = ithaca_edges
-#                 CONFIG['data'] = ithaca_arrivals
+            if arrival_dist == from_data:
+                CONFIG['from_data'] = True
+                CONFIG['edges'] = ithaca_edges
+                CONFIG['data'] = ithaca_arrivals
 
-#             ambulance_graph_env = gym.make('Ambulance-v1', config=CONFIG)
-#             mon_env = Monitor(ambulance_graph_env)
+            ambulance_graph_env = gym.make('Ambulance-v1', config=CONFIG)
+            mon_env = Monitor(ambulance_graph_env)
 
-#             agents = {'Random': or_suite.agents.rl.random.randomAgent(), 
-#             'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']), 
-#             'Median': or_suite.agents.ambulance.median_graph.medianAgent(CONFIG['epLen'], CONFIG['edges'], CONFIG['num_ambulance']), 
-#             'Mode': or_suite.agents.ambulance.mode_graph.modeAgent(DEFAULT_CONFIG['epLen']), 
-#             'SB PPO': PPO(MlpPolicy, mon_env, gamma=1, verbose=0, n_steps=epLen)}
-#             for agent in agents:
-#                     print(agent)
+            agents = {'Random': or_suite.agents.rl.random.randomAgent(), 
+            'Stable': or_suite.agents.ambulance.stable.stableAgent(DEFAULT_CONFIG['epLen']), 
+            'Median': or_suite.agents.ambulance.median_graph.medianAgent(CONFIG['epLen'], CONFIG['edges'], CONFIG['num_ambulance']), 
+            'Mode': or_suite.agents.ambulance.mode_graph.modeAgent(DEFAULT_CONFIG['epLen']), 
+            'SB PPO': PPO(MlpPolicy, mon_env, gamma=1, verbose=0, n_steps=epLen)}
+            for agent in agents:
+                    print(agent)
 
 
-#                     DEFAULT_SETTINGS['dirPath'] = '../data/ambulance_graph_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/'
+                    DEFAULT_SETTINGS['dirPath'] = '../data/ambulance_graph_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'/'
 
-#                     if agent == 'SB PPO':
-#                         or_suite.utils.run_single_sb_algo(mon_env, agents[agent], DEFAULT_SETTINGS)
-#                     else:
-#                         or_suite.utils.run_single_algo(ambulance_graph_env, agents[agent], DEFAULT_SETTINGS)
+                    if agent == 'SB PPO':
+                        or_suite.utils.run_single_sb_algo(mon_env, agents[agent], DEFAULT_SETTINGS)
+                    else:
+                        or_suite.utils.run_single_algo(ambulance_graph_env, agents[agent], DEFAULT_SETTINGS)
 
 
 agents = {'Random': None, 
