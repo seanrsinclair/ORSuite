@@ -93,7 +93,6 @@ class Experiment(object):
 
                 if self.render_flag:  # optionally renders the environments
                     self.env.render()
-                    time.sleep(2)
 
                 oldState = self.env.state  # obtains old state
                 epReward = 0
@@ -140,7 +139,6 @@ class Experiment(object):
                     h = h + 1
                     if self.render_flag:  # optionally renders the environment
                         self.env.render()
-                        time.sleep(2)
 
                 current, _ = tracemalloc.get_traced_memory() # collects memory / time usage
                 tracemalloc.stop()

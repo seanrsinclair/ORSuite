@@ -12,7 +12,8 @@ from .. import env_configs
 # import pyglet
 # import sys
 # sys.path.append('..')
-from .rendering import PygletWindow, WHITE, RED
+from .rendering import PygletWindow, WHITE, RED, GREEN
+import time
 
 #------------------------------------------------------------------------------
 '''An ambulance environment over [0,1].  An agent interacts through the environment
@@ -51,7 +52,9 @@ class AmbulanceEnvironment(gym.Env):
         self.num_ambulance = config['num_ambulance']
         self.arrival_dist = config['arrival_dist']
 
+        # variables used for rendering code
         self.viewer = None
+        self.most_recent_action = None
 
         # The action space is a box with each ambulances location between 0 and 1
         self.action_space = spaces.Box(low=0, high=1,
@@ -102,6 +105,7 @@ class AmbulanceEnvironment(gym.Env):
         # Update the state of the system according to the action taken and change 
         # the location of the closest ambulance to the call to the call location
         action = np.array(action, dtype=np.float32)
+        self.most_recent_action = action
         new_state = action.copy()
         new_state[close_index] = new_arrival
 
@@ -139,10 +143,6 @@ class AmbulanceEnvironment(gym.Env):
         return self.state, reward,  done, info
 
 
-  # def render(self, mode='console'):
-  #   if mode != 'console':
-  #     raise NotImplementedError()
-
   def render(self, mode='human'):
       screen_width = 600
       screen_height = 400
@@ -153,99 +153,67 @@ class AmbulanceEnvironment(gym.Env):
       if self.viewer is None:
           self.viewer = PygletWindow(screen_width + 50, screen_height + 50)
 
+
+
+      if self.most_recent_action is not None:
+
+          self.viewer.reset()
+
+          text = "Current timestep: " + str(self.timestep)
+          self.viewer.text(text, line_x1, 0)
+
+          text = "Most recent action"
+          self.viewer.text(text, line_x1, 100)
+
+          self.viewer.line(line_x1, line_x2, line_y, width=2, color=WHITE)
+
+          for loc in self.most_recent_action:
+              self.viewer.circle(line_x1 + (line_x2 - line_x1) * loc, line_y, radius=5, color=RED)
+
+          self.viewer.update()
+          time.sleep(3)
+
+
+
+
+          self.viewer.reset()
+
+          text = "Current timestep: " + str(self.timestep)
+          self.viewer.text(text, line_x1, 0)
+
+
+          text = "Call arrival"
+          self.viewer.text(text, line_x1, 100)
+
+          self.viewer.line(line_x1, line_x2, line_y, width=2, color=WHITE)
+
+          for loc in self.most_recent_action:
+              self.viewer.circle(line_x1 + (line_x2 - line_x1) * loc, line_y, radius=5, color=RED)
+
+          arrival_loc = self.state[np.argmax(np.abs(self.state - self.most_recent_action))]
+          self.viewer.circle(line_x1 + (line_x2 - line_x1) * arrival_loc, line_y, radius=5, color=GREEN)
+
+          self.viewer.update()
+          time.sleep(3)
+
+
+
       self.viewer.reset()
+
+      text = "Current timestep: " + str(self.timestep)
+      self.viewer.text(text, line_x1, 0)
+
+      text = "Iteration ending state"
+      self.viewer.text(text, line_x1, 100)
 
       self.viewer.line(line_x1, line_x2, line_y, width=2, color=WHITE)
 
       for loc in self.state:
           self.viewer.circle(line_x1 + (line_x2 - line_x1) * loc, line_y, radius=5, color=RED)
 
-      text = "Current timestep: " + str(self.timestep)
-      self.viewer.text(text, line_x1, 100)
-
       self.viewer.update()
+      time.sleep(3)
 
-
-
-
-    #   radius = 5
-    #   width = 6
-
-    #   if self.viewer is None:
-    #       self.viewer = pyglet.window.Window(width=screen_width, height=screen_height)
-    #       self.viewer.switch_to()
-    #     #   self.reset()
-
-    #   batch = pyglet.graphics.Batch()
-    #   pyglet.shapes.Line(line_x1, line_y, line_x2, line_y, width=width, batch=batch)
-
-    #   for loc in self.state:
-    #       pyglet.shapes.Circle(loc, line_y, radius=radius, batch=batch)
-        
-    # #   self.viewer.clear()
-    # #   batch.draw()
-    #   @self.viewer.event
-    #   def on_draw():
-    #       self.viewer.clear()
-    #       batch.draw()
-
-    #   pyglet.app.run()
-
-
-
-    # screen_width = 600
-    # screen_height = 400
-    # line_0 = (50, 100)
-    # line_1 = (550, 100)
-
-    # if self.viewer is None:
-    #     self.viewer = rendering.Viewer(screen_width, screen_height)
-
-    #     self.number_line = rendering.Line(line_0, line_1)
-    #     self.number_line.set_color(0, 0, 0)
-    #     self.viewer.add_geom(self.number_line)
-
-    #     self.ambulance_render_list = []
-    #     for n, ambulance_loc in enumerate(self.state):
-
-    #         # this is kind of questionable and I still want to find a better way to do this
-    #         globals()["amb%d"%n] = rendering.make_circle(radius=3)
-    #         globals()["amb_trans%d"%n] = rendering.Transform(translation=(line_0[0] + (line_1[0] - line_0[0]) * ambulance_loc, line_0[1]))
-    #         globals()["amb%d"%n].add_attr(globals()["amb_trans%d"%n])
-
-    #         self.ambulance_render_list.append(globals()["amb%d"%n])
-    #         self.viewer.add_geom(globals()["amb%d"%n])
-
-
-    # if self.state is None:
-    #     return None
-
-    # else:
-    #     for n, ambulance_loc in enumerate(self.state):
-    #         globals()["amb_trans%d"%n].set_translation(line_0[0] + (line_1[0] - line_0[0]) * ambulance_loc, line_0[1])
-
-
-
-    # # glClearColor(1, 1, 1, 1)
-    # self.viewer.window.clear()
-    # self.viewer.window.switch_to()
-    # self.viewer.window.dispatch_events()
-    # self.viewer.transform.enable()
-    # for geom in self.viewer.geoms:
-    #     geom.render()
-    # for geom in self.viewer.onetime_geoms:
-    #     geom.render()
-    # self.viewer.transform.disable()
-
-    # label = pyglet.text.Label('Hello, world',
-    #                       font_name='Times New Roman',
-    #                       font_size=36,
-    #                       x=self.viewer.width//2, y=self.viewer.height//2,
-    #                       anchor_x='center', anchor_y='center')
-    # # label.draw()
-    # # self.viewer.add_geom(label)
-
-    # return self.viewer.render(return_rgb_array=mode == 'rgb_array')
 
   def close(self):
     if self.viewer:
