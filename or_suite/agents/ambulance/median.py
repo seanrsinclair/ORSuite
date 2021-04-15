@@ -1,8 +1,5 @@
 import numpy as np
 import sys
-
-
-import sys
 from .. import Agent
 
 ''' Agent that implements a k-medoid heuristic algorithm for the line ambulance environment'''

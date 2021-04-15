@@ -10,9 +10,13 @@ import math
 from .. import env_configs
 # from gym.envs.classic_control import rendering
 # import pyglet
-# import sys
-# sys.path.append('..')
-from .rendering import PygletWindow, WHITE, RED, GREEN
+import os, sys
+currentdir = os.path.dirname(os.path.realpath(__file__))
+print(currentdir)
+renderdir = os.path.dirname(currentdir)
+print(renderdir)
+sys.path.append(renderdir)
+import rendering 
 import time
 
 #------------------------------------------------------------------------------
@@ -24,8 +28,17 @@ most go and serve the arrival, paying a cost of travel.'''
 
 class AmbulanceEnvironment(gym.Env):
   """
-  Custom Environment that follows gym interface.
-  This is a simple env where the arrivals are always uniformly distributed
+  A 1-dimensional reinforcement learning environment in the space $X = [0, 1]$. 
+  Ambulances are located anywhere in $X = [0,1]$, and at the beginning of each 
+  iteration, the agent chooses where to station each ambulance (the action).
+  A call arrives, and the nearest ambulance goes to the location of that call.
+
+  Methods: 
+
+
+  Attributes:
+
+  
   """
 
   metadata = {'render.modes': ['human']}
@@ -143,6 +156,13 @@ class AmbulanceEnvironment(gym.Env):
         return self.state, reward,  done, info
 
 
+  def reset_current_set(self, text, line_x1, line_x2, line_y):
+      self.viewer.reset()
+      self.viewer.text("Current timestep: " + str(self.timestep), line_x1, 0)
+      self.viewer.text(text, line_x1, 100)
+      self.viewer.line(line_x1, line_x2, line_y, width=2, color=rendering.WHITE)
+
+
   def render(self, mode='human'):
       screen_width = 600
       screen_height = 400
@@ -151,68 +171,39 @@ class AmbulanceEnvironment(gym.Env):
       line_y = 300
 
       if self.viewer is None:
-          self.viewer = PygletWindow(screen_width + 50, screen_height + 50)
-
+          self.viewer = rendering.PygletWindow(screen_width + 50, screen_height + 50)
 
 
       if self.most_recent_action is not None:
 
-          self.viewer.reset()
-
-          text = "Current timestep: " + str(self.timestep)
-          self.viewer.text(text, line_x1, 0)
-
-          text = "Most recent action"
-          self.viewer.text(text, line_x1, 100)
-
-          self.viewer.line(line_x1, line_x2, line_y, width=2, color=WHITE)
+          self.reset_current_set("Action chosen", line_x1, line_x2, line_y)
 
           for loc in self.most_recent_action:
-              self.viewer.circle(line_x1 + (line_x2 - line_x1) * loc, line_y, radius=5, color=RED)
+              self.viewer.circle(line_x1 + (line_x2 - line_x1) * loc, line_y, radius=5, color=rendering.RED)
 
           self.viewer.update()
-          time.sleep(3)
+          time.sleep(2)
 
 
-
-
-          self.viewer.reset()
-
-          text = "Current timestep: " + str(self.timestep)
-          self.viewer.text(text, line_x1, 0)
-
-
-          text = "Call arrival"
-          self.viewer.text(text, line_x1, 100)
-
-          self.viewer.line(line_x1, line_x2, line_y, width=2, color=WHITE)
+          self.reset_current_set("Call arrival", line_x1, line_x2, line_y)
 
           for loc in self.most_recent_action:
-              self.viewer.circle(line_x1 + (line_x2 - line_x1) * loc, line_y, radius=5, color=RED)
+              self.viewer.circle(line_x1 + (line_x2 - line_x1) * loc, line_y, radius=5, color=rendering.RED)
 
           arrival_loc = self.state[np.argmax(np.abs(self.state - self.most_recent_action))]
-          self.viewer.circle(line_x1 + (line_x2 - line_x1) * arrival_loc, line_y, radius=5, color=GREEN)
+          self.viewer.circle(line_x1 + (line_x2 - line_x1) * arrival_loc, line_y, radius=5, color=rendering.GREEN)
 
           self.viewer.update()
-          time.sleep(3)
+          time.sleep(2)
 
 
-
-      self.viewer.reset()
-
-      text = "Current timestep: " + str(self.timestep)
-      self.viewer.text(text, line_x1, 0)
-
-      text = "Iteration ending state"
-      self.viewer.text(text, line_x1, 100)
-
-      self.viewer.line(line_x1, line_x2, line_y, width=2, color=WHITE)
+      self.reset_current_set("Iteration ending state", line_x1, line_x2, line_y)
 
       for loc in self.state:
-          self.viewer.circle(line_x1 + (line_x2 - line_x1) * loc, line_y, radius=5, color=RED)
+          self.viewer.circle(line_x1 + (line_x2 - line_x1) * loc, line_y, radius=5, color=rendering.RED)
 
       self.viewer.update()
-      time.sleep(3)
+      time.sleep(2)
 
 
   def close(self):

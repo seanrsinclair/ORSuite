@@ -1,6 +1,5 @@
 import numpy as np
 import pyglet
-from math import radians, cos, sin
 
 __author__ = 'Nicolas Dickreuter'
 """
@@ -40,16 +39,6 @@ class PygletWindow:
         label = pyglet.text.Label(text, font_size=font_size,
                                   x=x, y=y, anchor_x='left', anchor_y='top')
         label.draw()
-
-    def rectangle(self, x, y, dx, dy, color):
-        """Draw a rectangle"""
-        y = self.top - y
-        x = int(round(x))
-        y = int(round(y))
-        from pyglet.gl import glColor4f
-        glColor4f(*[int(c) for c in color])
-        rect = pyglet.graphics.draw(4, pyglet.gl.GL_QUADS, ('v2f', [x, y, x + dx, y, x + dx, y + dy, x, y + dy]))
-        rect.draw()
 
     def line(self, x1, x2, y_pos, width, color):
         y_pos = self.top - y_pos
