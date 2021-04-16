@@ -34,11 +34,24 @@ class AmbulanceEnvironment(gym.Env):
   A call arrives, and the nearest ambulance goes to the location of that call.
 
   Methods: 
-
+    reset() : resets the environment to its original settings
+    get_config() : returns the config dictionary used to initialize the environment
+    step(action) : takes an action from the agent and returns the state of the system after the next arrival
+    render(mode) : renders the environment in the mode passed in; 'human' is the only mode currently supported
+    close() : closes the window where the rendering is being drawn
 
   Attributes:
-
-  
+    epLen: (int) number of time steps to run the experiment for
+    arrival_dist: (lambda) arrival distribution for calls over the space [0,1]; takes an integer (step) and returns a float between 0 and 1
+    alpha: (float) parameter controlling proportional difference in cost to move between calls and to respond to a call
+    starting_state: (float list) a list containing the starting locations for each ambulance
+    num_ambulance: (int) the number of ambulances in the environment 
+    state: (int list) the current state of the environment
+    timestep: (int) the timestep the current episode is on
+    viewer: (Pyglet window or None) the window where the environment rendering is being drawn
+    most_recent_action: (float list or None) the most recent action chosen by the agent (used to render the environment)
+    action_space: (Gym.spaces Box) actions must be the length of the number of ambulances, every entry is a float between 0 and 1
+    observation_space: (Gym.spaces Box) the environment state must be the length of the number of ambulances, every entry is a float between 0 and 1
   """
 
   metadata = {'render.modes': ['human']}
@@ -46,13 +59,13 @@ class AmbulanceEnvironment(gym.Env):
 
   def __init__(self, config = env_configs.ambulance_metric_default_config):
         '''
-        For a more detailed description of each parameter, see the readme file
-        
-        epLen - number of time steps
-        arrival_dist - arrival distribution for calls over the space [0,1]
-        alpha - parameter for proportional difference in costs
-        starting_state - a list containing the starting locations for each ambulance
-        num_ambulance - the number of ambulances in the environment 
+        Args: 
+        config: (dict) a dictionary containing the parameters required to set up a metric ambulance environment
+            epLen: (int) number of time steps to run the experiment for
+            arrival_dist: (lambda) arrival distribution for calls over the space [0,1]; takes an integer (step) and returns a float between 0 and 1
+            alpha: (float) parameter controlling proportional difference in cost to move between calls and to respond to a call
+            starting_state: (float list) a list containing the starting locations for each ambulance
+            num_ambulance: (int) the number of ambulances in the environment 
         '''
         super(AmbulanceEnvironment, self).__init__()
 
@@ -95,13 +108,13 @@ class AmbulanceEnvironment(gym.Env):
         Move one step in the environment
 
         Args:
-        action - float list - list of locations in [0,1] the same length as the 
-        number of ambulances, where each entry i in the list corresponds to the 
-        chosen location for ambulance i
+            action: (float list) list of locations in [0,1] the same length as the 
+            number of ambulances, where each entry i in the list corresponds to the 
+            chosen location for ambulance i
         Returns:
-            reward - float - reward based on the action chosen
-            newState - float list - new state
-            done - 0/1 - flag for end of the episode
+            reward: (float) reward based on the action chosen
+            newState: (float list) the state of the environment after the action and call arrival
+            done: (bool) flag indicating the end of the episode
         '''
 
         assert self.action_space.contains(action)
@@ -156,7 +169,7 @@ class AmbulanceEnvironment(gym.Env):
         return self.state, reward,  done, info
 
 
-  def reset_current_set(self, text, line_x1, line_x2, line_y):
+  def reset_current_step(self, text, line_x1, line_x2, line_y):
       self.viewer.reset()
       self.viewer.text("Current timestep: " + str(self.timestep), line_x1, 0)
       self.viewer.text(text, line_x1, 100)
@@ -176,7 +189,7 @@ class AmbulanceEnvironment(gym.Env):
 
       if self.most_recent_action is not None:
 
-          self.reset_current_set("Action chosen", line_x1, line_x2, line_y)
+          self.reset_current_step("Action chosen", line_x1, line_x2, line_y)
 
           for loc in self.most_recent_action:
               self.viewer.circle(line_x1 + (line_x2 - line_x1) * loc, line_y, radius=5, color=rendering.RED)
@@ -185,7 +198,7 @@ class AmbulanceEnvironment(gym.Env):
           time.sleep(2)
 
 
-          self.reset_current_set("Call arrival", line_x1, line_x2, line_y)
+          self.reset_current_step("Call arrival", line_x1, line_x2, line_y)
 
           for loc in self.most_recent_action:
               self.viewer.circle(line_x1 + (line_x2 - line_x1) * loc, line_y, radius=5, color=rendering.RED)
@@ -197,7 +210,7 @@ class AmbulanceEnvironment(gym.Env):
           time.sleep(2)
 
 
-      self.reset_current_set("Iteration ending state", line_x1, line_x2, line_y)
+      self.reset_current_step("Iteration ending state", line_x1, line_x2, line_y)
 
       for loc in self.state:
           self.viewer.circle(line_x1 + (line_x2 - line_x1) * loc, line_y, radius=5, color=rendering.RED)
