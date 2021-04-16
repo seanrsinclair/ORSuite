@@ -2,15 +2,38 @@ import numpy as np
 import sys
 from .. import Agent
 
-''' Agent that implements a k-medoid heuristic algorithm for the line ambulance environment'''
+
 class medianAgent(Agent):
+    """
+    Agent that implements a median-like heuristic algorithm for the metric environment.
+    The data on previous call locations is sorted by location and split into k quantiles, where k is the 
+    number of ambulances. The midpoint of each quantile is chosen as the location for one
+    of the ambulances.
+    
+    Methods:
+        reset() : clears data and call_locs which contain data on what has occurred so far in the environment
+        update_config() : (UNIMPLEMENTED)
+        update_obs(obs, action, reward, newObs, timestep, info) : 
+            adds newObs, the most recently observed state, to data
+            adds the most recent call arrival, found in info['arrival'] to call_locs
+        update_policy() : not used, because a greedy algorithm does not have a policy
+        pick_action(state, step) : locations are chosen by finding the the midpoints of 
+            each of k quantiles of the arrival data sorted by location, where k is the 
+            number of ambulances
+
+    Attributes:
+        epLen: (int) number of time steps to run the experiment for
+        data: (float list list) a list of all the states of the environment observed so far
+        call_locs: (float list) the locations of all calls observed so far
+    
+    """
 
     def __init__(self, epLen):
-        '''
-        epLen - number of steps
-        data - all data observed so far
-        call_locs - the locations of all calls observed so far
-        '''
+        """
+        Args:
+            epLen: (int) number of time steps to run the experiment for
+        
+        """
         self.epLen = epLen
         self.data = []
         self.call_locs = []
@@ -38,15 +61,11 @@ class medianAgent(Agent):
 
 
     def greedy(self, state, timestep, epsilon=0):
-        '''
-        Select action according to function
-        '''
+        """
+        
+        
+        """
 
-        # For the first iteration, choose the starting state
-        # After that, choose locations for the ambulances that are most centrally
-        # located to the locations of previous calls using the k-medoids algorithm
-        # For more details about the k-medoids algorithm, see the readme document
-        # for the ambulance environment or the sci-kit learn documentation
         if len(self.data) == 0:
             return state
         else:

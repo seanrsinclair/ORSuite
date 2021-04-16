@@ -21,16 +21,38 @@ cost of travel.'''
 
 class AmbulanceGraphEnvironment(gym.Env):
     """
-    A 1-dimensional reinforcement learning environment in the space $X = [0, 1]$. 
-    Ambulances are located anywhere in $X = [0,1]$, and at the beginning of each 
-    iteration, the agent chooses where to station each ambulance (the action).
-    A call arrives, and the nearest ambulance goes to the location of that call.
-
-    Methods: 
-
+    A graph of nodes $V$ with edges between the nodes $E$; each node represents a 
+    location where an ambulance could be stationed or a call could come in. The 
+    edges between nodes are undirected and have a weight representing the distance 
+    between those two nodes.
+    The nearest ambulance to a call is determined by computing the shortest path 
+    from each ambulance to the call, and choosing the ambulance with the minimum 
+    length path. The calls arrive according to a prespecified iid probability 
+    distribution that can change over time.
+    
+    Methods:
+        reset() : resets the environment to its original settings
+        get_config() : returns the config dictionary used to initialize the environment
+        step(action) : takes an action from the agent and returns the state of the system after the next arrival
+        render(mode) : (UNIMPLEMENTED) renders the environment in the mode passed in; 'human' is the only mode currently supported
+        close() : (UNIMPLEMENTED) closes the window where the rendering is being drawn
 
     Attributes:
-
+        epLen: (int) number of time steps to run the experiment for
+        arrival_dist: (lambda) arrival distribution for calls over the observation space; takes an integer (step) and returns an integer that corresponds to a node in the observation space
+        alpha: (float) parameter controlling proportional difference in cost to move between calls and to respond to a call
+        from_data: (bool) indicator for whether the arrivals will be read from data or randomly generated
+        arrival_data: (int list) only used if from_data is True, this is a list of arrivals, where each arrival corresponds to a node in the observation space
+        episode_num: (int) the current episode number, increments every time the environment is reset
+        graph: (networkx Graph) a graph representing the observation space
+        num_nodes: (int) the number of nodes in the graph
+        state: (int list) the current state of the environment
+        timestep: (int) the timestep the current episode is on
+        lengths: (float matrix) symmetric matrix containing the distance between each pair of nodes
+        starting_state: (int list) a list containing the starting locations for each ambulance
+        num_ambulance: (int) the number of ambulances in the environment 
+        action_space: (Gym.spaces MultiDiscrete) actions must be the length of the number of ambulances, every entry is an int corresponding to a node in the graph
+        observation_space: (Gym.spaces MultiDiscrete) the environment state must be the length of the number of ambulances, every entry is an int corresponding to a node in the graph
   
     """
 
@@ -39,14 +61,17 @@ class AmbulanceGraphEnvironment(gym.Env):
 
     def __init__(self, config=env_configs.ambulance_graph_default_config):
         '''
-        For a more detailed description of each parameter, see the readme file
+        Args: 
+        config: (dict) a dictionary containing the parameters required to set up a metric ambulance environment
+            epLen: (int) number of time steps to run the experiment for
+            arrival_dist: (lambda) arrival distribution for calls over the observation space; takes an integer (step) and returns an integer that corresponds to a node in the observation space
+            alpha: (float) parameter controlling proportional difference in cost to move between calls and to respond to a call
+            from_data: (bool) indicator for whether the arrivals will be read from data or randomly generated
+            data: (int list) only needed if from_data is True, this is a list of arrivals, where each arrival corresponds to a node in the observation space
+            edges: (tuple list) a list of tuples, each tuple corresponds to an edge in the graph. The tuples are of the form (int1, int2, {'travel_time': int3}). int1 and int2 are the two endpoints of the edge, and int3 is the time it takes to travel from one endpoint to the other
+            starting_state: (int list) a list containing the starting locations for each ambulance
+            num_ambulance: (int) the number of ambulances in the environment 
 
-        epLen - number of time steps
-        arrival_dist - arrival distribution for calls over nodes
-        alpha - parameter for proportional difference in costs
-        edges - edges in the graph and their weights (nodes are automatically inferred)
-        starting_state - a list containing the starting nodes for each ambulance
-        num_ambulance - the number of ambulances in the environment
         '''
         super(AmbulanceGraphEnvironment, self).__init__()
 
@@ -105,13 +130,13 @@ class AmbulanceGraphEnvironment(gym.Env):
         Move one step in the environment
 
         Args:
-        action - int list - list of nodes the same length as the number of ambulances,
-        where each entry i in the list corresponds to the chosen location for 
-        ambulance i
+            action: (int list) list of nodes the same length as the number of ambulances,
+            where each entry i in the list corresponds to the chosen location for 
+            ambulance i
         Returns:
-            reward - float - reward based on the action chosen
-            newState - int list - new state of the system
-            done - 0/1 - flag for end of the episode
+            reward: (float) reward based on the action chosen
+            newState: (int list) the state of the environment after the action and call arrival
+            done: (bool) flag indicating the end of the episode
         '''
 
         assert self.action_space.contains(action)

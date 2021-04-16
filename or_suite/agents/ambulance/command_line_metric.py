@@ -3,13 +3,31 @@ import sys
 from .. import Agent
 
 class commandLineAgent(Agent):
+  """
+    Allows the user to act as the agent by entering locations for each of the ambulances through the command line. Only works with the metric environment.
+    
+    Methods:
+        reset() : clears data and call_locs which contain data on what has occurred so far in the environment
+        update_config() : (UNIMPLEMENTED)
+        update_obs(obs, action, reward, newObs, timestep, info) : 
+            adds newObs, the most recently observed state, to data
+            adds the most recent call arrival, found in info['arrival'] to call_locs
+        update_policy() : not used, because action is chosen by user 
+        pick_action(state, step) : the user is prompted to enter a new location for each ambulance, and these locations are used as the action
+
+    Attributes:
+        epLen: (int) number of time steps to run the experiment for
+        data: (float list list) a list of all the states of the environment observed so far
+        call_locs: (float list) the locations of all calls observed so far
+    
+    """
 
     def __init__(self, epLen):
-        '''
-        epLen - number of steps
-        data - all data observed so far
-        call_locs - the locations of all calls observed so far
-        '''
+        """
+        Args:
+            epLen: (int) number of time steps to run the experiment for
+        
+        """
         self.epLen = epLen
         self.data = []
         self.call_locs = []
