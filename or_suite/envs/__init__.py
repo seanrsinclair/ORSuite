@@ -5,6 +5,7 @@ import or_suite.envs.finite_armed_bandit
 import or_suite.envs.vaccine_allotment
 
 from or_suite.envs.env_configs import *
+from or_suite.envs.vaccine_allotment import dynamics_model_4groups
 
 
 # Ambulance Environments
