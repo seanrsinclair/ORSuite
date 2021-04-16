@@ -5,7 +5,7 @@ import gym
 from gym import spaces
 import math
 import random
-import dynamics_model_4groups as dm4g
+from .. import dynamics_model_4groups as dm4g
 from .. import env_configs
 
 #------------------------------------------------------------------------------
