@@ -84,6 +84,8 @@ def response_time_variance(traj, dist):
         dists.append((-1)*np.min(dist(np.array(cur_data['action']),cur_data['info']['arrival'])))
     return np.var(dists)
 
+
+
 # Resoucre Allocation Metrics/Helper functions
 def delta_OPT(traj, env_config):
     """
