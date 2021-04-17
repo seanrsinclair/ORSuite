@@ -12,7 +12,9 @@ Helper code to run a single simulation of either an ORSuite experiment or the wr
 
 def run_single_algo(env, agent, settings):
     '''
-        Runs a single experiment
+    Runs a single experiment
+
+    Inputs:
         env - environment
         agent - agent
         setting - dictionary containing experiment settings
@@ -44,7 +46,9 @@ def run_single_algo_tune(env, agent, scaling_list, settings):
 
 def run_single_sb_algo(env, agent, settings):
     '''
-        Runs a single experiment
+    Runs a single experiment
+
+    Inputs:
         env - environment
         agent - agent
         setting - dictionary containing experiment settings
