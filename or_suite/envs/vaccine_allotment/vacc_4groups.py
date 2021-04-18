@@ -35,7 +35,7 @@ class VaccineEnvironment(gym.Env):
 
     def __init__( self, config = env_configs.vaccine_4groups_default_config):
         """
-        TODO: brief description.
+        Creates a VaccineEnvironment object.
         
         Argument(s): a dictionary with the following keys (and corresponding values)
         o epLen - number of time steps 
