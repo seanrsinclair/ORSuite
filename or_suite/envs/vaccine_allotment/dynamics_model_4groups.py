@@ -8,8 +8,12 @@ def dynamics_model(parameters, population):
     """
     A function to run SIR disease dynamics for 4 groups.
     
-    Inputs: parameters (a dictionary) and population (a numpy array)
-    Outputs: newState (a numpy array) and output_dictionary (a dictionary)
+    Args:
+        - parameters (dictionary)
+        - population (numpy array of with 11 entries)
+    Outputs: 
+        - newState (numpy array)
+        - output_dictionary (dictionary)
     See vaccine_allocation_readme.ipynb for more detail about the inputs and outputs.
     
     Typical usage example:
@@ -248,7 +252,7 @@ def dynamics_model(parameters, population):
             hosp_flag = False
 
         if c1_ia + c2_ia + c3_ia + c4_ia + Hs + Is <= 0:
-            print("Reached a disease-free state on day " + str(clk))
+            #print("Reached a disease-free state on day " + str(clk))
             break
 
     new_infections = total_infected - new_infections
