@@ -121,7 +121,7 @@ class VaccineEnvironment(gym.Env):
         # print('New state' , newState)
         
         # 'reward' is number of new infections times -1
-        reward = -1*newState[len(newState)-1]
+        reward = float(-1*newState[len(newState)-1])
 
         if self.timestep != (self.epLen-1):
             done = False
