@@ -30,9 +30,9 @@ h3 = 0.7
 h4 = 0.3
 
 # contact matrix stuff
-h = 5 / n
-l = 1 / n
-lambda_is = 8 / n
+h = 2 / n
+l = 0.5 / n
+lambda_is = 3 / n
 lambda_matrix = np.array([[h,h,l,l],[0,h,h,h],[0,0,l,l],[0,0,0,l]])
 
 # vaccination and recovery rates
