@@ -5,7 +5,7 @@ import gym
 from gym import spaces
 import math
 import random
-import dynamics_model_4groups as dm4g
+from .. import dynamics_model_4groups as dm4g
 from .. import env_configs
 
 #------------------------------------------------------------------------------
@@ -25,9 +25,17 @@ Only 4 groups are considered (e.g. medical workers, essential non-medical worker
 #------------------------------------------------------------------------------
 class VaccineEnvironment(gym.Env):
     """
-    Custom Environment that follows gym interface.
+    A simple vaccine distribution environment with a discrete action and observation space.
     
-    TODO: description
+    Methods:
+        reset() : reinitializes timestep and state returns the starting state
+        get_config() : returns the current configuration
+        step(action) : implements a step in the RL environment
+        render(mode) : (UNIMPLEMENTED)
+        close() : (UNIMPLEMENTED)
+        
+    Attributes: TODO
+    
     """
     # don't worry about this, has to do with how gym exports text/info to the termial
     metadata = {'render.modes': ['human']}
@@ -35,12 +43,13 @@ class VaccineEnvironment(gym.Env):
 
     def __init__( self, config = env_configs.vaccine_4groups_default_config):
         """
-        TODO: brief description.
+        Creates a VaccineEnvironment object.
         
-        Argument(s): a dictionary with the following keys (and corresponding values)
-        o epLen - number of time steps 
-        o starting_state - np.array of initial population group sizes
-        o parameters - dictionary of parameter values to pass to dynamics model
+        Arguments: 
+            config: dictionary with the following keys (and corresponding values)
+                - epLen : (int) number of time steps 
+                - starting_state : (np.array) initial population group sizes; should contain 11 entries
+                - parameters : (dict) of parameter values to pass to dynamics model
         For more detailed information, see the file vaccine_allocation_readme.ipynb
         
         Typical usage example:
@@ -104,13 +113,16 @@ class VaccineEnvironment(gym.Env):
         Moves one step in the environment.
 
         Arguments:
-        action - int - chosen action 
+            action - int - chosen action 
+        
         Returns:
             reward - double - reward based on chosen action
             newState - np.array of integers - new state
             done - 0/1 - flag for end of the episode
             info - dict - information we can use to plot things related to disease dynamics
         """
+        assert self.action_space.contains(action),"Action is invalid"
+        
         old_state = self.state
         # print('old_state' , old_state)
         
@@ -121,7 +133,7 @@ class VaccineEnvironment(gym.Env):
         # print('New state' , newState)
         
         # 'reward' is number of new infections times -1
-        reward = -1*newState[len(newState)-1]
+        reward = float(-1*newState[len(newState)-1])
 
         if self.timestep != (self.epLen-1):
             done = False

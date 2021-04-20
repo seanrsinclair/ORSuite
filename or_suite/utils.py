@@ -12,7 +12,9 @@ Helper code to run a single simulation of either an ORSuite experiment or the wr
 
 def run_single_algo(env, agent, settings):
     '''
-        Runs a single experiment
+    Runs a single experiment
+
+    Inputs:
         env - environment
         agent - agent
         setting - dictionary containing experiment settings
@@ -44,7 +46,9 @@ def run_single_algo_tune(env, agent, scaling_list, settings):
 
 def run_single_sb_algo(env, agent, settings):
     '''
-        Runs a single experiment
+    Runs a single experiment
+
+    Inputs:
         env - environment
         agent - agent
         setting - dictionary containing experiment settings
@@ -83,6 +87,8 @@ def response_time_variance(traj, dist):
         cur_data = traj[i]
         dists.append((-1)*np.min(dist(np.array(cur_data['action']),cur_data['info']['arrival'])))
     return np.var(dists)
+
+
 
 # Resoucre Allocation Metrics/Helper functions
 def delta_OPT(traj, env_config):

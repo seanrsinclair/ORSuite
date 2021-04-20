@@ -21,19 +21,38 @@ def find_lengths(graph, num_nodes):
     return lengths
 
 
-''' Agent that implements a median-like heuristic algorithm for the graph ambulance environment'''
 class medianAgent(Agent):
+    """
+    Agent that implements a median-like heuristic algorithm for the graph ambulance environment
+    
+    Methods:
+        reset() : clears data and call_locs which contain data on what has occurred so far in the environment
+        update_config() : (UNIMPLEMENTED)
+        update_obs(obs, action, reward, newObs, timestep, info) : 
+            adds newObs, the most recently observed state, to data
+            adds the most recent call arrival, found in info['arrival'] to call_locs
+        update_policy() : not used, because a greedy algorithm does not have a policy
+        pick_action(state, step) : chooses locations for each of the ambulances that minimize the 
+            distance they would have travelled to respond to all calls that have occurred in the past
+
+    Attributes:
+        epLen: (int) number of time steps to run the experiment for
+        data: (int list list) a list of all the states of the environment observed so far
+        graph: (networkx Graph) a graph representing the observation space
+        num_nodes: (int) the number of nodes in the graph
+        num_ambulance: (int) the number of ambulances in the environment
+        lengths: (float matrix) symmetric matrix containing the distance between each pair of nodes
+        call_locs: (int list) the node locations of all calls observed so far
+    
+    """
 
     def __init__(self, epLen, edges, num_ambulance):
-        '''
-        epLen - number of steps
-        data - all data observed so far
-        edges - the edges and their weights in the environment
-        num_ambulance - the number of ambulances in the environment
-        avg_inv_lengths - a vector with an entry for each node i that is 
-            1/(avg distance between node i and all other nodes)
-        call_locs - the node locations of all calls observed so far
-        '''
+        """
+        Args:
+            epLen: (int) number of time steps to run the experiment for
+            edges: (tuple list) a list of tuples, each tuple corresponds to an edge in the graph. The tuples are of the form (int1, int2, {'travel_time': int3}). int1 and int2 are the two endpoints of the edge, and int3 is the time it takes to travel from one endpoint to the other
+            num_ambulance: (int) the number of ambulances in the environment
+        """
         self.epLen = epLen
         self.data = []
         self.graph = nx.Graph(edges)
@@ -55,7 +74,7 @@ class medianAgent(Agent):
     def update_obs(self, obs, action, reward, newObs, timestep, info):
         '''Add observation to records'''
 
-        # Adds the most recent state obesrved in the environment to data
+        # Adds the most recent state observed in the environment to data
         self.data.append(newObs)
 
         # Adds the most recent arrival location observed to call_locs
@@ -70,16 +89,10 @@ class medianAgent(Agent):
 
 
     def greedy(self, state, timestep, epsilon=0):
-        '''
-        Select action according to function
-        '''
-
-        # For the first iteration, choose the starting state
-        # After that choose locations for ambulances that maximize the number of 
-        # calls that arrive at that location multiplied by the inverse of the 
-        # average distance between that node and other nodes
-        # For a concrete example of how this works, see the ambulance environment
-        # readme document
+        """
+        chooses locations for each of the ambulances that minimize the 
+        distance they would have travelled to respond to all calls that have occurred in the past
+        """
 
         counts = np.bincount(self.call_locs, minlength=self.num_nodes)
         # print(self.lengths)

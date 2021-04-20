@@ -3,8 +3,26 @@ import numpy as np
 import sys
 from .. import Agent
 
-''' Agent that implements a stable heuristic algorithm for use with either ambulance environment'''
+
 class stableAgent(Agent):
+    """
+    Agent that implements a stable heuristic algorithm for use with either ambulance environment
+    
+    Methods:
+        reset() : clears data and call_locs which contain data on what has occurred so far in the environment
+        update_config() : (UNIMPLEMENTED)
+        update_obs(obs, action, reward, newObs, timestep, info) : 
+            adds newObs, the most recently observed state, to data
+            adds the most recent call arrival, found in info['arrival'] to call_locs
+        update_policy() : not used, because a greedy algorithm does not have a policy
+        pick_action(state, step) : the action chosen is the most recently obesrved state
+            of the environment
+
+    Attributes:
+        epLen: (int) number of time steps to run the experiment for
+        data: (int list list or float list list) a list of all the states of the environment observed so far
+    
+    """
 
     def __init__(self, epLen):
         '''
