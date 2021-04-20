@@ -17,13 +17,10 @@ from stable_baselines3.common.evaluation import evaluate_policy
 ''' Defining parameters to be used in the experiment'''
 
 
-SIMPLE_ENV_CONFIG = or_suite.envs.env_configs.resource_allocation_simple_config
-DEFAULT_ENV_CONFIG = or_suite.envs.env_configs.resource_allocation_default_config
-
 # #TODO: Edit algo-list to be the names of the algorithms you created
-problem_config_list = {'simple':SIMPLE_ENV_CONFIG, 
+problem_config_list = {'simple': or_suite.envs.env_configs.resource_allocation_simple_config, 
                 'simple_poisson': or_suite.envs.env_configs.resource_allocation_simple_poisson_config,
-                'multi': or_suite.envs.env_configs.resource_allocation_default_config} #'simple':SIMPLE_ENV_CONFIG,
+                'multi': or_suite.envs.env_configs.resource_allocation_default_config}
 
 
 
