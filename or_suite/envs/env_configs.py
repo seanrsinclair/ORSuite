@@ -53,15 +53,15 @@ finite_bandit_default_config =  {'epLen': 5,
   }
 
 vaccine_4groups_default_config = {'epLen': 4, 
-    'starting_state': np.array([2490, 2490, 2490, 2490, 10, 10, 10, 10, 0, 0, 0]), 
+    'starting_state': np.array([990, 1990, 990, 5990, 10, 10, 10, 10, 0, 0, 0]), 
     'parameters': {'contact_matrix':np.array([[0.0005, 0.0005, 0.0001, 0.0001],[0, 0.0005, 0.0005, 0.0005],[0, 0, 0.0001, 0.0001],[0, 0, 0, 0.0001]]), 
                    'lambda_hosp': 0.0008,
                    'rec': 0,
-                   'p1': 0.3, 'p2': 0.3, 'p3': 0.75, 'p4': 0.15,
-                   'h1': 0.1, 'h2': 0.1, 'h3': 0.5,'h4': 0.1, 
-                   'gamma': 50, 
-                   'beta': 1.5, 
-                   'priority_order': [], 
-                   'vaccines': 200, 
+                   'p1': 0.15, 'p2': 0.15, 'p3': 0.7, 'p4': 0.2,
+                   'h1': 0.2, 'h2': 0.2, 'h3': 0.7,'h4': 0.3, 
+                   'gamma': 60, 
+                   'beta': 1/7, 
+                   'priority_order': [],
+                   'vaccines': 625, 
                    'time_step':7}
   }
