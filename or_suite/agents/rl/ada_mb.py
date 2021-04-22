@@ -4,6 +4,18 @@ from or_suite.agents.rl.utils.tree_model_based import MBTree, MBNode
 
 
 class AdaptiveDiscretizationMB(Agent):
+    """
+    Adaptive model-based Q-Learning algorithm  implemented for enviroments
+    with continuous states and actions using the metric induces by the l_inf norm
+
+
+    Attributes:
+        epLen: (int) number of steps per episode
+        scaling: (float) scaling parameter for confidence intervals
+        inherit_flag: (bool) boolean of whether to inherit estimates
+        dim: (int) dimension of R^d the state_action space is represented in
+    """
+
 
     def __init__(self, epLen, scaling, alpha, split_threshold, inherit_flag, flag, state_dim, action_dim):
         '''args:

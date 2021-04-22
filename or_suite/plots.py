@@ -136,12 +136,14 @@ def radar_factory(num_vars, frame='circle'):
 
 def plot_radar_plots(path_list, algo_list, fig_path , fig_name, additional_metric):
     '''
-        Generates radar plots based on original metrics (time, space, reward) and additional metrics.
-            - path_list: list of locations storing data.csv files for each algorithm
-            - algo_list: list of algorithms (in names they will appear)
-            - fig_path: location to save the figure
-            - fig_name: name of the figure
-            - additional_metric: dictionary of the form {NAME: function} where function takes in a trajectory and outputs a value
+    Generates radar plots based on original metrics (time, space, reward) and additional metrics.
+
+    Inputs:
+        - path_list: list of locations storing data.csv files for each algorithm
+        - algo_list: list of algorithms (in names they will appear)
+        - fig_path: location to save the figure
+        - fig_name: name of the figure
+        - additional_metric: dictionary of the form {NAME: function} where function takes in a trajectory and outputs a value
     '''
 
 
@@ -242,10 +244,11 @@ def plot_line_plots(path_list, algo_list, fig_path , fig_name, plot_freq):
 
     Create a set of line_plots for the algorithms, comparing the three metrics of reward, time, and space complexity
 
-    Path_List: list of the paths to the folders containing the data.csv files
-    Algo_List: list of the algorithm name
-    Fig_Path: Path for the location to save the figure
-    Fig_Name: name of the figure
+    Inputs:
+        Path_List: list of the paths to the folders containing the data.csv files
+        Algo_List: list of the algorithm name
+        Fig_Path: Path for the location to save the figure
+        Fig_Name: name of the figure
 
     '''
     

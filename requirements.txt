@@ -10,3 +10,4 @@ scikit-learn
 scikit-learn-extra
 stable-baselines3[extra]
 cvxpy
+pyglet=1.5.16

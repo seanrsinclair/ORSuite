@@ -12,7 +12,9 @@ Helper code to run a single simulation of either an ORSuite experiment or the wr
 
 def run_single_algo(env, agent, settings):
     '''
-        Runs a single experiment
+    Runs a single experiment
+
+    Inputs:
         env - environment
         agent - agent
         setting - dictionary containing experiment settings
@@ -44,7 +46,9 @@ def run_single_algo_tune(env, agent, scaling_list, settings):
 
 def run_single_sb_algo(env, agent, settings):
     '''
-        Runs a single experiment
+    Runs a single experiment
+
+    Inputs:
         env - environment
         agent - agent
         setting - dictionary containing experiment settings
@@ -84,6 +88,8 @@ def response_time_variance(traj, dist):
         dists.append((-1)*np.min(dist(np.array(cur_data['action']),cur_data['info']['arrival'])))
     return np.var(dists)
 
+
+
 # Resoucre Allocation Metrics/Helper functions
 def delta_OPT(traj, env_config):
     """
@@ -107,7 +113,7 @@ def delta_OPT(traj, env_config):
         iteration_traj = list(filter(lambda d: d['iter']==iteration, traj))
         
         for ep in range(num_eps):
-            ep_traj = list(filter(lambda d: d['episode']==ep, traj))
+            ep_traj = list(filter(lambda d: d['episode']==ep, iteration_traj))
             sizes = np.zeros((num_steps,num_types))
 
             for idx,step_dict in enumerate(ep_traj):
@@ -152,7 +158,7 @@ def delta_proportionality(traj, env_config):
 
         for ep in range(num_eps):
 
-            ep_traj = list(filter(lambda d: d['episode']==ep, traj))
+            ep_traj = list(filter(lambda d: d['episode']==ep, iteration_traj))
             sizes = np.zeros((num_steps,num_types))
 
             for idx,step_dict in enumerate(ep_traj):
@@ -192,7 +198,7 @@ def delta_efficiency(traj, env_config):
         iteration_traj = list(filter(lambda d: d['iter']==iteration, traj))
 
         for ep in range(num_eps):
-            ep_traj = list(filter(lambda d: d['episode']==ep, traj))
+            ep_traj = list(filter(lambda d: d['episode']==ep, iteration_traj))
             sizes = np.zeros((num_steps,num_types))
 
             for idx,step_dict in enumerate(ep_traj):
@@ -205,6 +211,7 @@ def delta_efficiency(traj, env_config):
                 X_alg[idx,:,:] = step_dict['action']
             
             eff = get_efficiency(X_alg,sizes,env_config)
+            print("Efficiency: %s"%eff)
             final_avg_efficiency[ep] += (1/num_iter)*eff
             #print("Efficiency for episode %s: %s"%(ep,eff))
 
@@ -233,7 +240,7 @@ def delta_envy(traj, env_config):
         iteration_traj = list(filter(lambda d: d['iter']==iteration, traj))
         
         for ep in range(num_eps):
-            ep_traj = list(filter(lambda d: d['episode']==ep, traj))
+            ep_traj = list(filter(lambda d: d['episode']==ep, iteration_traj))
             sizes = np.zeros((num_steps,num_types))
 
             for idx,step_dict in enumerate(ep_traj):
@@ -329,7 +336,7 @@ def get_efficiency(X_alg, sizes,env_config):
     B = env_config['init_budget']
     tot_sizes = np.sum(sizes, axis=0)
     num_types,num_commodities = env_config['weight_matrix'].shape
-    return sum([B-sum([tot_sizes[theta]*X_alg[t][theta,:] for theta in range(num_types)]) for t in range(len(X_alg))])
+    return np.sum([B-sum([tot_sizes[theta]*X_alg[t][theta,:] for theta in range(num_types)]) for t in range(len(X_alg))])
 
 
 def get_envy(X_alg,X_opt,env_config):

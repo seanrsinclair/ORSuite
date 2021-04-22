@@ -3,7 +3,7 @@ import sys
 from .. import Agent
 
 class commandLineAgent(Agent):
-  """
+    """
     Allows the user to act as the agent by entering locations for each of the ambulances through the command line. Only works with the metric environment.
     
     Methods:
