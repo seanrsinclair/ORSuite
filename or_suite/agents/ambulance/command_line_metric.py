@@ -55,6 +55,9 @@ class commandLineAgent(Agent):
 
 
   def greedy(self, state, timestep, epsilon=0):
+      """
+      The user is prompted to choose an action by choosing a new location for each ambulance.
+      """
       num_ambulance = len(state)
       action = np.zeros(num_ambulance)
       for ambulance in range(num_ambulance):

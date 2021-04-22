@@ -62,8 +62,9 @@ class medianAgent(Agent):
 
     def greedy(self, state, timestep, epsilon=0):
         """
-        
-        
+        This algorithm sorts all previous arrivals, and splits them into k quantiles,
+        where k is the number of ambulances. It then finds the median of each quantile,
+        and positions an ambulance there.
         """
 
         if len(self.data) == 0:

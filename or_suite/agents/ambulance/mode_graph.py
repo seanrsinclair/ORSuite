@@ -61,7 +61,8 @@ class modeAgent(Agent):
 
     def greedy(self, state, timestep, epsilon=0):
         '''
-        Select action according to function
+        Chooses the k nodes where calls have arrived most frequently in the past,
+        where k is the number of ambulances.
         '''
 
         # For the first iteration, choose the starting state

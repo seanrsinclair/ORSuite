@@ -90,7 +90,7 @@ class medianAgent(Agent):
 
     def greedy(self, state, timestep, epsilon=0):
         """
-        chooses locations for each of the ambulances that minimize the 
+        Chooses locations for each of the ambulances that minimize the 
         distance they would have travelled to respond to all calls that have occurred in the past
         """
 

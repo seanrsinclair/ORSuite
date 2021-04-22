@@ -96,12 +96,12 @@ class AmbulanceGraphEnvironment(gym.Env):
             self.episode_num = 0
 
 
-        # creates an array stored in space_array the length of the number of ambulances
+        # Creates an array stored in space_array the length of the number of ambulances
         # where every entry is the number of nodes in the graph
         num_nodes = self.graph.number_of_nodes()
         space_array = np.full(self.num_ambulance, num_nodes)
 
-        # creates a space where every ambulance can be located at any of the nodes
+        # Creates a space where every ambulance can be located at any of the nodes
         self.action_space = spaces.MultiDiscrete(space_array)
 
         # The definition of the observation space is the same as the action space
@@ -112,7 +112,6 @@ class AmbulanceGraphEnvironment(gym.Env):
         """
         Reinitializes variables and returns the starting state
         """
-        # Initialize the timestep
         self.timestep = 0
         self.state = self.starting_state
 

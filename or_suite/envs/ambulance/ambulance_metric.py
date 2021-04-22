@@ -94,7 +94,7 @@ class AmbulanceEnvironment(gym.Env):
         """
         Reinitializes variables and returns the starting state
         """
-        # Initialize the timestep
+
         self.timestep = 0
         self.state = self.starting_state
 
@@ -170,6 +170,7 @@ class AmbulanceEnvironment(gym.Env):
 
 
   def reset_current_step(self, text, line_x1, line_x2, line_y):
+      # Used to render a textbox saying the current timestep
       self.viewer.reset()
       self.viewer.text("Current timestep: " + str(self.timestep), line_x1, 0)
       self.viewer.text(text, line_x1, 100)
@@ -177,6 +178,7 @@ class AmbulanceEnvironment(gym.Env):
 
 
   def render(self, mode='human'):
+      # Renders the environment using a pyglet window
       screen_width = 600
       screen_height = 400
       line_x1 = 50
@@ -220,6 +222,7 @@ class AmbulanceEnvironment(gym.Env):
 
 
   def close(self):
+    # Closes the rendering window
     if self.viewer:
         self.viewer.close()
         self.viewer = None

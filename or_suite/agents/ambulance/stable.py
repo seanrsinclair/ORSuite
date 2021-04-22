@@ -52,7 +52,7 @@ class stableAgent(Agent):
 
     def greedy(self, state, timestep, epsilon=0):
         '''
-        Select action according to function
+        Chooses the most recently observed state as the action.
         '''
 
         # For the first iteration, choose the starting state
