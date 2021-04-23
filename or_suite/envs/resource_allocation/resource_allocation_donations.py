@@ -6,11 +6,11 @@ import math
 from .. import env_configs
 
 #------------------------------------------------------------------------------
-'''Sequential Resource Allocation Problem for n locations with K commodities. 
+'''Sequential Resource Allocation Problem for n locations with K commodities with Donations. 
 Currently reward is Nash Social Welfare but in the future will integrate more options 
 to determine a fair allocation '''
 
-class ResourceAllocationEnvironment(gym.Env):
+class ResourceAllocationDonationsEnvironment(gym.Env):
   """
   Custom Environment that follows gym interface.
   """
@@ -24,11 +24,14 @@ class ResourceAllocationEnvironment(gym.Env):
         Initializes the Sequential Resource Allocation Environment
 
         weight_matrix - Weights predefining the commodity needs for each type, every row is a type vector
-        K - number of commodities
+        K -  number of commodities
         num_rounds - Number of locations (also the length of an episode)
         init_budget - amount of each commodity the principal begins with
         type_dist: Function determining the number of people of each type at a location
         u: utility function, given an allocation x and a type theta, u(x,theta) is how good the fit is
+
+        donation_size_dist - Distribution of donation sizes whenever there is one
+        donation_schedule - list detailing the timesteps in which donations are received
         '''
         super(ResourceAllocationEnvironment, self).__init__()
 
@@ -36,16 +39,15 @@ class ResourceAllocationEnvironment(gym.Env):
         self.config = config
         
         self.weight_matrix = config['weight_matrix']
-        
         self.num_types = config['weight_matrix'].shape[0]        
         self.num_commodities = config['K']
         self.epLen = config['num_rounds']
         self.budget = config['init_budget']
         self.type_dist = config['type_dist']
         self.utility_function = config['utility_function']
-        #print(config['init_budget'])
-        #print(self.type_dist(0))
-        #print(np.concatenate([config['init_budget'],self.type_dist(0)]))
+
+        self.donation_size_dist = config['donation_size_dist']
+        self.donation_schedule = config['set_donation_schedule'](self.epLen)
 
         self.starting_state = np.concatenate([config['init_budget'],self.type_dist(0)])
         #print(np.concatenate([config['init_budget'],self.type_dist(0)]))
@@ -60,6 +62,7 @@ class ResourceAllocationEnvironment(gym.Env):
         # First K entries of observation space is the remaining budget, next is the number of each type at the location
         self.observation_space = spaces.Box(low=0, high=np.inf,
                                         shape=(self.num_commodities+self.num_types,), dtype=np.float32)
+  
 
   def reset(self):
         """
@@ -132,10 +135,12 @@ class ResourceAllocationEnvironment(gym.Env):
         new_type = self.type_dist(self.timestep)
 
         info = {'type' : new_type}
-
-
         
-        self.state = np.concatenate([new_budget, new_type])
+        donation = np.zeros(self.num_commodities)
+        if self.timestep in self.donation_schedule:
+            donation = self.donation_size_dist(self.timestep)
+        
+        self.state = np.concatenate([new_budget+donation, new_type])
 
 
         self.action_space = spaces.Box(low=0, high=max(new_budget),
