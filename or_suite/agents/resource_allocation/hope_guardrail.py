@@ -4,19 +4,22 @@ from .. import Agent
 
 
 ''' Agent which implements several heuristic algorithms'''
-class fixedThresholdAgent(Agent):
+class hopeguardrailAgent(Agent):
 
-    def __init__(self, epLen, env_config):
+    def __init__(self, epLen, env_config, scale):
         '''args:
             epLen - number of steps
             func - function used to decide action
             env_config - parameters used in initialization of environment
             data - all data observed so far
         '''
+
         self.env_config = env_config
         self.num_types = env_config['weight_matrix'].shape[0]
         self.num_resources = self.env_config['weight_matrix'].shape[1]
         self.budget_remaining = np.copy(self.env_config['init_budget'])
+        self.scale = scale
+
         #print('Starting Budget: ' + str(self.current_budget))
         
         self.epLen = epLen
@@ -25,6 +28,10 @@ class fixedThresholdAgent(Agent):
         self.exp_endowments, self.var_endowments = self.get_expected_endowments()
         self.prob, self.solver = self.generate_cvxpy_solver()
         self.lower_sol = np.zeros((self.num_types,self.num_resources))
+        self.upper_sol = np.zeros((self.num_types, self.num_resources))
+        print('Mean and variance endomwnets:')
+        print(self.exp_endowments, self.var_endowments)
+
         #print("R")
         #print(self.rel_exp_endowments)
 
@@ -79,12 +86,17 @@ class fixedThresholdAgent(Agent):
         lower_exp_size = future_size*(1 + np.max(np.sqrt(conf_bnd) / future_size))
         _, lower_sol = self.solver(lower_exp_size, weights, budget)
 
-        #c = (1 / (n**(1/2)))*(1 +  np.max(np.sqrt(mean_size*n) / future_size)) -  np.max(np.sqrt(mean_size*n) / future_size)
-        #print(c)
-        #upper_exp_size_12 = future_size*(1 - c)
-        #_, upper_sol_12 = solver(upper_exp_size_12, weights, budget)
-        # print('lower sol: ' + str(lower_sol))
-        return lower_sol
+
+        c = (1 / (n**(self.scale)))*(1 +  np.max(np.sqrt(conf_bnd) / future_size)) -  np.max(np.sqrt(conf_bnd) / future_size)
+        # print('Scaling Constant')
+        # print(c)
+        upper_exp_size = future_size*(1 - c)
+        _, upper_sol = self.solver(upper_exp_size, weights, budget)
+
+        # print(lower_exp_size)
+        # print(upper_exp_size)
+        # print(budget)
+        return lower_sol, upper_sol
 
 
     def get_expected_endowments(self,N=1000):
@@ -111,7 +123,7 @@ class fixedThresholdAgent(Agent):
             var_size[:, t] = np.var(np.asarray(cur_list), axis=0)
         # print(exp_size)
         return exp_size, var_size
-        
+
     def reset(self):
         # resets data matrix to be empty
         self.current_budget = np.copy(self.env_config['init_budget'])
@@ -131,31 +143,30 @@ class fixedThresholdAgent(Agent):
     def update_policy(self, k):
         '''Update internal policy based upon records'''
         self.current_budget = np.copy(self.env_config['init_budget'])
-        self.greedy = self.greedy
-
-
-    def greedy(self, state, timestep, epsilon=0):
-        '''
-        Select action according to function
-        '''
-        #print("State:%s"%state)
-        budget_remaining = state[:self.num_resources]
-        sizes = state[self.num_resources:]
-        
-        if not self.first_allocation_done:
-            self.lower_sol = self.get_lower_upper_sol(sizes)
-            self.first_allocation_done = True
-            print(self.lower_sol)
-        
-        lower_thresh = self.lower_sol
-        #print(lower_thresh.shape)
-        resource_index = budget_remaining - np.matmul(sizes, self.lower_sol) > 0
-        allocation= resource_index * lower_thresh + (1 - resource_index) * np.array([budget_remaining / np.sum(sizes),]*self.num_types)
-        self.budget_remaining -= budget_remaining - np.matmul(sizes, allocation)
-        
-        return allocation
 
 
     def pick_action(self, state, step):
-        action = self.greedy(state, step)
-        return action
+
+        budget_remaining = state[:self.num_resources]
+        sizes = state[self.num_resources:]
+        num_remaining = self.env_config['num_rounds'] - step
+
+        if not self.first_allocation_done:
+            self.lower_sol, self.upper_sol = self.get_lower_upper_sol(sizes)
+            self.first_allocation_done = True
+            print(self.lower_sol, self.upper_sol)
+
+
+
+
+        conf_bnd = np.sqrt(np.max(self.var_endowments, axis=1)*np.mean(self.exp_endowments, axis=1)*num_remaining)
+
+
+        budget_required = budget_remaining - np.matmul(sizes, self.upper_sol) - np.matmul(np.sum(self.exp_endowments[:, (step+1):], axis=1) + conf_bnd, self.lower_sol) > 0
+        budget_index = budget_remaining - np.matmul(sizes, self.lower_sol) > 0
+
+        allocation = budget_required * self.upper_sol \
+                + (1 - budget_required)*budget_index*self.lower_sol \
+                + (1 - budget_required) * (1 - budget_index) * np.array([budget_remaining / np.sum(sizes)])
+        
+        return allocation

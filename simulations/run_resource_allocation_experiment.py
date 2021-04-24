@@ -18,26 +18,28 @@ from stable_baselines3.common.evaluation import evaluate_policy
 
 
 # #TODO: Edit algo-list to be the names of the algorithms you created
-problem_config_list = {'simple': or_suite.envs.env_configs.resource_allocation_simple_config, 
+problem_config_list = {# 'simple': or_suite.envs.env_configs.resource_allocation_simple_config, 
                 'simple_poisson': or_suite.envs.env_configs.resource_allocation_simple_poisson_config,
-                'multi': or_suite.envs.env_configs.resource_allocation_default_config}
+                # 'multi': or_suite.envs.env_configs.resource_allocation_default_config
+                }
 
 
 
 
 for problem in problem_config_list:
-    nEps = 100
-    numIters = 1
+    nEps = 1
+    numIters = 100
     #initialize resource allocation environment w/ default parameters
     
     env = gym.make('Resource-v0', config = problem_config_list[problem])
     epLen = env.epLen
     # algo_information = {'Random': or_suite.agents.rl.random.randomAgent(), 'Equal_Allocation': or_suite.agents.resource_allocation.equal_allocation.equalAllocationAgent(epLen, DEFAULT_ENV_CONFIG)}
-    algo_information = {'EqualAllocation': or_suite.agents.resource_allocation.equal_allocation.equalAllocationAgent(epLen, problem_config_list[problem]),
+    algo_information = { 'HopeGuardrail': or_suite.agents.resource_allocation.hope_guardrail.hopeguardrailAgent(epLen, problem_config_list[problem], 1/2),
+                        'EqualAllocation': or_suite.agents.resource_allocation.equal_allocation.equalAllocationAgent(epLen, problem_config_list[problem]),
                         'FixedThreshold': or_suite.agents.resource_allocation.fixed_threshold.fixedThresholdAgent(epLen, problem_config_list[problem])
                         }
 
-    DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'render': False, 'dirPath': '../data/allocation/', 'deBug': True, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': True, 'epLen' : epLen}
+    DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'render': False, 'dirPath': '../data/allocation/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': True, 'epLen' : epLen}
 
 
     path = {}
@@ -45,6 +47,10 @@ for problem in problem_config_list:
     algo_list = []
 
     for agent in algo_information:
+        print('#### NEW EXPERIMENT ####')
+        print(agent)
+        print(problem)
+        print('####')
         algorithm = algo_information[agent]
         path_list.append('../data/allocation_%s_%s'%(agent,problem))
         algo_list.append(str(agent))
