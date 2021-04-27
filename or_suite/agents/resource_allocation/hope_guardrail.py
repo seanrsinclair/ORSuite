@@ -154,6 +154,7 @@ class hopeguardrailAgent(Agent):
         if not self.first_allocation_done:
             self.lower_sol, self.upper_sol = self.get_lower_upper_sol(sizes)
             self.first_allocation_done = True
+            print('Lower and Upper Solutions:')
             print(self.lower_sol, self.upper_sol)
 
 

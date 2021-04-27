@@ -28,7 +28,7 @@ problem_config_list = {# 'simple': or_suite.envs.env_configs.resource_allocation
 
 for problem in problem_config_list:
     nEps = 1
-    numIters = 100
+    numIters = 1
     #initialize resource allocation environment w/ default parameters
     
     env = gym.make('Resource-v0', config = problem_config_list[problem])
@@ -39,7 +39,7 @@ for problem in problem_config_list:
                         'FixedThreshold': or_suite.agents.resource_allocation.fixed_threshold.fixedThresholdAgent(epLen, problem_config_list[problem])
                         }
 
-    DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'render': False, 'dirPath': '../data/allocation/', 'deBug': False, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': True, 'epLen' : epLen}
+    DEFAULT_SETTINGS = {'seed': 1, 'recFreq': 1, 'render': False, 'dirPath': '../data/allocation/', 'deBug': True, 'nEps': nEps, 'numIters': numIters, 'saveTrajectory': True, 'epLen' : epLen}
 
 
     path = {}
