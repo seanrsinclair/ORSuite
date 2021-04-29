@@ -64,7 +64,7 @@ def dynamics_model(parameters, population):
     hosp_flag = False
     new_infections = total_infected 
 
-    # rates
+    # rates scaled
     c1_c1_rate = lambda_matrix[0,0]*2*c1_s*c1_ia
     c2_c2_rate = lambda_matrix[1,1]*2*c2_s*c2_ia
     c3_c3_rate = lambda_matrix[2,2]*2*c3_s*c3_ia
