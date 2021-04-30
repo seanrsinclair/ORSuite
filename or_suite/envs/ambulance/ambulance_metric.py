@@ -12,12 +12,13 @@ from .. import env_configs
 # import pyglet
 import os, sys
 currentdir = os.path.dirname(os.path.realpath(__file__))
-print(currentdir)
 renderdir = os.path.dirname(currentdir)
-print(renderdir)
 sys.path.append(renderdir)
 import rendering 
 import time
+import pyglet
+currentdir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(currentdir)
 
 #------------------------------------------------------------------------------
 '''An ambulance environment over [0,1].  An agent interacts through the environment
@@ -194,7 +195,9 @@ class AmbulanceEnvironment(gym.Env):
           self.reset_current_step("Action chosen", line_x1, line_x2, line_y)
 
           for loc in self.most_recent_action:
-              self.viewer.circle(line_x1 + (line_x2 - line_x1) * loc, line_y, radius=5, color=rendering.RED)
+              ambulance = pyglet.image.load('images/ambulance.png')
+              self.viewer.image(line_x1 + (line_x2 - line_x1) * loc, line_y, ambulance)
+            #   self.viewer.circle(line_x1 + (line_x2 - line_x1) * loc, line_y, radius=5, color=rendering.RED)
 
           self.viewer.update()
           time.sleep(2)

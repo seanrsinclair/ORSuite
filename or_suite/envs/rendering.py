@@ -26,10 +26,10 @@ class PygletWindow:
         self.display_surface.switch_to()
         self.reset()
 
-    def circle(self, x_pos, y_pos, radius, color):
+    def circle(self, x, y, radius, color):
         """Draw a circle"""
-        y_pos = self.top - y_pos
-        circle = pyglet.shapes.Circle(x_pos, y_pos, radius, color=color)
+        y = self.top - y
+        circle = pyglet.shapes.Circle(x, y, radius, color=color)
         circle.draw()
 
     def text(self, text, x, y, font_size=20):
@@ -39,10 +39,15 @@ class PygletWindow:
                                   x=x, y=y, anchor_x='left', anchor_y='top')
         label.draw()
 
-    def line(self, x1, x2, y_pos, width, color):
-        y_pos = self.top - y_pos
-        line = pyglet.shapes.Line(x1, y_pos, x2, y_pos, width, color)
+    def line(self, x1, x2, y, width, color):
+        y = self.top - y
+        line = pyglet.shapes.Line(x1, y, x2, y, width, color)
         line.draw()
+
+    def image(self, x, y, image):
+        image.anchor_x = image.width // 2
+        image.anchor_y = image.height // 2
+        image.blit(x, y)
 
     def reset(self):
         """New frame"""
