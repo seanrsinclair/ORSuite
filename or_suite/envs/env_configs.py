@@ -25,9 +25,9 @@ resource_allocation_simple_config = {'K':1,
 resource_allocation_simple_poisson_config = {'K':1,
   'num_rounds':10,
   'weight_matrix': np.array([[1]]),
-  'init_budget': np.array([15.]),
+  'init_budget': np.array([20.]),
   'utility_function': lambda x,theta: x,
-  'type_dist': lambda i : [1+np.random.poisson(lam = .5)]
+  'type_dist': lambda i : [1+np.random.poisson(lam = 1)]
 }
 
 

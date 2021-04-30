@@ -8,15 +8,22 @@ def dynamics_model(parameters, population):
     """
     A function to run SIR disease dynamics for 4 groups.
     
-    Args:
-        - parameters (dictionary)
-        - population (numpy array of with 11 entries)
-    Outputs: 
-        - newState (numpy array)
-        - output_dictionary (dictionary)
-    See vaccine_allocation_readme.ipynb for more detail about the inputs and outputs.
-    
-    Typical usage example:
+    Args
+    ----
+    parameters : dict
+        DESCRIPTION.
+    population : numpy array with 11 entries
+        DESCRIPTION.
+
+    Returns
+    -------
+    newState : numpy array wtih 11 entries
+        DESCRIPTION.
+    output_dictionary : dict
+        DESCRIPTION.
+        
+    Typical usage example
+    ----------------------
     newState, info = dynamics_model(parameters, population)
     """
     
