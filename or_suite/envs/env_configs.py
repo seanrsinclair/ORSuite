@@ -65,3 +65,16 @@ vaccine_4groups_default_config = {'epLen': 4,
                    'vaccines': 625, 
                    'time_step':7}
   }
+
+rideshare_graph_default_config = {
+    'epLen': 5,
+    'edges': [(0,1,{'travel_time':1}), (0,2,{'travel_time':1}), 
+            (0,3,{'travel_time':1}), (1,2,{'travel_time':1}), 
+            (1,3,{'travel_time':1}), (2,3,{'travel_time':1})], 
+    'starting_state': [2,1,4,3], 
+    'num_cars': 10,
+    'request_dist': lambda step, num_nodes: np.random.choice(num_nodes, size=2),
+    'reward': lambda distance: -np.sqrt(distance),
+    'reward_fail': lambda distance: -10000,
+    'gamma': 1
+}

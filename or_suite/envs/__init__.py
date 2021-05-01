@@ -3,6 +3,7 @@ import or_suite.envs.ambulance
 import or_suite.envs.resource_allocation
 import or_suite.envs.finite_armed_bandit
 import or_suite.envs.vaccine_allotment
+import or_suite.envs.ridesharing
 
 from or_suite.envs.env_configs import *
 from or_suite.envs.vaccine_allotment import dynamics_model_4groups
@@ -34,4 +35,10 @@ register(id = 'Bandit-v0',
 
 register(id = 'Vaccine-v0',
          entry_point = 'or_suite.envs.vaccine_allotment.vacc_4groups:VaccineEnvironment'
+)
+
+# Ridesharing
+
+register(id = 'Rideshare-v0',
+        entry_point = 'or_suite.envs.ridesharing.rideshare_graph:RideshareGraphEnvironment'
 )
