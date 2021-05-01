@@ -70,7 +70,11 @@ and return a corresponding value, where large corresponds to 'good'.
 '''
 
 
+'''
 
+AMBULANCE ENVIRONMENT
+
+'''
 
 # Calculating mean response time for ambulance environment on the trajectory datafile
 def mean_response_time(traj, dist):
@@ -90,175 +94,12 @@ def response_time_variance(traj, dist):
 
 
 
-# Resoucre Allocation Metrics/Helper functions
-def delta_OPT(traj, env_config):
-    """
-    Calculates the distance to X_opt w.r.t supremum norm
-    
-    Inputs:
-        traj: trajectory of an algorithm, stored as a list of dictionaries
-        env_config: configuration of the environment
-    Returns:
-        final_avg_dist: array of the average dist to X_opt for each episode
 
-    """
-    num_iter = traj[-1]['iter']+1
-    num_eps = traj[-1]['episode']+1
-    num_steps = traj[-1]['step']+1
-    #print('Iters: %s, Eps: %s, Steps: %s'%(num_iter,num_eps,num_steps))
-    num_types,num_commodities = traj[-1]['action'].shape 
-    final_avg_dist = np.zeros(num_eps)
-    
-    for iteration in range(num_iter):      
-        iteration_traj = list(filter(lambda d: d['iter']==iteration, traj))
-        
-        for ep in range(num_eps):
-            ep_traj = list(filter(lambda d: d['episode']==ep, iteration_traj))
-            sizes = np.zeros((num_steps,num_types))
+'''
 
-            for idx,step_dict in enumerate(ep_traj):
-                size = step_dict['info']['type']
-                sizes[idx,:] = size
-                   
-            prob, solver = generate_cvxpy_solve(num_types,num_commodities)
-            X_opt = offline_opt(env_config['init_budget'],sizes,env_config['weight_matrix'],solver)
-            X_alg = np.zeros((num_steps,num_types,num_commodities))
-            
-            for idx,step_dict in enumerate(ep_traj):
-                X_alg[idx,:,:] = step_dict['action']
-            
-            dist = np.max(np.absolute(X_opt-X_alg))
-            final_avg_dist[ep] += (1/num_iter)*dist
-            #print("Dist to OPT for episode %s: %s"%(ep,dist))
-            
-    return (-1)*np.mean(final_avg_dist)
+RESOURCE ALLOCATION ENVIRONMENT
 
-
-def delta_proportionality(traj, env_config):
-    """
-    Calculate the proportionality (distance to equal allocation) at each episode
-    
-    Inputs:
-        traj: trajectory of an algorithm, stored as a list of dictionaries
-        env_config: configuration of the environment
-    Returns:
-        final_avg_efficiency: array containing average waste per episode 
-
-    """
-    
-    num_iter = traj[-1]['iter']+1
-    num_eps = traj[-1]['episode']+1
-    num_steps = traj[-1]['step']+1
-    #print('Iters: %s, Eps: %s, Steps: %s'%(num_iter,num_eps,num_steps))
-    num_types,num_commodities = traj[-1]['action'].shape 
-    final_avg_efficiency = np.zeros(num_eps)
-    
-    for iteration in range(num_iter):      
-        iteration_traj = list(filter(lambda d: d['iter']==iteration, traj))
-
-        for ep in range(num_eps):
-
-            ep_traj = list(filter(lambda d: d['episode']==ep, iteration_traj))
-            sizes = np.zeros((num_steps,num_types))
-
-            for idx,step_dict in enumerate(ep_traj):
-                size = step_dict['info']['type']
-                sizes[idx,:] = size
-
-            X_alg = np.zeros((num_steps,num_types,num_commodities))
-            
-            for idx,step_dict in enumerate(ep_traj):
-                X_alg[idx,:,:] = step_dict['action']
-            
-            prop = get_proportionality(X_alg,sizes,env_config)
-            final_avg_efficiency[ep] += (1/num_iter)*prop
-            #print("Proportionality for episode %s: %s"%(ep,prop))
-            
-    return (-1)*np.mean(final_avg_efficiency)
-
-
-def delta_efficiency(traj, env_config):
-    """
-    Calculate the efficiency (waste) of an algorithm given its trajectory
-    
-    Inputs:
-        traj: trajectory of an algorithm, stored as a list of dictionaries
-        env_config: configuration of the environment
-    Returns:
-        final_avg_efficiency: array containing average waste per episode 
-
-    """
-    num_iter = traj[-1]['iter']+1
-    num_eps = traj[-1]['episode']+1
-    num_steps = traj[-1]['step']+1
-    #print('Iters: %s, Eps: %s, Steps: %s'%(num_iter,num_eps,num_steps))
-    num_types,num_commodities = traj[-1]['action'].shape 
-    final_avg_efficiency = np.zeros(num_eps)
-    for iteration in range(num_iter):      
-        iteration_traj = list(filter(lambda d: d['iter']==iteration, traj))
-
-        for ep in range(num_eps):
-            ep_traj = list(filter(lambda d: d['episode']==ep, iteration_traj))
-            sizes = np.zeros((num_steps,num_types))
-
-            for idx,step_dict in enumerate(ep_traj):
-                size = step_dict['info']['type']
-                sizes[idx,:] = size
-            
-            X_alg = np.zeros((num_steps,num_types,num_commodities))
-            
-            for idx,step_dict in enumerate(ep_traj):
-                X_alg[idx,:,:] = step_dict['action']
-            
-            eff = get_efficiency(X_alg,sizes,env_config)
-            print("Efficiency: %s"%eff)
-            final_avg_efficiency[ep] += (1/num_iter)*eff
-            #print("Efficiency for episode %s: %s"%(ep,eff))
-
-    return (-1)*np.mean(final_avg_efficiency)
-
-
-def delta_envy(traj, env_config):
-    """
-    Calculates the delta_envy metric given the trajectory of a given algorithm
-    
-    Inputs:
-        traj: trajectory of an algorithm, stored as a list of dictionaries
-        env_config: configuration of the environment
-    Returns:
-        final_avg_envies: array of the average envy for each episode
-
-    """
-    num_iter = traj[-1]['iter']+1
-    num_eps = traj[-1]['episode']+1
-    num_steps = traj[-1]['step']+1
-    #print('Iters: %s, Eps: %s, Steps: %s'%(num_iter,num_eps,num_steps))
-    num_types,num_commodities = traj[-1]['action'].shape 
-    final_avg_envies = np.zeros(num_eps)
-    
-    for iteration in range(num_iter):      
-        iteration_traj = list(filter(lambda d: d['iter']==iteration, traj))
-        
-        for ep in range(num_eps):
-            ep_traj = list(filter(lambda d: d['episode']==ep, iteration_traj))
-            sizes = np.zeros((num_steps,num_types))
-
-            for idx,step_dict in enumerate(ep_traj):
-                size = step_dict['info']['type']
-                sizes[idx,:] = size
-                   
-            prob, solver = generate_cvxpy_solve(num_types,num_commodities)
-            X_opt = offline_opt(env_config['init_budget'],sizes,env_config['weight_matrix'],solver)
-            X_alg = np.zeros((num_steps,num_types,num_commodities))
-            
-            for idx,step_dict in enumerate(ep_traj):
-                X_alg[idx,:,:] = step_dict['action']
-            
-            envy = get_envy(X_alg,X_opt,env_config)
-            final_avg_envies[ep] += (1/num_iter)*envy
-            #print("Envy for episode %s: %s"%(ep,envy))
-            
-    return (-1)*np.mean(final_avg_envies)
+'''
 
 
 def offline_opt(budget, size, weights, solver):
@@ -278,7 +119,6 @@ def offline_opt(budget, size, weights, solver):
     return allocation
 
 
-#SEANS CODE FOR GENERATING SOLVER FOR OFFLINE PROBLEM
 def generate_cvxpy_solve(num_types, num_resources):
     """
     Creates a generic solver to solve the offline resource allocation problem
@@ -310,46 +150,216 @@ def generate_cvxpy_solve(num_types, num_resources):
     return prob, solver
 
 
-def get_proportionality(X_alg,sizes,env_config):
-    """
-    (helper for delta_proportionality)
-    Finds proportionality by calculating envy w.r.t a completely equal allocation
-    """
-    B = env_config['init_budget']
-    tot_size = np.sum(sizes)
-    u = env_config['utility_function']
-    w = env_config['weight_matrix']
-    max_prop=0
-    for t,allocation in enumerate(X_alg):
-        for theta,row in enumerate(allocation):
-            tmp = abs(u(row,w[theta,:])-u(B/tot_size,w[theta,:]))
-            if tmp >= max_prop:
-                max_prop = tmp
-    return max_prop
 
 
-def get_efficiency(X_alg, sizes,env_config):
-    """
-    (helper for delta_efficiency)
-    Finds efficiency by seeing how much of the initial budget was used in X_alg
-    """
-    B = env_config['init_budget']
-    tot_sizes = np.sum(sizes, axis=0)
-    num_types,num_commodities = env_config['weight_matrix'].shape
-    return np.sum([B-sum([tot_sizes[theta]*X_alg[t][theta,:] for theta in range(num_types)]) for t in range(len(X_alg))])
+
+def delta_EFFICIENCY(traj, env_config):
+    num_iter = traj[-1]['iter']+1
+    num_eps = traj[-1]['episode']+1
+    num_steps = traj[-1]['step']+1
+    # print('Iters: %s, Eps: %s, Steps: %s'%(num_iter,num_eps,num_steps))
+    num_types, num_commodities = traj[-1]['action'].shape 
+    final_avg_efficiency = np.zeros(num_eps)
+    
+    
+    traj_index = 0
+    for iter_num in range(num_iter):
+        # print(iter_num)
+        for ep in range(num_eps):
+            # print(ep)
+            budget = np.copy(env_config['init_budget'])
+            # print('budget:' + str(budget))
+            for step in range(num_steps):
+                cur_dict = traj[traj_index]
+                # print(cur_dict['oldState'])
+                # print(cur_dict['action'])
+                budget -= np.matmul(cur_dict['oldState'][num_commodities:], cur_dict['action'])
+                traj_index += 1
+#                budget -= cur_dict['oldState']
+            final_avg_efficiency[ep] += np.sum(budget)
+    return (-1)*np.mean(final_avg_efficiency)
 
 
-def get_envy(X_alg,X_opt,env_config):
-    """
-    (helper for delta_envy)
-    Finds maximum envy of X_alg's allocation by comparing its utility to that of X_opt
-    """
-    u = env_config['utility_function']
-    w = env_config['weight_matrix']
-    max_envy=0
-    for t,allocation in enumerate(X_alg):
-        for theta,row in enumerate(allocation):
-            tmp = abs(u(row,w[theta,:])-u(X_opt[t][theta,:],w[theta,:]))
-            if tmp >= max_envy:
-                max_envy = tmp
-    return max_envy
+def delta_PROP(traj, env_config):
+    weight_matrix = env_config['weight_matrix']
+    utility_function = env_config['utility_function']
+    num_iter = traj[-1]['iter']+1
+    num_eps = traj[-1]['episode']+1
+    num_steps = traj[-1]['step']+1
+    num_types, num_commodities = traj[-1]['action'].shape 
+    final_avg_prop = np.zeros(num_eps)
+    
+    
+    traj_index = 0
+    for iter_num in range(num_iter):
+        for ep in range(num_eps):
+
+            budget = np.copy(env_config['init_budget'])
+            X_alg = np.zeros((num_steps, num_types, num_commodities))
+            sizes = np.zeros((num_steps, num_types))
+
+            for step in range(num_steps):
+                cur_dict = traj[traj_index]
+
+                X_alg[step] = cur_dict['action']
+                sizes[step] = cur_dict['oldState'][num_commodities:]
+                traj_index += 1
+
+            
+            prop_alloc = budget / np.sum(sizes)
+            max_prop = 0
+
+            for theta in range(num_types):
+                for h in range(num_steps):
+                    max_prop = max(max_prop, utility_function(prop_alloc, weight_matrix[theta, :]) - utility_function(X_alg[h, theta], weight_matrix[theta,:]))
+
+
+            final_avg_prop[ep] += max_prop
+        
+        
+    return (-1)*np.mean(final_avg_prop)   
+
+
+
+def delta_HINDSIGHT_ENVY(traj, env_config):
+    weight_matrix = env_config['weight_matrix']
+    utility_function = env_config['utility_function']
+    num_iter = traj[-1]['iter']+1
+    num_eps = traj[-1]['episode']+1
+    num_steps = traj[-1]['step']+1
+    num_types, num_commodities = traj[-1]['action'].shape 
+    final_avg_envy = np.zeros(num_eps)
+    
+    
+    traj_index = 0
+    for iter_num in range(num_iter):
+
+        for ep in range(num_eps):
+
+            budget = np.copy(env_config['init_budget'])
+            X_alg = np.zeros((num_steps, num_types, num_commodities))
+            sizes = np.zeros((num_steps, num_types))
+
+            for step in range(num_steps):
+                cur_dict = traj[traj_index]
+
+                X_alg[step] = cur_dict['action']
+                sizes[step] = cur_dict['oldState'][num_commodities:]
+                traj_index += 1
+
+            
+            max_envy = 0
+
+            for theta1 in range(num_types):
+                for t1 in range(num_steps):
+                    for theta2 in range(num_types):
+                        for t2 in range(num_steps):
+                            max_envy = max(max_envy, utility_function(X_alg[t2, theta2], weight_matrix[theta1]) - utility_function(X_alg[t1, theta1], weight_matrix[theta1]))
+
+            final_avg_envy[ep] += max_envy
+        
+        
+    return (-1)*np.mean(final_avg_envy)
+
+
+
+def delta_COUNTERFACTUAL_ENVY(traj, env_config):
+    weight_matrix = env_config['weight_matrix']
+    utility_function = env_config['utility_function']
+    num_iter = traj[-1]['iter']+1
+    num_eps = traj[-1]['episode']+1
+    num_steps = traj[-1]['step']+1
+    num_types, num_commodities = traj[-1]['action'].shape 
+    final_avg_envy = np.zeros(num_eps)
+    
+    
+
+    prob, solver = generate_cvxpy_solve(num_types, num_commodities)
+
+
+    traj_index = 0
+    for iter_num in range(num_iter):
+
+        for ep in range(num_eps):
+
+            budget = np.copy(env_config['init_budget'])
+            X_alg = np.zeros((num_steps, num_types, num_commodities))
+            sizes = np.zeros((num_steps, num_types))
+
+            for step in range(num_steps):
+                cur_dict = traj[traj_index]
+
+                X_alg[step] = cur_dict['action']
+                sizes[step] = cur_dict['oldState'][num_commodities:]
+                traj_index += 1
+
+            
+            X_opt = offline_opt(budget, sizes, weight_matrix, solver)
+
+            max_envy = 0
+
+            for theta in range(num_types):
+                for t in range(num_steps):
+                    max_envy = max(max_envy, np.abs(utility_function(X_opt[t, theta], weight_matrix[theta]) - utility_function(X_alg[t, theta], weight_matrix[theta])))
+
+            final_avg_envy[ep] += max_envy
+        
+        
+    return (-1)*np.mean(final_avg_envy)
+
+
+    
+    
+    
+
+
+
+
+
+
+
+def delta_EXANTE_ENVY(traj, env_config):
+    weight_matrix = env_config['weight_matrix']
+    utility_function = env_config['utility_function']
+    num_iter = traj[-1]['iter']+1
+    num_eps = traj[-1]['episode']+1
+    num_steps = traj[-1]['step']+1
+    num_types, num_commodities = traj[-1]['action'].shape 
+    final_avg_envy = np.zeros(num_eps)
+    
+    
+
+    prob, solver = generate_cvxpy_solve(num_types, num_commodities)
+
+    X_alg = np.zeros((num_iter, num_eps, num_steps, num_types, num_commodities))
+    X_opt = np.zeros((num_iter, num_eps, num_steps, num_types, num_commodities))
+    
+    traj_index = 0
+    for iter_num in range(num_iter):
+
+        for ep in range(num_eps):
+
+            budget = np.copy(env_config['init_budget'])
+            sizes = np.zeros((num_steps, num_types))
+
+            for step in range(num_steps):
+                cur_dict = traj[traj_index]
+
+                X_alg[iter_num, ep, step] = cur_dict['action']
+                sizes[step] = cur_dict['oldState'][num_commodities:]
+                traj_index += 1
+
+            
+            X_opt[iter_num, ep] = offline_opt(budget, sizes, weight_matrix, solver)
+
+
+    for ep in range(num_eps):
+        max_envy = 0
+        for theta in range(num_types):
+            for t in range(num_steps):
+                avg_diff = 0
+                for iter_num in range(num_iter):
+                    avg_diff += utility_function(X_opt[iter_num, ep, theta], weight_matrix[theta]) - utility_function(X_alg[iter_num, ep, t, theta], weight_matrix[theta])
+                max_envy = max(max_envy, (1/num_iter)*avg_diff)
+        final_avg_envy[ep] = max_envy
+    return (-1)*np.mean(final_avg_envy)
