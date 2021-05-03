@@ -100,4 +100,4 @@ class eNetQL(Agent):
         actions = ()
         for val in action.T[index]:
             actions += (self.action_net[:,0][val],)
-        return actions
+        return np.asarray(actions)

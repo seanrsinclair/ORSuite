@@ -89,8 +89,8 @@ def response_time_variance(traj, dist):
     dists = []
     for i in range(len(traj)):
         cur_data = traj[i]
-        dists.append((-1)*np.min(dist(np.array(cur_data['action']),cur_data['info']['arrival'])))
-    return np.var(dists)
+        dists.append(np.min(dist(np.array(cur_data['action']),cur_data['info']['arrival'])))
+    return (-1)*np.var(dists)
 
 
 
