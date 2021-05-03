@@ -4,237 +4,117 @@ Adapted from code by Cornell University students Mohammad Kamil (mk848), Carrie 
 import numpy as np
 master_seed = 1
 
-def dynamics_model(parameters, population):
+def dynamics_model(params, pop):
     """
     A function to run SIR disease dynamics for 4 groups.
     
     Args
     ----
-    parameters : dict
-        DESCRIPTION.
-    population : numpy array with 11 entries
-        DESCRIPTION.
+    params: (dict) a dictionary containing the following keys and values
+        'contact_matrix': (np.array of floats) contact rates between susceptible people in each class and the infected people
+        'P': (np.array of floats) P = [p1 p2 p3 p4] where pi = Prob(symptomatic | infected) for a person in class i
+        'H': (np.array of floats) H = [h1 h2 h3 h4] where hi = Prob(hospitalized | symptomatic) for a person in class i
+        'beta': (float) recovery rate
+        'gamma': (int) vaccination rate
+        'vaccines': (int) number of vaccine available for this time period
+        'priority': (list of chars) vaccination priority order of the four groups
+        'time_step': (float) number of units of time you want the simulation to run for
+            e.g. if all your rates are per day and you want to simulate 7 days, time_step = 7
+    pop : (np.array of ints) the starting state [S1 S2 S3 S4 A1 A2 A3 A4 I H R]
 
     Returns
     -------
-    newState : numpy array wtih 11 entries
-        DESCRIPTION.
-    output_dictionary : dict
-        DESCRIPTION.
+    newState : (np.array of ints) the final state [S1 S2 S3 S4 A1 A2 A3 A4 I H N]
+        Note that instead of returning the final number of recovered people R, we return N, the number of infections that occurred
+    output_dictionary : (dict) a dictionary containing the following keys and values
+        'clock times': list of the times that each event happened
+        'c1 asymptomatic': list of counts of A1 for each time in clks
+        'c2 asymptomatic': list of counts of A2 for each time in clks
+        'c3 asymptomatic': list of counts of A3 for each time in clks
+        'c4 asymptomatic': list of counts of A4 for each time in clks
+        'mild symptomatic': list of counts of I for each time in clks
+        'hospitalized': list of counts of H for each time in clks
+        'c1 susceptible': list of counts of S1 for each time in clks
+        'c2 susceptible': list of counts of S2 for each time in clks
+        'c3 susceptible': list of counts of S3 for each time in clks
+        'c4 susceptible': list of counts of S4 for each time in clks
+        'recovered': list of counts of R for each time in clks
+        'total infected': int - total number of infected (including those that were already infected)
+        'total hospitalized': int - total number of hospitalized individuals (including those that were already hospitalized)
+        'vaccines': int - total number of vaccines left
+        
+            
         
     Typical usage example
     ----------------------
     newState, info = dynamics_model(parameters, population)
     """
-    
+    '''
     # extract population sizes from population np.array
-    c1_s, c2_s, c3_s, c4_s = population[0], population[1], population[2], population[3] # susceptible people per class 
-    c1_ia, c2_ia, c3_ia, c4_ia = population[4], population[5], population[6], population[7] # asymptomatic people per class
-    Is = population[8] # aggregate count for mild symptomatic infections
-    Hs = population[9] # aggregate count for hospitalized infected people for all classes
+    c1_s, c2_s, c3_s, c4_s = pop[0], pop[1], pop[2], pop[3] # susceptible people per class 
+    c1_ia, c2_ia, c3_ia, c4_ia = pop[4], pop[5], pop[6], pop[7] # asymptomatic people per class
+    Is = pop[8] # aggregate count for mild symptomatic infections
+    Hs = pop[9] # aggregate count for hospitalized infected people for all classes
     R = 0 # aggregate count for recovered people for all classes
+    '''
 
     # extract parameters from params dictionary
-    p1, p2, p3, p4 = parameters['p1'], parameters['p2'], parameters['p3'], parameters['p4']
-    h1, h2, h3, h4 = parameters['h1'], parameters['h2'], parameters['h3'], parameters['h4']
-    lambda_matrix = parameters['contact_matrix']
-    lambda_is = parameters['lambda_hosp']
-    gamma = parameters['gamma']
-    beta = parameters['beta']
-    priority_order = parameters['priority_order']
-    vaccines = parameters['vaccines']
-    time_step = parameters['time_step']
+    state = pop
+    P = params['P']
+    H = params['H']
+    LAMBDA = params['contact_matrix']
+    gamma = params['gamma']
+    beta = params['beta']
+    priority = params['priority_order']
+    vaccines = params['vaccines']
+    time_step = params['time_step']
 
     # output tracking
     clks = [0]
-    c1_infs = [c1_ia]
-    c2_infs = [c2_ia]
-    c3_infs = [c3_ia]
-    c4_infs = [c4_ia] 
-    Is_infs = [Is]
-    Hs_infs = [Hs]
-    c1_Ss = [c1_s]
-    c2_Ss = [c2_s]
-    c3_Ss = [c3_s]
-    c4_Ss = [c4_s]
-    Rs = [R]
-    total_infected = c1_ia + c2_ia + c3_ia + c4_ia + Is + Hs
-    total_hospitalized = Hs
+    c1_Ss = [state[0]]
+    c2_Ss = [state[1]]
+    c3_Ss = [state[2]]
+    c4_Ss = [state[3]]
+    c1_infs = [state[4]]
+    c2_infs = [state[5]]
+    c3_infs = [state[6]]
+    c4_infs = [state[7]] 
+    Is_infs = [state[8]]
+    Hs_infs = [state[9]]
+    Rs = [state[10]]
+    total_infected = np.sum(state[4:9])
+    total_hospitalized = state[9]
     # failed_vaccines = 0
     hosp_flag = False
-    new_infections = total_infected 
+    new_infections = 0
 
-    # rates scaled
-    c1_c1_rate = lambda_matrix[0,0]*2*c1_s*c1_ia
-    c2_c2_rate = lambda_matrix[1,1]*2*c2_s*c2_ia
-    c3_c3_rate = lambda_matrix[2,2]*2*c3_s*c3_ia
-    c4_c4_rate = lambda_matrix[3,3]*2*c4_s*c4_ia
+    # initialize variable that will hold all 22 event rates
+    rates = np.zeros(shape=(1,22))
+    
+    # compute the rates for the 12 infection events
+    
 
-    c1_c2_rate = lambda_matrix[0,1]*(c1_s*c2_ia + c2_s*c1_ia)
-    c1_c3_rate = lambda_matrix[0,2]*(c1_s*c3_ia + c3_s*c1_ia)
-    c1_c4_rate = lambda_matrix[0,3]*(c1_s*c4_ia + c4_s*c1_ia)
-
-    c2_c3_rate = lambda_matrix[1,2]*(c2_s*c3_ia + c3_s*c2_ia)
-    c2_c4_rate = lambda_matrix[1,3]*(c2_s*c4_ia + c4_s*c2_ia)
-
-    c3_c4_rate = lambda_matrix[2,3]*(c3_s*c4_ia + c4_s*c3_ia)
-
-    c1_is_rate = lambda_is*c1_s*Hs
-
-    healing_rate = beta*(c1_ia+c2_ia+c3_ia+c4_ia+Hs+Is)
-    vaccine_rate = gamma
-
-    rate_sum = (c1_c1_rate + c2_c2_rate + c3_c3_rate + c4_c4_rate + c1_c2_rate + c1_c3_rate + 
-              c1_c4_rate + c2_c3_rate + c2_c4_rate + c3_c4_rate + c1_is_rate + healing_rate + vaccine_rate)
+    rate_sum = np.sum(rates)
 
     nxt = np.random.exponential(1/rate_sum)
     clk = 0
 
     if time_step <= 0:
-        end_condition = lambda: (c1_ia > 0 or c2_ia > 0 or c3_ia > 0 or c4_ia > 0 or Hs > 0 or Is > 0)
+        end_condition = lambda: (np.sum(state[4:9]) > 0)
     else:
         end_condition = lambda: (clk <= time_step)
 
     while end_condition(): 
         clk += nxt
         prob = np.random.uniform()
+        pass
 
-        ## intraclass meetings
-        # c1 <-> c1
-        if prob < c1_c1_rate / rate_sum:
-            c1_ia, c1_s, Hs, total_infected, Is, hosp_flag = intraclass_meeting(ia=c1_ia,s=c1_s,p=p1,h=h1,Hs=Hs,infected=total_infected,Is=Is)
- 
-        # c2 <-> c2
-        elif prob < (c1_c1_rate + c2_c2_rate)  / rate_sum:
-            c2_ia, c2_s, Hs, total_infected, Is, hosp_flag = intraclass_meeting(ia=c2_ia,s=c2_s,p=p2,h=h2,Hs=Hs,infected=total_infected,Is=Is)
- 
-        # c3 <-> c3
-        elif prob < (c1_c1_rate + c2_c2_rate + c3_c3_rate)  / rate_sum:
-            c3_ia, c3_s, Hs, total_infected, Is, hosp_flag = intraclass_meeting(ia=c3_ia,s=c3_s,p=p3,h=h3,Hs=Hs,infected=total_infected,Is=Is)
-    
-        # c4 <-> c4
-        elif prob < (c1_c1_rate + c2_c2_rate + c3_c3_rate + c4_c4_rate)  / rate_sum:
-            c4_ia, c4_s, Hs, total_infected, Is, hosp_flag = intraclass_meeting(ia=c4_ia,s=c4_s,p=p4,h=h4,Hs=Hs,infected=total_infected,Is=Is)
- 
-        ## interclass meetings
-        # c1 <-> c2
-        elif prob < (c1_c1_rate + c2_c2_rate + c3_c3_rate + c4_c4_rate + c1_c2_rate)  / rate_sum:
-            c1_ia, c1_s, c2_ia, c2_s, Hs, total_infected, Is, hosp_flag = interclass_meeting(ia_1st=c1_ia,s_1st=c1_s,ia_2nd=c2_ia,s_2nd=c2_s,p_1st=p1,p_2nd=p2,h_1st=h1,h_2nd=h2,Hs=Hs,infected=total_infected,Is=Is)
- 
-        # c1 <-> c3
-        elif prob < (c1_c1_rate + c2_c2_rate + c3_c3_rate + c4_c4_rate + c1_c2_rate + c1_c3_rate)  / rate_sum:
-            c1_ia, c1_s, c3_ia, c3_s, Hs, total_infected, Is, hosp_flag = interclass_meeting(ia_1st=c1_ia,s_1st=c1_s,ia_2nd=c3_ia,s_2nd=c3_s,p_1st=p1,p_2nd=p3,h_1st=h1,h_2nd=h3,Hs=Hs,infected=total_infected,Is=Is)
-    
-        # c1 <-> c4
-        elif prob < (c1_c1_rate + c2_c2_rate + c3_c3_rate + c4_c4_rate + c1_c2_rate + c1_c3_rate + c1_c4_rate)  / rate_sum:
-            c1_ia, c1_s, c4_ia, c4_s, Hs, total_infected, Is, hosp_flag = interclass_meeting(ia_1st=c1_ia,s_1st=c1_s,ia_2nd=c4_ia,s_2nd=c4_s,p_1st=p1,p_2nd=p4,h_1st=h1,h_2nd=h4,Hs=Hs,infected=total_infected,Is=Is)
-    
-        # c2 <-> c3
-        elif prob < (c1_c1_rate + c2_c2_rate + c3_c3_rate + c4_c4_rate + c1_c2_rate + c1_c3_rate + c1_c4_rate + c2_c3_rate)  / rate_sum:
-            c2_ia, c2_s, c3_ia, c3_s, Hs, total_infected, Is, hosp_flag = interclass_meeting(ia_1st=c2_ia,s_1st=c2_s,ia_2nd=c3_ia,s_2nd=c3_s,p_1st=p2,p_2nd=p3,h_1st=h2,h_2nd=h3,Hs=Hs,infected=total_infected,Is=Is)
- 
-        # c2 <-> c4
-        elif prob < (c1_c1_rate + c2_c2_rate + c3_c3_rate + c4_c4_rate + c1_c2_rate + c1_c3_rate + c1_c4_rate + c2_c3_rate + c2_c4_rate)  / rate_sum:
-            c2_ia, c2_s, c4_ia, c4_s, Hs, total_infected, Is, hosp_flag = interclass_meeting(ia_1st=c2_ia,s_1st=c2_s,ia_2nd=c4_ia,s_2nd=c4_s,p_1st=p2,p_2nd=p4,h_1st=h2,h_2nd=h4,Hs=Hs,infected=total_infected,Is=Is)
- 
-        # c3 <-> c4
-        elif prob < (c1_c1_rate + c2_c2_rate + c3_c3_rate + c4_c4_rate + c1_c2_rate + c1_c3_rate + c1_c4_rate + c2_c3_rate + c2_c4_rate + c3_c4_rate)  / rate_sum:
-            c3_ia, c3_s, c4_ia, c4_s, Hs, total_infected, Is, hosp_flag = interclass_meeting(ia_1st=c3_ia,s_1st=c3_s,ia_2nd=c4_ia,s_2nd=c4_s,p_1st=p3,p_2nd=p4,h_1st=h3,h_2nd=h4,Hs=Hs,infected=total_infected,Is=Is)
- 
-        # c1 <-> Hs
-        elif prob < (c1_c1_rate + c2_c2_rate + c3_c3_rate + c4_c4_rate + c1_c2_rate + c1_c3_rate + c1_c4_rate + c2_c3_rate + c2_c4_rate + c3_c4_rate + c1_is_rate)  / rate_sum:
-            U = np.random.uniform()
-            if c1_s > 0:
-                c1_s -= 1
-                total_infected += 1
-                if U < p1:
-                    U2 = np.random.uniform()
-                    if U2 < h1:
-                        Hs += 1
-                        hosp_flag = True
-                    else:
-                        Is += 1
-                else:
-                    c1_ia += 1
- 
-        # healing
-        elif prob < (c1_c1_rate + c2_c2_rate + c3_c3_rate + c4_c4_rate + c1_c2_rate + c1_c3_rate + c1_c4_rate + c2_c3_rate + c2_c4_rate + c3_c4_rate + c1_is_rate + healing_rate)  / rate_sum:
-            U = np.random.uniform()
-            inf_sum = c1_ia + c2_ia + c3_ia + c4_ia + Hs + Is
-            if inf_sum > 0:
-                R += 1
-                if U < c1_ia / inf_sum:
-                    c1_ia -= 1
-                elif U < (c1_ia + c2_ia) / inf_sum:
-                    c2_ia -= 1
-                elif U < (c1_ia + c2_ia + c3_ia) / inf_sum:
-                    c3_ia -= 1
-                elif U < (c1_ia + c2_ia + c3_ia + c4_ia) / inf_sum:
-                    c4_ia -= 1
-                elif U < (c1_ia + c2_ia + c3_ia + c4_ia + Hs) / inf_sum:
-                    Hs -= 1
-                else:
-                    Is -= 1
- 
-        # vaccination
-        else:
-            susc_sum = c1_s + c2_s + c3_s + c4_s
-            if (vaccines > 0 and susc_sum > 0):
-                R += 1
-                vaccines -= 1
-                if priority_order == []:
-                    U = np.random.uniform()
-                    if susc_sum > 0:
-                        if U < c1_s / susc_sum:
-                            c1_s -= 1
-                        elif U < (c1_s + c2_s) / susc_sum:
-                            c2_s -= 1
-                        elif U < (c1_s + c2_s + c3_s) / susc_sum:
-                            c3_s -= 1
-                        else:
-                            c4_s -= 1
-                else:
-                    if priority_order[0] == "c1":
-                        if c1_s > 0:
-                            c1_s -= 1
-                        else:
-                            priority_order.pop(0)
-                    elif priority_order[0] == "c2":
-                        if c2_s > 0:
-                            c2_s -= 1
-                        else:
-                            priority_order.pop(0)
-                    elif priority_order[0] == "c3":
-                        if c3_s > 0:
-                            c3_s -= 1
-                        else:
-                            priority_order.pop(0)
-                    else:
-                        if c4_s > 0:
-                            c4_s -= 1
-                        else:
-                            priority_order.pop(0)
-         
         # update variable rates and calculate next event [nxt] 
-        c1_c1_rate = lambda_matrix[0,0]*2*c1_s*c1_ia
-        c2_c2_rate = lambda_matrix[1,1]*2*c2_s*c2_ia
-        c3_c3_rate = lambda_matrix[2,2]*2*c3_s*c3_ia
-        c4_c4_rate = lambda_matrix[3,3]*2*c4_s*c4_ia
-     
-        c1_c2_rate = lambda_matrix[0,1]*(c1_s*c2_ia + c2_s*c1_ia)
-        c1_c3_rate = lambda_matrix[0,2]*(c1_s*c3_ia + c3_s*c1_ia)
-        c1_c4_rate = lambda_matrix[0,3]*(c1_s*c4_ia + c4_s*c1_ia)
-     
-        c2_c3_rate = lambda_matrix[1,2]*(c2_s*c3_ia + c3_s*c2_ia)
-        c2_c4_rate = lambda_matrix[1,3]*(c2_s*c4_ia + c4_s*c2_ia)
-     
-        c3_c4_rate = lambda_matrix[2,3]*(c3_s*c4_ia + c4_s*c3_ia)
-     
-        c1_is_rate = lambda_is*c1_s*Hs
-     
-        healing_rate = beta*(c1_ia+c2_ia+c3_ia+c4_ia+Hs+Is)
+        rates[0:3] = np.multiply(np.matmul(LAMBDA,state[4:10]),state[0:3])
+        rates[4] = beta*np.sum(state[4:10]) # recovery rate
+        rates[5] = gamma # vaccination rate
     
-        rate_sum = (c1_c1_rate + c2_c2_rate + c3_c3_rate + c4_c4_rate + c1_c2_rate + c1_c3_rate + c1_c4_rate + c2_c3_rate + c2_c4_rate + c3_c4_rate + c1_is_rate + healing_rate + vaccine_rate)
+        rate_sum = np.sum(rates)
     
         if rate_sum > 0:
             nxt = np.random.exponential(1/rate_sum)
@@ -242,32 +122,32 @@ def dynamics_model(parameters, population):
             break
  
         # output tracking
-        clks.append(clk)
-        c1_infs.append(c1_ia)
-        c2_infs.append(c2_ia)
-        c3_infs.append(c3_ia)
-        c4_infs.append(c4_ia) 
-        Is_infs.append(Is)
-        Hs_infs.append(Hs)
-        c1_Ss.append(c1_s)
-        c2_Ss.append(c2_s)
-        c3_Ss.append(c3_s)
-        c4_Ss.append(c4_s)
-        Rs.append(R)
+        clks = [0]
+        c1_Ss = [state[0]]
+        c2_Ss = [state[1]]
+        c3_Ss = [state[2]]
+        c4_Ss = [state[3]]
+        c1_infs = [state[4]]
+        c2_infs = [state[5]]
+        c3_infs = [state[6]]
+        c4_infs = [state[7]] 
+        Is_infs = [state[8]]
+        Hs_infs = [state[9]]
+        Rs = [state[10]]
         if hosp_flag:
             total_hospitalized += 1
             hosp_flag = False
 
-        if c1_ia + c2_ia + c3_ia + c4_ia + Hs + Is <= 0:
+        if np.sum(state[4:10]) <= 0:
             #print("Reached a disease-free state on day " + str(clk))
             break
 
     new_infections = total_infected - new_infections
 
-    newState = np.array([c1_s, c2_s, c3_s, c4_s, c1_ia, c2_ia, c3_ia, c4_ia, Is, Hs, new_infections])
+    newState = state
 
     output_dictionary = {'clock times': clks, 'c1 asymptomatic': c1_infs, 'c2 asymptomatic': c2_infs, 'c3 asymptomatic': c3_infs,
-                         'c4 asymptomatic': c4_infs, 'mild symptomatic array': Is_infs, 'hospitalized array': Hs_infs, 'c1 susceptible': c1_Ss,
+                         'c4 asymptomatic': c4_infs, 'mild symptomatic': Is_infs, 'hospitalized': Hs_infs, 'c1 susceptible': c1_Ss,
                          'c2 susceptible': c2_Ss, 'c3 susceptible': c3_Ss, 'c4 susceptible': c4_Ss, 'recovered': Rs, 'total infected': total_infected,
                          'total hospitalized': total_hospitalized, 'vaccines': vaccines}
     return newState, output_dictionary
@@ -277,7 +157,11 @@ def intraclass_meeting(ia,s,p,h,Hs,infected,Is,flag=False):
     """
     A function to represent an interaction within a group (i.e. group i with group i).
     
-    This function is called by dynamics_model and shouldn't be called externally by the user.
+    Note: This function is called by dynamics_model and shouldn't be called externally by the user.
+    
+    Args
+    ----
+    
     """
     U = np.random.uniform()
     infs = infected
@@ -301,7 +185,11 @@ def interclass_meeting(ia_1st,s_1st,ia_2nd,s_2nd,p_1st,p_2nd,h_1st,h_2nd,Hs,infe
     """
     A function implementing an interaction between two different groups (i.e. group i with group j where i =/= j).
     
-    This function is called by dynamics_model and shouldn't be called externally by the user.
+    Note: This function is called by dynamics_model and shouldn't be called externally by the user.
+    
+    Args
+    ----
+    
     """
     prop = (ia_1st + s_2nd) / (s_1st + ia_1st + s_2nd + ia_2nd)
     U1 = np.random.uniform()
