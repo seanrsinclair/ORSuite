@@ -83,8 +83,8 @@ rideshare_graph_default_config = {
 oil_environment_default_config = {
     'epLen': 5,
     'dim': 1,
-    'starting_state' : [0],
-    'oil_prob': lambda x,a,h : np.exp((-1)*np.abs(x-a)),
+    'starting_state' : np.asarray([0]),
+    'oil_prob': lambda x,a,h : np.exp((-1)*np.sum(np.abs(x-a))),
     'cost_param' : 0,
     'noise_variance' : lambda x,a,h : 0
 
