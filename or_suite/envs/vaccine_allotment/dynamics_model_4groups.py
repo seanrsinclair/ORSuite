@@ -49,14 +49,6 @@ def dynamics_model(params, pop):
     ----------------------
     newState, info = dynamics_model(parameters, population)
     """
-    '''
-    # extract population sizes from population np.array
-    c1_s, c2_s, c3_s, c4_s = pop[0], pop[1], pop[2], pop[3] # susceptible people per class 
-    c1_ia, c2_ia, c3_ia, c4_ia = pop[4], pop[5], pop[6], pop[7] # asymptomatic people per class
-    Is = pop[8] # aggregate count for mild symptomatic infections
-    Hs = pop[9] # aggregate count for hospitalized infected people for all classes
-    R = 0 # aggregate count for recovered people for all classes
-    '''
 
     # extract parameters from params dictionary
     state = pop
@@ -82,68 +74,104 @@ def dynamics_model(params, pop):
     Is_infs = [state[8]]
     Hs_infs = [state[9]]
     Rs = [state[10]]
-    total_infected = np.sum(state[4:9])
-    total_hospitalized = state[9]
-    # failed_vaccines = 0
-    hosp_flag = False
-    new_infections = 0
+    
+    # first priority group
+    priority_group = int(priority[0]) - 1
+    priority.pop(0)
+    
+    # TODO: Verify these are all correct!!!!
+    # possible state changes
+    # each index correponds to an event and has a value [i,j]
+    # the state change is state[i]-- and state[j]++
+    state_changes = {0: [0,4], 1: [0,8], 2: [0,9], 3: [1,5],
+                     4: [1,8], 5: [1,9], 6: [2,6], 7: [2,8],
+                     8: [2,9], 9: [3,7], 10: [3,8], 11: [3,9],
+                     12: [4,10], 13: [5,10], 14: [6,10], 15: [7,10],
+                     16: [8,10], 17: [9,10], 18: [0,10], 19: [1,10],
+                     20: [2,10], 21: [3,10]}
 
-    # initialize variable that will hold all 22 event rates
+    # rates for all 22 events
     rates = np.zeros(shape=(1,22))
     
-    # compute the rates for the 12 infection events
+    # counts for each of the 22 events
+    event_counts = np.zeros(shape=(1,22))
     
+    # compute the probabilities associated with each of the 12 infection rates
+    probs = np.zeros(shape=(1,12))
+    probs[[0,3,6,9]] = 1 - P
+    probs[[1,4,7,10]] = np.multiply(P,1-H)
+    probs[[2,5,8,11]] = np.multiply(P,H)
+    
+    # compute the rates for the 12 infection events
+    inf_rates = np.matmul(np.matmul(np.diag(state[0:3]),LAMBDA),state[4:9])
+    inf_rates = np.repeat(inf_rates, repeats = 3, axis = 0)
+    rates[0:11] = np.multiply(probs, inf_rates)
+    
+    # compute the rates for the 6 recovery events
+    rates[12:17] = beta * state[4:9]
+    
+    #compute the rates for the vaccination events
+    rates[priority_group + 18] = gamma
 
     rate_sum = np.sum(rates)
 
     nxt = np.random.exponential(1/rate_sum)
     clk = 0
+    
+    max_vacc_events = gamma*time_step
 
-    if time_step <= 0:
-        end_condition = lambda: (np.sum(state[4:9]) > 0)
-    else:
-        end_condition = lambda: (clk <= time_step)
-
-    while end_condition(): 
+    while np.sum(event_counts[18:21] < max_vacc_events): 
         clk += nxt
-        prob = np.random.uniform()
-        pass
+        
+        # get the index of the event that is happening
+        index = np.random.choice(22, 1, p = rates/rate_sum)
+        
+        if index in np.arange(18,22):
+            # update vaccination rate
+            pass
+        else:
+            state[state_changes[index][0]] -= 1
+            state[state_changes[index][1]] += 1
+            event_counts[index] += 1
 
-        # update variable rates and calculate next event [nxt] 
-        rates[0:3] = np.multiply(np.matmul(LAMBDA,state[4:10]),state[0:3])
-        rates[4] = beta*np.sum(state[4:10]) # recovery rate
-        rates[5] = gamma # vaccination rate
+        # update infection and recovery rates 
+        ## 12 infection events
+        inf_rates = np.matmul(np.matmul(np.diag(state[0:3]),LAMBDA),state[4:9])
+        inf_rates = np.repeat(inf_rates, repeats = 3, axis = 0)
+        rates[0:11] = np.multiply(probs, inf_rates)
+        
+        ## 6 recovery events
+        rates[12:17] = beta * state[4:9]
     
         rate_sum = np.sum(rates)
     
         if rate_sum > 0:
             nxt = np.random.exponential(1/rate_sum)
         else:
+            print("The sum of the rates is less than or equal to zero!")
             break
  
         # output tracking
-        clks = [0]
-        c1_Ss = [state[0]]
-        c2_Ss = [state[1]]
-        c3_Ss = [state[2]]
-        c4_Ss = [state[3]]
-        c1_infs = [state[4]]
-        c2_infs = [state[5]]
-        c3_infs = [state[6]]
-        c4_infs = [state[7]] 
-        Is_infs = [state[8]]
-        Hs_infs = [state[9]]
-        Rs = [state[10]]
-        if hosp_flag:
-            total_hospitalized += 1
-            hosp_flag = False
+        clks.append(clk)
+        c1_Ss.append(state[0])
+        c2_Ss.append(state[1])
+        c3_Ss.append(state[2])
+        c4_Ss.append(state[3])
+        c1_infs.append(state[4])
+        c2_infs.append(state[5])
+        c3_infs.append(state[6])
+        c4_infs.append(state[7])
+        Is_infs.append(state[8])
+        Hs_infs.append(state[9])
+        Rs.append(state[10])
 
         if np.sum(state[4:10]) <= 0:
-            #print("Reached a disease-free state on day " + str(clk))
+            print("Reached a disease-free state on day " + str(clk))
             break
 
-    new_infections = total_infected - new_infections
-
+    new_infections = np.sum(event_counts[0:11])
+    total_infected = new_infections + np.sum(pop[4:9])
+    total_hospitalized = np.sum(event_counts[2,5,8,11]) + pop[9]
     newState = state
 
     output_dictionary = {'clock times': clks, 'c1 asymptomatic': c1_infs, 'c2 asymptomatic': c2_infs, 'c3 asymptomatic': c3_infs,
@@ -152,74 +180,3 @@ def dynamics_model(params, pop):
                          'total hospitalized': total_hospitalized, 'vaccines': vaccines}
     return newState, output_dictionary
 
-
-def intraclass_meeting(ia,s,p,h,Hs,infected,Is,flag=False):
-    """
-    A function to represent an interaction within a group (i.e. group i with group i).
-    
-    Note: This function is called by dynamics_model and shouldn't be called externally by the user.
-    
-    Args
-    ----
-    
-    """
-    U = np.random.uniform()
-    infs = infected
-    infs_mild = Is
-    if s > 0:
-        s -= 1
-        infs += 1
-        if U < p:
-            U2 = np.random.uniform()
-            if U2 < h:
-                Hs += 1
-                flag = True
-            else:
-                infs_mild += 1
-        else:
-            ia += 1
-    return ia,s,Hs,infs,infs_mild, flag
-
-
-def interclass_meeting(ia_1st,s_1st,ia_2nd,s_2nd,p_1st,p_2nd,h_1st,h_2nd,Hs,infected,Is,flag=False):
-    """
-    A function implementing an interaction between two different groups (i.e. group i with group j where i =/= j).
-    
-    Note: This function is called by dynamics_model and shouldn't be called externally by the user.
-    
-    Args
-    ----
-    
-    """
-    prop = (ia_1st + s_2nd) / (s_1st + ia_1st + s_2nd + ia_2nd)
-    U1 = np.random.uniform()
-    U2 = np.random.uniform()
-    infs = infected
-    infs_mild = Is
-    if U1 < prop:
-        if s_2nd > 0:
-            s_2nd -= 1
-            infs += 1
-            if U2 < p_2nd:
-                U3 = np.random.uniform()
-                if U3 < h_2nd:
-                    Hs += 1
-                    flag = True
-                else:
-                    infs_mild += 1
-            else:
-                ia_2nd += 1
-    else:
-        if s_1st > 0:
-            s_1st -= 1
-            infs += 1
-            if U2 < p_1st:
-                U3 = np.random.uniform()
-                if U3 < h_1st:
-                    Hs += 1
-                    flag = True
-                else:
-                    infs_mild += 1
-            else:
-                ia_1st += 1
-    return ia_1st,s_1st,ia_2nd,s_2nd,Hs,infs,infs_mild,flag
