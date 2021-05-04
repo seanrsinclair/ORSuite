@@ -50,7 +50,7 @@ def dynamics_model(params, pop):
     newState, info = dynamics_model(parameters, population)
     """
 
-    # extract parameters from params dictionary
+    # extract arguments from params dictionary
     state = pop
     P = params['P']
     H = params['H']
@@ -81,7 +81,7 @@ def dynamics_model(params, pop):
     
     # TODO: Verify these are all correct!!!!
     # possible state changes
-    # each index correponds to an event and has a value [i,j]
+    # each key correponds to the index of an event in rates and has a value [i,j]
     # the state change is state[i]-- and state[j]++
     state_changes = {0: [0,4], 1: [0,8], 2: [0,9], 3: [1,5],
                      4: [1,8], 5: [1,9], 6: [2,6], 7: [2,8],
@@ -110,25 +110,32 @@ def dynamics_model(params, pop):
     # compute the rates for the 6 recovery events
     rates[12:17] = beta * state[4:9]
     
-    #compute the rates for the vaccination events
+    # compute the rates for the vaccination events
     rates[priority_group + 18] = gamma
     
-    #flag for
+    # flag - if true, we have not run out of vaccines or people to vaccinate yet 
+    #      - if false, either there are no vaccines left or no people to vaccinate
+    # once set to False, it remains False
     vaccFlag = True
 
     rate_sum = np.sum(rates)
 
+    # exponential timer
     nxt = np.random.exponential(1/rate_sum)
     clk = 0
     
+    # maximum number of vaccination events that we want to happen
     max_vacc_events = gamma*time_step
 
-    while np.sum(event_counts[18:21] < max_vacc_events): 
+    # We will simulate the Markov chain until we've reached max_vacc_events vaccination events
+    while np.sum(event_counts[18:21]) < max_vacc_events: 
         clk += nxt
         
         # get the index of the event that is happening
         index = np.random.choice(22, 1, p = rates/rate_sum)
         
+        # if this is a vaccination event, call vacc_update
+        # otherwise, simple state change
         if index in np.arange(18,22):
             state, event_counts, vaccFlag, priority_group, priority, vaccines = vacc_update(state=state, 
                                                                                             changes=state_changes, 
@@ -157,6 +164,7 @@ def dynamics_model(params, pop):
     
         rate_sum = np.sum(rates)
     
+        # TODO: not sure if this conditional is necessary
         if rate_sum > 0:
             nxt = np.random.exponential(1/rate_sum)
         else:
@@ -164,6 +172,7 @@ def dynamics_model(params, pop):
             break
  
         # output tracking
+        # TODO: might be an easier way to store this... maybe just store each state in a list
         clks.append(clk)
         c1_Ss.append(state[0])
         c2_Ss.append(state[1])
@@ -177,6 +186,8 @@ def dynamics_model(params, pop):
         Hs_infs.append(state[9])
         Rs.append(state[10])
 
+        # if there are no more infected individuals, the simulation should end
+        # TODO: should we keep this? 
         if np.sum(state[4:10]) <= 0:
             print("Reached a disease-free state on day " + str(clk))
             break
@@ -193,9 +204,28 @@ def dynamics_model(params, pop):
     return newState, output_dictionary
 
 def vacc_update(state, changes, ind, count, flag, group, priority, vaccines):
+    newState = state
     if flag:
-        pass
+        if vaccines > 0:
+            newState[changes[ind][0]] -= 1
+            newState[changes[ind][1]] += 1
+            vaccines -= 1
+            while np.any(newState < 0):
+                newState = state
+                vaccines += 1
+                if len(priority) != 0:
+                    group = int(priority[0]) - 1
+                    priority.pop(0)
+                    newState[changes[group+18][0]] -= 1
+                    newState[changes[group+18][1]] += 1
+                    vaccines -= 1
+                else:
+                    flag = False
+            count[group+18] += 1
+                    
+        else:
+            count[ind] += 1
+            flag = False
     else:
-        count[index] += 1
-        newState = state
-    return newState, count, flag, priority_group, priority, vaccines
+        count[ind] += 1
+    return newState, count, flag, group, priority, vaccines
