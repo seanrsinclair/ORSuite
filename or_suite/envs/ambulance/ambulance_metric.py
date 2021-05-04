@@ -177,6 +177,11 @@ class AmbulanceEnvironment(gym.Env):
       self.viewer.text(text, line_x1, 100)
       self.viewer.line(line_x1, line_x2, line_y, width=2, color=rendering.WHITE)
 
+  def draw_ambulances(self, locations, line_x1, line_x2, line_y, ambulance):
+      for loc in locations:
+            self.viewer.image(line_x1 + (line_x2 - line_x1) * loc, line_y, ambulance, 0.15)
+            # self.viewer.circle(line_x1 + (line_x2 - line_x1) * loc, line_y, radius=5, color=rendering.RED)
+
 
   def render(self, mode='human'):
       # Renders the environment using a pyglet window
@@ -186,6 +191,9 @@ class AmbulanceEnvironment(gym.Env):
       line_x2 = 550
       line_y = 300
 
+      ambulance = pyglet.image.load('images/ambulance.jpg')
+      call = pyglet.image.load('images/call.jpg')
+
       if self.viewer is None:
           self.viewer = rendering.PygletWindow(screen_width + 50, screen_height + 50)
 
@@ -193,32 +201,24 @@ class AmbulanceEnvironment(gym.Env):
       if self.most_recent_action is not None:
 
           self.reset_current_step("Action chosen", line_x1, line_x2, line_y)
-
-          for loc in self.most_recent_action:
-              ambulance = pyglet.image.load('images/ambulance.png')
-              self.viewer.image(line_x1 + (line_x2 - line_x1) * loc, line_y, ambulance)
-            #   self.viewer.circle(line_x1 + (line_x2 - line_x1) * loc, line_y, radius=5, color=rendering.RED)
-
+          self.draw_ambulances(self.most_recent_action, line_x1, line_x2, line_y, ambulance)
           self.viewer.update()
           time.sleep(2)
 
 
           self.reset_current_step("Call arrival", line_x1, line_x2, line_y)
-
-          for loc in self.most_recent_action:
-              self.viewer.circle(line_x1 + (line_x2 - line_x1) * loc, line_y, radius=5, color=rendering.RED)
-
+          self.draw_ambulances(self.most_recent_action, line_x1, line_x2, line_y, ambulance)
+          
           arrival_loc = self.state[np.argmax(np.abs(self.state - self.most_recent_action))]
-          self.viewer.circle(line_x1 + (line_x2 - line_x1) * arrival_loc, line_y, radius=5, color=rendering.GREEN)
-
+          self.viewer.image(line_x1 + (line_x2 - line_x1) * arrival_loc, line_y, call, 0.05)
+        #   self.viewer.circle(line_x1 + (line_x2 - line_x1) * arrival_loc, line_y, radius=5, color=rendering.GREEN)
           self.viewer.update()
           time.sleep(2)
 
 
       self.reset_current_step("Iteration ending state", line_x1, line_x2, line_y)
 
-      for loc in self.state:
-          self.viewer.circle(line_x1 + (line_x2 - line_x1) * loc, line_y, radius=5, color=rendering.RED)
+      self.draw_ambulances(self.state, line_x1, line_x2, line_y, ambulance)
 
       self.viewer.update()
       time.sleep(2)

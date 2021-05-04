@@ -1,5 +1,6 @@
 import numpy as np
 import pyglet
+from pyglet.gl import *
 
 __author__ = 'Nicolas Dickreuter'
 """
@@ -44,10 +45,13 @@ class PygletWindow:
         line = pyglet.shapes.Line(x1, y, x2, y, width, color)
         line.draw()
 
-    def image(self, x, y, image):
+    def image(self, x, y, image, scale):
+        y = self.top - y
         image.anchor_x = image.width // 2
         image.anchor_y = image.height // 2
-        image.blit(x, y)
+        sprite = pyglet.sprite.Sprite(image, x, y)
+        sprite.scale = scale
+        sprite.draw()
 
     def reset(self):
         """New frame"""
