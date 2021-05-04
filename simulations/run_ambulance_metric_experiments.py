@@ -24,8 +24,8 @@ from joblib import Parallel, delayed
 
 DEFAULT_CONFIG =  or_suite.envs.env_configs.ambulance_metric_default_config
 epLen = DEFAULT_CONFIG['epLen']
-nEps = 1
-numIters = 1
+nEps = 500
+numIters = 100
 
 epsilon = (nEps * epLen)**(-1 / 4)
 action_net = np.arange(start=0, stop=1, step=epsilon)
@@ -66,12 +66,12 @@ def uniform(step):
 def beta(step):
     return np.random.beta(5,2)
 
-# arrival_dists = [shifting, uniform, beta]
-arrival_dists = [beta]
-# num_ambulances = [1,3]
-num_ambulances = [1]
-# alphas = [0, 0.25, 1]
-alphas = [0]
+arrival_dists = [shifting, uniform, beta]
+# arrival_dists = [beta]
+num_ambulances = [1,2]
+# num_ambulances = [1]
+alphas = [0, 0.25, 1]
+# alphas = [0]
 
 for num_ambulance in num_ambulances:
     for alpha in alphas:
@@ -116,6 +116,12 @@ for num_ambulance in num_ambulances:
                 if agent != 'SB PPO':
                     path_list_radar.append('../data/ambulance_metric_'+str(agent)+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__))
                     algo_list_radar.append(str(agent))
+
+                file_name = '../data/ambulance_metric_'+str(agent)+'_'+str(dim)+'_'+str(cost_param)+'_'+str(prob.__name__)+'/agent.obj'
+                outfile = open(file_name, 'wb')
+                pickle.dump(agent, outfile)
+                outfile.close()
+
 
             fig_path = '../figures/'
             fig_name = 'ambulance_metric'+'_'+str(num_ambulance)+'_'+str(alpha)+'_'+str(arrival_dist.__name__)+'_line_plot'+'.pdf'

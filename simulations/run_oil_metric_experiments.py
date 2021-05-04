@@ -5,6 +5,7 @@ sys.path.append('../')
 
 import numpy as np
 import gym
+import pickle
 
 import or_suite
 
@@ -25,8 +26,8 @@ from joblib import Parallel, delayed
 
 DEFAULT_CONFIG =  or_suite.envs.env_configs.oil_environment_default_config
 epLen = DEFAULT_CONFIG['epLen']
-nEps = 500
-numIters = 50
+nEps = 50
+numIters = 10
 
 epsilon = (nEps * epLen)**(-1 / 4)
 action_net = np.arange(start=0, stop=1, step=epsilon)
@@ -50,7 +51,7 @@ DEFAULT_SETTINGS = {'seed': 1,
                     }
 
 def laplace(x,a,h, lam):
-    return np.exp((-1)*lam*np.sum(np.abs(x-a)))
+    return np.exp((-1)*lam*np.sum(np.abs(x-0.11*h)))
 
 # probs = [shifting, uniform, beta]
 prob_list = [laplace]
@@ -99,6 +100,10 @@ for dim in dim_list:
                 if agent != 'SB PPO':
                     path_list_radar.append('../data/oil_metric_'+str(agent)+'_'+str(dim)+'_'+str(cost_param)+'_'+str(prob.__name__))
                     algo_list_radar.append(str(agent))
+                file_name = '../data/oil_metric_'+str(agent)+'_'+str(dim)+'_'+str(cost_param)+'_'+str(prob.__name__)+'/agent.obj'
+                outfile = open(file_name, 'wb')
+                pickle.dump(agent, outfile)
+                outfile.close()
 
             fig_path = '../figures/'
             fig_name = 'oil_metric'+'_'+str(dim)+'_'+str(cost_param)+'_'+str(prob.__name__)+'_line_plot'+'.pdf'
