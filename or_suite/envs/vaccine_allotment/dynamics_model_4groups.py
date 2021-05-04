@@ -112,6 +112,9 @@ def dynamics_model(params, pop):
     
     #compute the rates for the vaccination events
     rates[priority_group + 18] = gamma
+    
+    #flag for
+    vaccFlag = True
 
     rate_sum = np.sum(rates)
 
@@ -127,8 +130,17 @@ def dynamics_model(params, pop):
         index = np.random.choice(22, 1, p = rates/rate_sum)
         
         if index in np.arange(18,22):
+            state, event_counts, vaccFlag, priority_group, priority, vaccines = vacc_update(state=state, 
+                                                                                            changes=state_changes, 
+                                                                                            ind=index, 
+                                                                                            count=event_counts, 
+                                                                                            flag=vaccFlag, 
+                                                                                            group=priority_group, 
+                                                                                            priority=priority, 
+                                                                                            vaccines=vaccines)
             # update vaccination rate
-            pass
+            rates[18:21] = np.zeros(shape=(1,4))
+            rates[priority_group+18] = gamma
         else:
             state[state_changes[index][0]] -= 1
             state[state_changes[index][1]] += 1
@@ -180,3 +192,10 @@ def dynamics_model(params, pop):
                          'total hospitalized': total_hospitalized, 'vaccines': vaccines}
     return newState, output_dictionary
 
+def vacc_update(state, changes, ind, count, flag, group, priority, vaccines):
+    if flag:
+        pass
+    else:
+        count[index] += 1
+        newState = state
+    return newState, count, flag, priority_group, priority, vaccines
