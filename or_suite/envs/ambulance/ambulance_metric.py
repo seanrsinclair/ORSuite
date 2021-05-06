@@ -179,7 +179,7 @@ class AmbulanceEnvironment(gym.Env):
 
   def draw_ambulances(self, locations, line_x1, line_x2, line_y, ambulance):
       for loc in locations:
-            self.viewer.image(line_x1 + (line_x2 - line_x1) * loc, line_y, ambulance, 0.15)
+            self.viewer.image(line_x1 + (line_x2 - line_x1) * loc, line_y, ambulance, 0.02)
             # self.viewer.circle(line_x1 + (line_x2 - line_x1) * loc, line_y, radius=5, color=rendering.RED)
 
 
@@ -210,7 +210,7 @@ class AmbulanceEnvironment(gym.Env):
           self.draw_ambulances(self.most_recent_action, line_x1, line_x2, line_y, ambulance)
           
           arrival_loc = self.state[np.argmax(np.abs(self.state - self.most_recent_action))]
-          self.viewer.image(line_x1 + (line_x2 - line_x1) * arrival_loc, line_y, call, 0.05)
+          self.viewer.image(line_x1 + (line_x2 - line_x1) * arrival_loc, line_y, call, 0.02)
         #   self.viewer.circle(line_x1 + (line_x2 - line_x1) * arrival_loc, line_y, radius=5, color=rendering.GREEN)
           self.viewer.update()
           time.sleep(2)
