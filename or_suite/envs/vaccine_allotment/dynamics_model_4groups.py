@@ -2,6 +2,7 @@
 Adapted from code by Cornell University students Mohammad Kamil (mk848), Carrie Rucker (cmr284), Jacob Shusko (jws383), Kevin Van Vorst (kpv23)
 """
 import numpy as np
+import random
 master_seed = 1
 
 def dynamics_model(params, pop):
@@ -76,10 +77,15 @@ def dynamics_model(params, pop):
     Rs = [state[10]]
     
     # first priority group
-    priority_group = int(priority[0]) - 1
-    priority.pop(0)
+    if len(priority != 0):
+        priority_group = int(priority[0]) - 1
+        priority.pop(0)
+        randomFlag = False
+    else:
+        eligible = [0,1,2,3]
+        priority_group = random.choice(eligible)
+        randomFlag = True
     
-    # TODO: Verify these are all correct!!!!
     # possible state changes
     # each key correponds to the index of an event in rates and has a value [i,j]
     # the state change is state[i]-- and state[j]++
@@ -137,7 +143,16 @@ def dynamics_model(params, pop):
         # if this is a vaccination event, call vacc_update
         # otherwise, simple state change
         if index in np.arange(18,22):
-            state, event_counts, vaccFlag, priority_group, priority, vaccines = vacc_update(state=state, 
+            if randomFlag:
+                state, event_counts, priority_group, eligible, vaccines = rand_vacc_update(state=state, 
+                                                                            changes=state_changes, 
+                                                                            group=priority_group, 
+                                                                            eligible=eligible, 
+                                                                            vaccines=vaccines, 
+                                                                            count=event_counts)
+                    
+            else:
+                state, event_counts, vaccFlag, priority_group, priority, vaccines = vacc_update(state=state, 
                                                                                             changes=state_changes, 
                                                                                             ind=index, 
                                                                                             count=event_counts, 
@@ -172,7 +187,6 @@ def dynamics_model(params, pop):
             break
  
         # output tracking
-        # TODO: might be an easier way to store this... maybe just store each state in a list
         clks.append(clk)
         c1_Ss.append(state[0])
         c2_Ss.append(state[1])
@@ -187,10 +201,8 @@ def dynamics_model(params, pop):
         Rs.append(state[10])
 
         # if there are no more infected individuals, the simulation should end
-        # TODO: should we keep this? 
         if np.sum(state[4:10]) <= 0:
             print("Reached a disease-free state on day " + str(clk))
-            break
 
     new_infections = np.sum(event_counts[0:11])
     total_infected = new_infections + np.sum(pop[4:9])
@@ -229,3 +241,25 @@ def vacc_update(state, changes, ind, count, flag, group, priority, vaccines):
     else:
         count[ind] += 1
     return newState, count, flag, group, priority, vaccines
+    
+def rand_vacc_update(state, changes, group, eligible, vaccines, count):
+    if len(eligible) != 0:
+        state[changes[group+18][0]] -= 1
+        state[changes[group+18][1]] += 1
+        vaccines -= 1
+        while np.any(state < 0):
+            state[changes[group+18][0]] += 1
+            state[changes[group+18][1]] -= 1
+            vaccines += 1
+            if len(eligible) != 0:
+                eligible.remove(group)
+                group = random.choice(eligible)
+                state[changes[group+18][0]] -= 1
+                state[changes[group+18][1]] += 1
+                vaccines -= 1
+            else:
+                break
+        count[group+18] += 1
+    else:
+        count[group+18] += 1
+    return state, count, group, eligible, vaccines
