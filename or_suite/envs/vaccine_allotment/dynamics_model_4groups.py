@@ -5,7 +5,7 @@ import numpy as np
 import random
 master_seed = 1
 
-def dynamics_model(params, pop):
+def dynamics_model(params, population):
     """
     A function to run SIR disease dynamics for 4 groups.
     
@@ -21,7 +21,7 @@ def dynamics_model(params, pop):
         'priority': (list of chars) vaccination priority order of the four groups
         'time_step': (float) number of units of time you want the simulation to run for
             e.g. if all your rates are per day and you want to simulate 7 days, time_step = 7
-    pop : (np.array of ints) the starting state [S1 S2 S3 S4 A1 A2 A3 A4 I H R]
+    population : (np.array of ints) the starting state [S1 S2 S3 S4 A1 A2 A3 A4 I H R]
 
     Returns
     -------
@@ -52,13 +52,13 @@ def dynamics_model(params, pop):
     """
 
     # extract arguments from params dictionary
-    state = pop
+    state = np.copy(population)
     P = params['P']
     H = params['H']
     LAMBDA = params['contact_matrix']
     gamma = params['gamma']
     beta = params['beta']
-    priority = params['priority_order']
+    priority = params['priority']
     vaccines = params['vaccines']
     time_step = params['time_step']
 
@@ -77,12 +77,14 @@ def dynamics_model(params, pop):
     Rs = [state[10]]
     
     # first priority group
-    if len(priority != 0):
+    # if priority list is empty, the policy is random vaccination
+    if len(priority) != 0:
         priority_group = int(priority[0]) - 1
         priority.pop(0)
         randomFlag = False
     else:
-        eligible = [0,1,2,3]
+        # to begin, assume all groups are eligible; lose eligbility if no susceptible people left in that group
+        eligible = [0,1,2,3] 
         priority_group = random.choice(eligible)
         randomFlag = True
     
@@ -97,24 +99,25 @@ def dynamics_model(params, pop):
                      20: [2,10], 21: [3,10]}
 
     # rates for all 22 events
-    rates = np.zeros(shape=(1,22))
+    rates = np.zeros(shape=(22,))
     
     # counts for each of the 22 events
-    event_counts = np.zeros(shape=(1,22))
+    event_counts = np.zeros(shape=(22,))
     
     # compute the probabilities associated with each of the 12 infection rates
-    probs = np.zeros(shape=(1,12))
+    probs = np.zeros(shape=(12,))
     probs[[0,3,6,9]] = 1 - P
     probs[[1,4,7,10]] = np.multiply(P,1-H)
     probs[[2,5,8,11]] = np.multiply(P,H)
     
     # compute the rates for the 12 infection events
-    inf_rates = np.matmul(np.matmul(np.diag(state[0:3]),LAMBDA),state[4:9])
+    temp = np.matmul(np.diag(state[0:4]),LAMBDA)
+    inf_rates = np.matmul(temp,state[4:10])
     inf_rates = np.repeat(inf_rates, repeats = 3, axis = 0)
-    rates[0:11] = np.multiply(probs, inf_rates)
+    rates[0:12] = np.multiply(probs, inf_rates)
     
     # compute the rates for the 6 recovery events
-    rates[12:17] = beta * state[4:9]
+    rates[12:18] = beta * state[4:10]
     
     # compute the rates for the vaccination events
     rates[priority_group + 18] = gamma
@@ -126,7 +129,7 @@ def dynamics_model(params, pop):
 
     rate_sum = np.sum(rates)
 
-    # exponential timer
+    # exponential timer 
     nxt = np.random.exponential(1/rate_sum)
     clk = 0
     
@@ -134,11 +137,15 @@ def dynamics_model(params, pop):
     max_vacc_events = gamma*time_step
 
     # We will simulate the Markov chain until we've reached max_vacc_events vaccination events
-    while np.sum(event_counts[18:21]) < max_vacc_events: 
+    while np.sum(event_counts[18:22]) < max_vacc_events: 
         clk += nxt
         
+        # for testing
+        if (np.sum(event_counts[18:22]) % gamma) == 0:
+            print("We've reached vaccination event number " + str(np.sum(event_counts[18:21])))
+        
         # get the index of the event that is happening
-        index = np.random.choice(22, 1, p = rates/rate_sum)
+        index = np.random.choice(22, 1, p = rates/rate_sum)[0]
         
         # if this is a vaccination event, call vacc_update
         # otherwise, simple state change
@@ -161,21 +168,25 @@ def dynamics_model(params, pop):
                                                                                             priority=priority, 
                                                                                             vaccines=vaccines)
             # update vaccination rate
-            rates[18:21] = np.zeros(shape=(1,4))
+            rates[18:22] = np.zeros(shape=(4,))
             rates[priority_group+18] = gamma
         else:
             state[state_changes[index][0]] -= 1
             state[state_changes[index][1]] += 1
             event_counts[index] += 1
+        
+        # for debugging: we should never have negative numbers in a state!
+        assert np.all(state >= 0), 'Accepted negative state change'
 
         # update infection and recovery rates 
         ## 12 infection events
-        inf_rates = np.matmul(np.matmul(np.diag(state[0:3]),LAMBDA),state[4:9])
+        temp = np.matmul(np.diag(state[0:4]),LAMBDA)
+        inf_rates = np.matmul(temp,state[4:10])
         inf_rates = np.repeat(inf_rates, repeats = 3, axis = 0)
-        rates[0:11] = np.multiply(probs, inf_rates)
+        rates[0:12] = np.multiply(probs, inf_rates)
         
         ## 6 recovery events
-        rates[12:17] = beta * state[4:9]
+        rates[12:18] = beta * state[4:10]
     
         rate_sum = np.sum(rates)
     
@@ -201,30 +212,80 @@ def dynamics_model(params, pop):
         Rs.append(state[10])
 
         # if there are no more infected individuals, the simulation should end
-        if np.sum(state[4:10]) <= 0:
+        if np.sum(state[4:11]) <= 0:
             print("Reached a disease-free state on day " + str(clk))
 
-    new_infections = np.sum(event_counts[0:11])
-    total_infected = new_infections + np.sum(pop[4:9])
-    total_hospitalized = np.sum(event_counts[2,5,8,11]) + pop[9]
+    new_infections = np.sum(event_counts[0:12])
+    total_infected = new_infections + np.sum(population[4:10])
+    total_hospitalized = np.sum(event_counts[[2,5,8,11]]) + population[9]
+    total_recovered = state[10]
     newState = state
+    newState[10] = new_infections # return new infections instead of recovered
 
     output_dictionary = {'clock times': clks, 'c1 asymptomatic': c1_infs, 'c2 asymptomatic': c2_infs, 'c3 asymptomatic': c3_infs,
                          'c4 asymptomatic': c4_infs, 'mild symptomatic': Is_infs, 'hospitalized': Hs_infs, 'c1 susceptible': c1_Ss,
                          'c2 susceptible': c2_Ss, 'c3 susceptible': c3_Ss, 'c4 susceptible': c4_Ss, 'recovered': Rs, 'total infected': total_infected,
-                         'total hospitalized': total_hospitalized, 'vaccines': vaccines}
+                         'total hospitalized': total_hospitalized, 'total recovered': total_recovered, 'vaccines': vaccines, 'event counts': event_counts}
     return newState, output_dictionary
 
 def vacc_update(state, changes, ind, count, flag, group, priority, vaccines):
-    newState = state
+    """
+    Performs a vaccination according to the priority order and updates the environment accordingly.
+    
+    Parameters
+    ----------
+    state : np.array
+        the state of the environment when the function is called
+    changes : dict
+        possible state changes [i,j] where the change is state[i]--, state[j]++
+    ind : int
+        the index corresponding the current vaccination event
+    count : np.array
+        counts of all the events
+    flag : boolean
+        if true, we have vaccines and people to vaccinate
+        if false, either there are no vaccines left or no people to vaccinate
+    group : int
+        current priority group; always either 0, 1, 2 or 3
+    priority : list of strings
+        priority order list
+    vaccines : int
+        vaccine count
+
+    Returns
+    -------
+    newState : updated state
+    count : updated event counts
+    flag : updated flag for if we should continue to vaccinate
+    group : updated priority group
+    priority : updated priority list
+    vaccines : updated vaccine count
+
+    Notes
+    -------
+    This function should only ever be called from inside dynamics model. 
+    The vaccination events correspond to indices 18, 19, 20 and 21 in count and changes.
+    We increment the event counter even if we technically did not vaccinate anyone. 
+    """
+    newState = np.copy(state)
+    
+    # if flag, up until now there have been vaccines and people to vaccinate
+    # otherwise, increment event counter and exit function
     if flag:
+        # if there are still vaccines, proceeed with vaccination. 
+        # otherwise, set flag to false and increment event counter
         if vaccines > 0:
             newState[changes[ind][0]] -= 1
             newState[changes[ind][1]] += 1
             vaccines -= 1
+            
+            # while state change was invalid (i.e. we have negative people), undo change & try again
             while np.any(newState < 0):
-                newState = state
+                newState = np.copy(state)
                 vaccines += 1
+                
+                # if there are still priority groups left, choose next group & proceed with vaccination
+                # otherwise set flag to false; exits for loop
                 if len(priority) != 0:
                     group = int(priority[0]) - 1
                     priority.pop(0)
@@ -233,6 +294,7 @@ def vacc_update(state, changes, ind, count, flag, group, priority, vaccines):
                     vaccines -= 1
                 else:
                     flag = False
+            # increment event counter
             count[group+18] += 1
                     
         else:
@@ -243,23 +305,64 @@ def vacc_update(state, changes, ind, count, flag, group, priority, vaccines):
     return newState, count, flag, group, priority, vaccines
     
 def rand_vacc_update(state, changes, group, eligible, vaccines, count):
-    if len(eligible) != 0:
+    """
+    Performs a random vaccination and updates the environment accordingly. 
+    
+    ----------
+    state : np.array
+        the state of the environment when the function is called
+    changes : dict
+        possible state changes [i,j] where the change is state[i]--, state[j]++
+    group : int
+        current priority group
+    eligible : list of ints
+        groups that are still eligible for vaccination
+    vaccines : int
+        current number of available vaccines
+    count : np.array
+        counts of all the events
+
+    Returns
+    -------
+    state : updated state
+    count : updated event count
+    group : updated priority group
+    eligible : updated eligible list
+    vaccines : updated vaccine count
+
+    Notes
+    -------
+    This function should only ever be called from inside dynamics model. 
+    The vaccination events correspond to indices 18, 19, 20 and 21 in count and changes.
+    We increment the event counter even if we technically did not vaccinate anyone. 
+    """
+    
+    # if there are still people to vaccinate and vaccines left, proceed with vaccination
+    # otherwise increment event counter and exit function
+    if len(eligible) != 0 and vaccines > 0:
         state[changes[group+18][0]] -= 1
         state[changes[group+18][1]] += 1
         vaccines -= 1
+        
+        # while state change was invalid (i.e. we have negative people), undo change & try again
         while np.any(state < 0):
             state[changes[group+18][0]] += 1
             state[changes[group+18][1]] -= 1
             vaccines += 1
+            eligible.remove(group) # current group has no one left to vaccinate so remove from eligibilty list
+            
+            # if there are still eligible groups, choose new priority group and proceed with vaccination
+            # otherwise will exit while loop
             if len(eligible) != 0:
-                eligible.remove(group)
                 group = random.choice(eligible)
                 state[changes[group+18][0]] -= 1
                 state[changes[group+18][1]] += 1
                 vaccines -= 1
-            else:
-                break
+
+        # increment event counter accordingly and choose new priority group if possible
         count[group+18] += 1
+        if len(eligible) != 0:
+            group = random.choice(eligible)
     else:
         count[group+18] += 1
     return state, count, group, eligible, vaccines
