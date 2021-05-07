@@ -63,22 +63,17 @@ class RideshareGraphEnvironment(gym.Env):
         self.epLen = config['epLen']
         self.graph = nx.Graph(config['edges'])
         self.num_nodes = self.graph.number_of_nodes()
-
         self.timestep = 0
         self.num_cars = config['num_cars']
         self.lengths = self.find_lengths(self.graph, self.num_nodes)
         self.request_dist = config['request_dist']
-
         self.reward = config['reward']
         self.reward_fail = config['reward_fail']
         self.gamma = config['gamma']
-        
+        self.d_threshold = config['d_threshold']
         self.action_space = spaces.Discrete(self.num_nodes)
-
         vec = [self.num_cars for _ in range(self.num_nodes)] + [self.num_nodes, self.num_nodes]
         self.observation_space = spaces.MultiDiscrete(vec)
-
-
         self.starting_state = np.asarray(np.concatenate((self.config['starting_state'], self.request_dist(0, self.num_nodes))))
         self.state = self.starting_state
 
@@ -94,18 +89,6 @@ class RideshareGraphEnvironment(gym.Env):
     def get_config(self):
         """Returns the configuration for the current environment"""
         return self.config
-
-
-    # def gen_request(self):
-    #     """Generates a request from node i to node j
-        
-    #     Returns:
-    #         A randomly generated rideshare request from one node to a different
-    #         node
-    #     """
-    #     prob_list = self.request_dist(self.timestep, self.num_nodes)
-    #     request = np.random.choice(self.num_nodes, size=2, p=prob_list)
-    #     return request
 
 
     def fulfill_req(self, dispatch, sink):
@@ -169,43 +152,25 @@ class RideshareGraphEnvironment(gym.Env):
             A boolean indicating whether or not the model has reached the limit
             timestep.
         """
-        # type checking for value of action
-        # assert isinstance(action, int)
-
-        # checking that action is valid - I think the spaces have something built in.
         assert self.action_space.contains(action)
 
         done = False
-        if self.timestep == self.epLen:
-            done == True
         source = self.state[-2]
         sink = self.state[-1]
-
-        # TODO: discuss additional conditionals for servicing the ride, i.e.
-        # including a probabilistic calculation as to whether distance is too
-        # far, etc.
-        # accept ride w.p. e^-(gamma*distance)
-        # Pr(accept | distance = d) = e^(- \gamma d) / (1 + e^(- \gamma d))
-        # gamma is a parameter in the config
-
         dispatch_dist = self.lengths[action, source]
 
         if self.state[action] > 0:
-            # updating the supply counts at the action and sink nodes
-
-            # TODO: Threshold d_\thresh 
-            # gotta think about the rewards more
-            prob = np.exp((-1)*self.gamma*dispatch_dist) / (1 + np.exp((-1)*self.gamma*dispatch_dist))
+            exp = np.exp((-1)*self.gamma*(dispatch_dist-self.d_threshold))
+            prob = exp / (1 + exp)
             accept = np.random.binomial(1, prob)
-            print(prob, accept)
+            # print("prob: " + str(prob))
+            # print("accept: " + str(accept))
             if accept == 1:
-                print('accept service')
+                # print('accept service')
                 self.fulfill_req(action, sink)
-
                 reward = self.reward(dispatch_dist)
-
             else:
-                print('decline service')
+                # print('decline service')
                 reward = self.reward_fail(dispatch_dist)
         else:
             reward = self.reward_fail(dispatch_dist)
@@ -215,6 +180,9 @@ class RideshareGraphEnvironment(gym.Env):
         new_request = self.request_dist(self.timestep, self.num_nodes)
         self.state[-2] = new_request[0]
         self.state[-1] = new_request[1]
+        
+        if self.timestep >= self.epLen:
+            done = True
 
         self.timestep += 1
         

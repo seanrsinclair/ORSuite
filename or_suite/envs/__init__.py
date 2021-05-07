@@ -1,8 +1,8 @@
 from gym.envs.registration import register
-import or_suite.envs.ambulance
-import or_suite.envs.resource_allocation
-import or_suite.envs.finite_armed_bandit
-import or_suite.envs.vaccine_allotment
+# import or_suite.envs.ambulance
+# import or_suite.envs.resource_allocation
+# import or_suite.envs.finite_armed_bandit
+# import or_suite.envs.vaccine_allotment
 import or_suite.envs.ridesharing
 
 from or_suite.envs.env_configs import *

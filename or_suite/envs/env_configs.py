@@ -71,14 +71,84 @@ rideshare_graph_default_config = {
     'edges': [(0,1,{'travel_time':1}), (0,2,{'travel_time':1}), 
             (0,3,{'travel_time':1}), (1,2,{'travel_time':1}), 
             (1,3,{'travel_time':1}), (2,3,{'travel_time':1})], 
-    'starting_state': [2,1,4,3], 
+    'starting_state': [1,2,3,4], 
     'num_cars': 10,
     'request_dist': lambda step, num_nodes: np.random.choice(num_nodes, size=2),
     'reward': lambda distance: -np.sqrt(distance),
     'reward_fail': lambda distance: -10000,
-    'gamma': 1
+    'gamma': 1,
+    'd_threshold': 1
 }
 
+rideshare_graph_non_uniform_distances_config = {
+    'epLen': 5,
+    'edges': [(0,1,{'travel_time':1}), (0,2,{'travel_time':5}), 
+            (0,3,{'travel_time':10}), (1,2,{'travel_time':4}), 
+            (1,3,{'travel_time':9}), (2,3,{'travel_time':5})], 
+    'starting_state': [1,2,3,4], 
+    'num_cars': 10,
+    'request_dist': lambda step, num_nodes: np.random.choice(num_nodes, size=2),
+    'reward': lambda distance: -np.sqrt(distance),
+    'reward_fail': lambda distance: -10000,
+    'gamma': 1,
+    'd_threshold': 3
+}
+
+rideshare_graph_initial_central_dispatch_config = {
+    'epLen': 5,
+    'edges': [(0,1,{'travel_time':1}), (0,2,{'travel_time':5}), 
+            (0,3,{'travel_time':10}), (1,2,{'travel_time':4}), 
+            (1,3,{'travel_time':9}), (2,3,{'travel_time':5})], 
+    'starting_state': [100,0,0,0], 
+    'num_cars': 100,
+    'request_dist': lambda step, num_nodes: np.random.choice(num_nodes, size=2),
+    'reward': lambda distance: -np.sqrt(distance),
+    'reward_fail': lambda distance: -10000,
+    'gamma': 1,
+    'd_threshold': 3
+}
+
+rideshare_graph_0_1_rides_config = {
+    'epLen': 1000,
+    'edges': [(0,1,{'travel_time':1}), (0,2,{'travel_time':5}), 
+            (0,3,{'travel_time':10}), (1,2,{'travel_time':4}), 
+            (1,3,{'travel_time':9}), (2,3,{'travel_time':5})], 
+    'starting_state': [1000,0,0,0], 
+    'num_cars': 1000,
+    'request_dist': lambda step, num_nodes: np.array([1,1]),
+    'reward': lambda distance: -np.sqrt(distance),
+    'reward_fail': lambda distance: -10000,
+    'gamma': 0.25,
+    'd_threshold': 3
+}
+
+rideshare_graph_0_2_rides_config = {
+    'epLen': 1000,
+    'edges': [(0,1,{'travel_time':1}), (0,2,{'travel_time':5}), 
+            (0,3,{'travel_time':10}), (1,2,{'travel_time':4}), 
+            (1,3,{'travel_time':9}), (2,3,{'travel_time':5})], 
+    'starting_state': [1000,0,0,0], 
+    'num_cars': 1000,
+    'request_dist': lambda step, num_nodes: np.array([2,2]),
+    'reward': lambda distance: -np.sqrt(distance),
+    'reward_fail': lambda distance: -10000,
+    'gamma': 0.25,
+    'd_threshold': 3
+}
+
+rideshare_graph_0_3_rides_config = {
+    'epLen': 1000,
+    'edges': [(0,1,{'travel_time':1}), (0,2,{'travel_time':5}), 
+            (0,3,{'travel_time':10}), (1,2,{'travel_time':4}), 
+            (1,3,{'travel_time':9}), (2,3,{'travel_time':5})], 
+    'starting_state': [1000,0,0,0], 
+    'num_cars': 1000,
+    'request_dist': lambda step, num_nodes: np.array([3,3]),
+    'reward': lambda distance: -np.sqrt(distance),
+    'reward_fail': lambda distance: -10000,
+    'gamma': 0.25,
+    'd_threshold': 3
+}
 
 oil_environment_default_config = {
     'epLen': 5,
