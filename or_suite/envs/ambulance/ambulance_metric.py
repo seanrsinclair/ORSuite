@@ -194,6 +194,8 @@ class AmbulanceEnvironment(gym.Env):
       ambulance = pyglet.image.load('images/ambulance.jpg')
       call = pyglet.image.load('images/call.jpg')
 
+      screen1, screen2, screen3 = None, None, None
+
       if self.viewer is None:
           self.viewer = rendering.PygletWindow(screen_width + 50, screen_height + 50)
 
