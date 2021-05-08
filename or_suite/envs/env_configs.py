@@ -5,6 +5,9 @@ File containing default configurations for the various environments implemented 
 '''
 
 import numpy as np
+import os
+import re
+import ast
 
 resource_allocation_default_config = {'K': 2, 
     'num_rounds': 10,
@@ -35,8 +38,45 @@ ambulance_metric_default_config =  {'epLen': 5,
     'arrival_dist': lambda x : np.random.beta(5,2), 
     'alpha': 0.25, 
     'starting_state': np.array([0.0]), 
-    'num_ambulance': 1
+    'num_ambulance': 1,
+    'norm': 1
   }
+
+
+script_dir = os.path.dirname(__file__)
+rel_path = './ambulance/ithaca_data/'
+
+edges_file = open(os.path.join(script_dir, rel_path+'ithaca.edgelist'), "r")
+ithaca_edges = []
+for line in edges_file:
+    travel_dict = ast.literal_eval(re.search('({.+})', line).group(0))
+    split = line.split()
+    ithaca_edges.append((int(split[0]), int(split[1]), travel_dict))
+edges_file.close()
+
+
+arrivals_file = open(os.path.join(script_dir, rel_path+'arrivals.txt'), "r")
+ithaca_arrivals = arrivals_file.read().splitlines()
+ithaca_arrivals = [int(i) for i in ithaca_arrivals]
+arrivals_file.close()
+
+def from_data(step, num_nodes, ithaca_arrivals):
+    node = ithaca_arrivals[step]
+    dist = np.full(num_nodes, 0)
+    dist[node] = 1
+    return dist
+
+
+
+
+ambulance_graph_ithaca_config = {'epLen': 5,
+  'arrival_dist': from_data,
+  'alpha': 0.25,
+  'from_data': True,
+  'edges': ithaca_edges,
+  'starting_state': [1,2],
+  'num_ambulance': 2
+}
 
 
 ambulance_graph_default_config = {'epLen': 5, 
@@ -44,7 +84,7 @@ ambulance_graph_default_config = {'epLen': 5,
     'alpha': 0.25,
     'from_data': False,
     'edges': [(0,4,{'travel_time':7}), (0,1,{'travel_time':1}), (1,2,{'travel_time':3}), (2,3,{'travel_time':5}), (1,3,{'travel_time':1}), (1,4,{'travel_time':17}), (3,4,{'travel_time':3})],
-                'starting_state': [1,2], 'num_ambulance': 2
+    'starting_state': [1,2], 'num_ambulance': 2
   }
 
 
