@@ -50,7 +50,7 @@ class VaccineEnvironment(gym.Env):
     metadata = {'render.modes': ['human']}
 
 
-    def __init__( self, config = env_configs.vaccine_4groups_default_config):
+    def __init__( self, config = env_configs.vaccine_default_config1):
         """
         Creates a VaccineEnvironment object.
         
