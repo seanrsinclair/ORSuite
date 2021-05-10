@@ -44,6 +44,9 @@ class VaccineEnvironment(gym.Env):
         state: (np.array) current state of the environment
         starting_state: (np.array) beginning state of the environment
         timestep: (int) the step we are on
+        action_space: (spaces.Discrete)
+        all_priority_orders: (list)
+        observation_space: (spaces.MultiDiscrete)
     
     """
     # don't worry about this, has to do with how gym exports text/info to the termial
@@ -75,7 +78,7 @@ class VaccineEnvironment(gym.Env):
         self.config = config
         self.epLen = config['epLen']
         self.vaccines = config['parameters']['vaccines']
-        self.priority_order = config['parameters']['priority_order']
+        self.priority_order = config['parameters']['priority']
         self.parameters = config['parameters']
         self.total_pop = np.sum(config['starting_state'])
         self.state = config['starting_state']
