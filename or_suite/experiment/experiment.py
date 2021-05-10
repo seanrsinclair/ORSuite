@@ -61,6 +61,7 @@ class Experiment(object):
         self.render_flag = dict['render']
         self.agent = agent
         self.data = np.zeros([dict['nEps']*self.num_iters, 5])  # initializes the dataset to save the information
+        self.pickle = dict['pickle']
 
 
         if self.save_trajectory:  # initializes the list to save the trajectory
@@ -183,9 +184,11 @@ class Experiment(object):
 
         data_loc = 'data.csv'
         traj_loc = 'trajectory.obj'
+        agent_loc = 'agent.obj'
 
         data_filename = os.path.join(dir_path, data_loc)
         traj_filename = os.path.join(dir_path, traj_loc)
+        agent_filename = os.path.join(dir_path, agent_loc)
 
         dt = pd.DataFrame(self.data, columns=['episode', 'iteration', 'epReward', 'memory', 'time'])
         dt = dt[(dt.T != 0).any()]
@@ -206,6 +209,22 @@ class Experiment(object):
                 outfile = open(traj_filename, 'wb')
                 pickle.dump(self.trajectory, outfile)
                 outfile.close()
+
+        if self.pickle:
+            try:
+            # print(type(self.agent))
+                outfile = open(agent_filename, 'wb')
+                pickle.dump(self.agent.tree_list, outfile)
+                outfile.close()
+            except:
+                pass
+
+            try:
+                outfile = open(agent_filename, 'wb')
+                pickle.dump(self.agent.qVals, outfile)
+                outfile.close()                
+            except:
+                pass
 
         print('**************************************************')
         print('Data save complete')

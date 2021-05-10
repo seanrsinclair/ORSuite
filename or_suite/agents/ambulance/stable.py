@@ -46,25 +46,6 @@ class stableAgent(Agent):
     def update_policy(self, k):
         '''Update internal policy based upon records'''
 
-        # Greedy algorithm does not update policy
-        self.greedy = self.greedy
-
-
-    def greedy(self, state, timestep, epsilon=0):
-        '''
-        Chooses the most recently observed state as the action.
-        '''
-
-        # For the first iteration, choose the starting state
-        # After that, choose the most recently observed state as the new location 
-        # for each ambulance. This results in no ambulance movement between calls
-        if len(self.data) == 0:
-            return state
-        else:
-            action = self.data[-1]
-            return action
-
 
     def pick_action(self, state, step):
-        action = self.greedy(state, step)
-        return action
+        return state
