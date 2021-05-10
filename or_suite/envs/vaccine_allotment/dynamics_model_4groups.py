@@ -141,12 +141,6 @@ def dynamics_model(params, population):
     while np.sum(event_counts[18:22]) < max_vacc_events: 
         clk += nxt
         
-        # for testing
-        if (np.sum(event_counts[18:22]) % gamma) == 0:
-            #print("np.sum(event_counts[18:22]) % gamma: " + str(np.sum(event_counts[18:22]) % gamma))
-            #print("gamma: " + str(gamma))
-            print(" We've reached vaccination event number " + str(np.sum(event_counts[18:22])))
-        
         # get the index of the event that is happening
         index = np.random.choice(22, 1, p = rates/rate_sum)[0]
         
@@ -173,6 +167,10 @@ def dynamics_model(params, population):
             # update vaccination rate
             rates[18:22] = np.zeros(shape=(4,))
             rates[priority_group+18] = gamma
+            
+            # for testing
+            if (np.sum(event_counts[18:22]) % gamma) == 0:
+                print(" We've reached vaccination event number " + str(np.sum(event_counts[18:22])))
         else:
             state[state_changes[index][0]] -= 1
             state[state_changes[index][1]] += 1
