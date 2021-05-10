@@ -3,8 +3,8 @@
 import numpy as np
 import gym
 from gym import spaces
-import math
-import random
+#import math
+#import random
 from .. import dynamics_model_4groups as dm4g
 from .. import env_configs
 
@@ -34,7 +34,16 @@ class VaccineEnvironment(gym.Env):
         render(mode) : (UNIMPLEMENTED)
         close() : (UNIMPLEMENTED)
         
-    Attributes: TODO
+    Attributes:
+        config : (dict) contains the parameters needed to set up the vaccine environment
+        epLen : (int) number of time steps in an episode
+        vaccines : (int) current number of vaccines available per time step
+        priority_order: (list) current priority order of the groups
+        parameters: (dict) contains the parameters needed for the dynamics 
+        total_pop: (int) total population size
+        state: (np.array) current state of the environment
+        starting_state: (np.array) beginning state of the environment
+        timestep: (int) the step we are on
     
     """
     # don't worry about this, has to do with how gym exports text/info to the termial
@@ -49,11 +58,18 @@ class VaccineEnvironment(gym.Env):
             config: dictionary with the following keys (and corresponding values)
                 - epLen : (int) number of time steps 
                 - starting_state : (np.array) initial population group sizes; should contain 11 entries
-                - parameters : (dict) of parameter values to pass to dynamics model
-        For more detailed information, see the file vaccine_allocation_readme.ipynb
-        
-        Typical usage example:
-        TODO
+                    > [S1 S2 S3 S4 A1 A2 A3 A4 I H R]
+                - parameters : (dict) of parameter values to pass to dynamics model with the folowing keys and values
+                        'contact_matrix': (np.array of floats) contact rates between susceptible people in each class and the infected people
+                        'P': (np.array of floats) P = [p1 p2 p3 p4] where pi = Prob(symptomatic | infected) for a person in class i
+                        'H': (np.array of floats) H = [h1 h2 h3 h4] where hi = Prob(hospitalized | symptomatic) for a person in class i
+                        'beta': (float) recovery rate
+                        'gamma': (int) vaccination rate
+                        'vaccines': (int) number of vaccine available for this time period
+                        'priority': (list of chars) vaccination priority order of the four groups
+                        'time_step': (float) number of units of time you want the simulation to run for
+                            e.g. if all your rates are per day and you want to simulate 7 days, time_step = 7
+                    
         """
         
         self.config = config
