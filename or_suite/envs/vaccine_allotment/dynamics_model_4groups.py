@@ -2,7 +2,7 @@
 Adapted from code by Cornell University students Mohammad Kamil (mk848), Carrie Rucker (cmr284), Jacob Shusko (jws383), Kevin Van Vorst (kpv23)
 """
 import numpy as np
-import random
+#import random
 master_seed = 1
 
 def dynamics_model(params, population):
@@ -84,8 +84,9 @@ def dynamics_model(params, population):
         randomFlag = False
     else:
         # to begin, assume all groups are eligible; lose eligbility if no susceptible people left in that group
-        eligible = [0,1,2,3] 
-        priority_group = random.choice(eligible)
+        eligible_list = [0,1,2,3] 
+        eligible_array = np.array(eligible_list)
+        priority_group = np.random.choice(eligible_array)
         randomFlag = True
     
     # possible state changes
@@ -142,7 +143,9 @@ def dynamics_model(params, population):
         
         # for testing
         if (np.sum(event_counts[18:22]) % gamma) == 0:
-            print("We've reached vaccination event number " + str(np.sum(event_counts[18:21])))
+            #print("np.sum(event_counts[18:22]) % gamma: " + str(np.sum(event_counts[18:22]) % gamma))
+            #print("gamma: " + str(gamma))
+            print(" We've reached vaccination event number " + str(np.sum(event_counts[18:22])))
         
         # get the index of the event that is happening
         index = np.random.choice(22, 1, p = rates/rate_sum)[0]
@@ -151,10 +154,10 @@ def dynamics_model(params, population):
         # otherwise, simple state change
         if index in np.arange(18,22):
             if randomFlag:
-                state, event_counts, priority_group, eligible, vaccines = rand_vacc_update(state=state, 
+                state, event_counts, priority_group, eligible_list, vaccines = rand_vacc_update(state=state, 
                                                                             changes=state_changes, 
                                                                             group=priority_group, 
-                                                                            eligible=eligible, 
+                                                                            eligible=eligible_list, 
                                                                             vaccines=vaccines, 
                                                                             count=event_counts)
                     
@@ -354,7 +357,8 @@ def rand_vacc_update(state, changes, group, eligible, vaccines, count):
             # if there are still eligible groups, choose new priority group and proceed with vaccination
             # otherwise will exit while loop
             if len(eligible) != 0:
-                group = random.choice(eligible)
+                eligible_array = np.array(eligible)
+                group = np.random.choice(eligible_array)
                 state[changes[group+18][0]] -= 1
                 state[changes[group+18][1]] += 1
                 vaccines -= 1
@@ -362,7 +366,8 @@ def rand_vacc_update(state, changes, group, eligible, vaccines, count):
         # increment event counter accordingly and choose new priority group if possible
         count[group+18] += 1
         if len(eligible) != 0:
-            group = random.choice(eligible)
+            eligible_array = np.array(eligible)
+            group = np.random.choice(eligible_array)
     else:
         count[group+18] += 1
     return state, count, group, eligible, vaccines
