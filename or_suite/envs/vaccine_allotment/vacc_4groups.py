@@ -38,7 +38,7 @@ class VaccineEnvironment(gym.Env):
         config : (dict) contains the parameters needed to set up the vaccine environment
         epLen : (int) number of time steps in an episode
         vaccines : (int) current number of vaccines available per time step
-        priority_order: (list) current priority order of the groups
+        priority: (list) current priority order of the groups
         parameters: (dict) contains the parameters needed for the dynamics 
         total_pop: (int) total population size
         state: (np.array) current state of the environment
@@ -147,7 +147,7 @@ class VaccineEnvironment(gym.Env):
         # print('old_state' , old_state)
         
         self.priority_order = self.all_priority_orders[action]
-        self.parameters['priority_order'] = self.priority_order
+        self.parameters['priority'] = self.priority_order
         
         newState, info = dm4g.dynamics_model(self.parameters, self.state)
         # print('New state' , newState)
