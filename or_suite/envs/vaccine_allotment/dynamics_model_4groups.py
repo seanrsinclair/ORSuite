@@ -43,7 +43,7 @@ def dynamics_model(params, population):
         'total infected': int - total number of infected (including those that were already infected)
         'total hospitalized': int - total number of hospitalized individuals (including those that were already hospitalized)
         'vaccines': int - total number of vaccines left
-        
+        'event counts': np.array - contains the counts for the number of times each of the 22 events occurred
             
         
     Typical usage example
