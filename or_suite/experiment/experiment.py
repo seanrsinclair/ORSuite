@@ -48,6 +48,7 @@ class Experiment(object):
                 numIters: (int) the number of iterations of (nEps, epLen) pairs to iterate over with the environment
                 save_trajectory: (bool) boolean, when set to true saves the entire trajectory information
                 render: (bool) boolean, when set to true renders the simulations
+                pickle: (bool) when set to true saves data to a pickle file
         '''
 
         self.seed = dict['seed']

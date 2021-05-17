@@ -128,13 +128,16 @@ class AmbulanceEnvironment(gym.Env):
         # distribution arrival_dist
         new_arrival = self.arrival_dist(self.timestep)
 
-        # The closest ambulance to the call is found using the l-1 distance
-        close_index = np.argmin(np.abs(old_state - new_arrival))
-
+        
         # Update the state of the system according to the action taken and change 
         # the location of the closest ambulance to the call to the call location
         action = np.array(action, dtype=np.float32)
         self.most_recent_action = action
+
+        # The closest ambulance to the call is found using the l-1 distance
+        close_index = np.argmin(np.abs(action - new_arrival))
+
+
         new_state = action.copy()
         new_state[close_index] = new_arrival
 

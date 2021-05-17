@@ -96,7 +96,9 @@ DEFAULT_SETTINGS = {'seed': 1,
                     'numIters': numIters, 
                     'saveTrajectory': True, 
                     'epLen' : 5,
-                    'render': False}
+                    'render': False,
+                    'pickle': False
+                    }
 
 
 for environment in environment_config_list:
