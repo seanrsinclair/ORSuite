@@ -33,7 +33,7 @@ def normalize(df):
         max_value = df[feature_name].max()
         min_value = df[feature_name].min()
         result[feature_name] = (df[feature_name] - min_value) / (max_value - min_value)
-                
+
     return result
 
 
@@ -150,12 +150,11 @@ def plot_radar_plots(path_list, algo_list, fig_path , fig_name, additional_metri
     # Organizing Data
 
     # Setting matplotlib parameters
-    if os.path.isfile('../or_suite/PaperDoubleFig.mplstyle.txt'):
-        plt.style.use('../or_suite/PaperDoubleFig.mplstyle.txt')
-    elif os.path.isfile('./or_suite/PaperDoubleFig.mplstyle.txt'):
-        plt.style.use('./or_suite/PaperDoubleFig.mplstyle.txt')
-    else:
-        pass
+
+    script_dir = os.path.dirname(__file__)
+    rel_path = './PaperDoubleFig.mplstyle.txt'
+    if os.path.isfile(os.path.join(script_dir, rel_path)):
+        plt.style.use(os.path.join(script_dir, rel_path))
     plt.rc('text', usetex=True)
 
 
@@ -166,7 +165,7 @@ def plot_radar_plots(path_list, algo_list, fig_path , fig_name, additional_metri
     values = []
     for algo in algo_list:
         df = pd.read_csv(path_list[index]+'/data.csv').groupby(['episode']).mean() # reads in the data
-        df['episode'] = df.index.values 
+        df['episode'] = df.index.values
         df = df[df['episode'] == df.max()['episode']] # THIS IS NOT TOTALLY CORRECT, SHOULD BE SUM OVER EPISODES FOR TIME AND SPACE?
         # Calculates the original metrics for that algorithm
         algo_dict = {'Algorithm': algo, 'Reward': df.iloc[0]['epReward'], 'Time': (-1)*df.iloc[0]['time'], 'Space': (-1)*df.iloc[0]['memory']}
@@ -183,7 +182,7 @@ def plot_radar_plots(path_list, algo_list, fig_path , fig_name, additional_metri
 
         index += 1
 
-    
+
 
     # Set data
     df = pd.DataFrame(values)
@@ -251,14 +250,13 @@ def plot_line_plots(path_list, algo_list, fig_path , fig_name, plot_freq):
         Fig_Name: name of the figure
 
     '''
-    
+
     # Sets up plot parameters
-    if os.path.isfile('../or_suite/PaperDoubleFig.mplstyle.txt'):
-        plt.style.use('../or_suite/PaperDoubleFig.mplstyle.txt')
-    elif os.path.isfile('./or_suite/PaperDoubleFig.mplstyle.txt'):
-        plt.style.use('./or_suite/PaperDoubleFig.mplstyle.txt')
-    else:
-        pass
+    script_dir = os.path.dirname(__file__)
+    rel_path = './PaperDoubleFig.mplstyle.txt'
+    if os.path.isfile(os.path.join(script_dir, rel_path)):
+        plt.style.use(os.path.join(script_dir, rel_path))
+    plt.rc('text', usetex=True)
 
     plt.rc('text', usetex=True)
 
@@ -304,7 +302,7 @@ def plot_line_plots(path_list, algo_list, fig_path , fig_name, plot_freq):
     plt.xlabel('Episode')
     plt.tight_layout()
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-    
+
     # Saves figure
     if os.path.exists(fig_path):
             fig.savefig(os.path.join(fig_path,fig_name), bbox_inches = 'tight',
