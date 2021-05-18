@@ -9,7 +9,7 @@ import os
 import re
 import ast
 
-resource_allocation_default_config = {'K': 2, 
+resource_allocation_default_config = {'K': 2,
     'num_rounds': 10,
     'weight_matrix': np.array([[1,2],[.3,9],[1,1]]),
     'init_budget': 10*np.ones(2),
@@ -35,9 +35,9 @@ resource_allocation_simple_poisson_config = {'K':1,
 
 
 ambulance_metric_default_config =  {'epLen': 5,
-    'arrival_dist': lambda x : np.random.beta(5,2), 
-    'alpha': 0.25, 
-    'starting_state': np.array([0.0]), 
+    'arrival_dist': lambda x : np.random.beta(5,2),
+    'alpha': 0.25,
+    'starting_state': np.array([0.0]),
     'num_ambulance': 1,
     'norm': 1
   }
@@ -79,8 +79,8 @@ ambulance_graph_ithaca_config = {'epLen': 5,
 }
 
 
-ambulance_graph_default_config = {'epLen': 5, 
-    'arrival_dist': lambda step, num_nodes: np.full(num_nodes, 1/num_nodes), 
+ambulance_graph_default_config = {'epLen': 5,
+    'arrival_dist': lambda step, num_nodes: np.full(num_nodes, 1/num_nodes),
     'alpha': 0.25,
     'from_data': False,
     'edges': [(0,4,{'travel_time':7}), (0,1,{'travel_time':1}), (1,2,{'travel_time':3}), (2,3,{'travel_time':5}), (1,3,{'travel_time':1}), (1,4,{'travel_time':17}), (3,4,{'travel_time':3})],
@@ -92,8 +92,8 @@ finite_bandit_default_config =  {'epLen': 5,
     'arm_means': np.array([.1, .7, .2, 1])
   }
 
-vaccine_default_config1 = {'epLen': 4, 
-    'starting_state': np.array([990, 1990, 990, 5990, 10, 10, 10, 10, 0, 0, 0]), 
+vaccine_default_config1 = {'epLen': 4,
+    'starting_state': np.array([990, 1990, 990, 5990, 10, 10, 10, 10, 0, 0, 0]),
     'parameters': {'contact_matrix': np.array([[0.0001, 0.0001, 0.00003, 0.00003, 0, 0.0001],
                                                    [0, 0.0001, 0.00005, 0.0001, 0, 0],
                                                    [0, 0, 0.00003, 0.00003, 0, 0],
@@ -107,8 +107,8 @@ vaccine_default_config1 = {'epLen': 4,
                        'time_step': 7}
   }
 
-vaccine_default_config2 = {'epLen': 4, 
-    'starting_state': np.array([990, 1990, 990, 5990, 10, 10, 10, 10, 0, 0, 0]), 
+vaccine_default_config2 = {'epLen': 4,
+    'starting_state': np.array([990, 1990, 990, 5990, 10, 10, 10, 10, 0, 0, 0]),
     'parameters': {'contact_matrix': np.array([[0.0001, 0.0001, 0.00003, 0.00003, 0, 0.0001],
                                                    [0, 0.0001, 0.00005, 0.0001, 0, 0],
                                                    [0, 0, 0.00003, 0.00003, 0, 0],
@@ -124,10 +124,10 @@ vaccine_default_config2 = {'epLen': 4,
 
 rideshare_graph_default_config = {
     'epLen': 5,
-    'edges': [(0,1,{'travel_time':1}), (0,2,{'travel_time':1}), 
-            (0,3,{'travel_time':1}), (1,2,{'travel_time':1}), 
-            (1,3,{'travel_time':1}), (2,3,{'travel_time':1})], 
-    'starting_state': [1,2,3,4], 
+    'edges': [(0,1,{'travel_time':1}), (0,2,{'travel_time':1}),
+            (0,3,{'travel_time':1}), (1,2,{'travel_time':1}),
+            (1,3,{'travel_time':1}), (2,3,{'travel_time':1})],
+    'starting_state': [1,2,3,4],
     'num_cars': 10,
     'request_dist': lambda step, num_nodes: np.random.choice(num_nodes, size=2),
     'reward': lambda distance: -np.sqrt(distance),
@@ -138,10 +138,10 @@ rideshare_graph_default_config = {
 
 rideshare_graph_non_uniform_distances_config = {
     'epLen': 5,
-    'edges': [(0,1,{'travel_time':1}), (0,2,{'travel_time':5}), 
-            (0,3,{'travel_time':10}), (1,2,{'travel_time':4}), 
-            (1,3,{'travel_time':9}), (2,3,{'travel_time':5})], 
-    'starting_state': [1,2,3,4], 
+    'edges': [(0,1,{'travel_time':1}), (0,2,{'travel_time':5}),
+            (0,3,{'travel_time':10}), (1,2,{'travel_time':4}),
+            (1,3,{'travel_time':9}), (2,3,{'travel_time':5})],
+    'starting_state': [1,2,3,4],
     'num_cars': 10,
     'request_dist': lambda step, num_nodes: np.random.choice(num_nodes, size=2),
     'reward': lambda distance: -np.sqrt(distance),
@@ -152,10 +152,10 @@ rideshare_graph_non_uniform_distances_config = {
 
 rideshare_graph_initial_central_dispatch_config = {
     'epLen': 5,
-    'edges': [(0,1,{'travel_time':1}), (0,2,{'travel_time':5}), 
-            (0,3,{'travel_time':10}), (1,2,{'travel_time':4}), 
-            (1,3,{'travel_time':9}), (2,3,{'travel_time':5})], 
-    'starting_state': [100,0,0,0], 
+    'edges': [(0,1,{'travel_time':1}), (0,2,{'travel_time':5}),
+            (0,3,{'travel_time':10}), (1,2,{'travel_time':4}),
+            (1,3,{'travel_time':9}), (2,3,{'travel_time':5})],
+    'starting_state': [100,0,0,0],
     'num_cars': 100,
     'request_dist': lambda step, num_nodes: np.random.choice(num_nodes, size=2),
     'reward': lambda distance: -np.sqrt(distance),
@@ -166,10 +166,10 @@ rideshare_graph_initial_central_dispatch_config = {
 
 rideshare_graph_0_1_rides_config = {
     'epLen': 1000,
-    'edges': [(0,1,{'travel_time':1}), (0,2,{'travel_time':5}), 
-            (0,3,{'travel_time':10}), (1,2,{'travel_time':4}), 
-            (1,3,{'travel_time':9}), (2,3,{'travel_time':5})], 
-    'starting_state': [1000,0,0,0], 
+    'edges': [(0,1,{'travel_time':1}), (0,2,{'travel_time':5}),
+            (0,3,{'travel_time':10}), (1,2,{'travel_time':4}),
+            (1,3,{'travel_time':9}), (2,3,{'travel_time':5})],
+    'starting_state': [1000,0,0,0],
     'num_cars': 1000,
     'request_dist': lambda step, num_nodes: np.array([1,1]),
     'reward': lambda distance: -np.sqrt(distance),
@@ -180,10 +180,10 @@ rideshare_graph_0_1_rides_config = {
 
 rideshare_graph_0_2_rides_config = {
     'epLen': 1000,
-    'edges': [(0,1,{'travel_time':1}), (0,2,{'travel_time':5}), 
-            (0,3,{'travel_time':10}), (1,2,{'travel_time':4}), 
-            (1,3,{'travel_time':9}), (2,3,{'travel_time':5})], 
-    'starting_state': [1000,0,0,0], 
+    'edges': [(0,1,{'travel_time':1}), (0,2,{'travel_time':5}),
+            (0,3,{'travel_time':10}), (1,2,{'travel_time':4}),
+            (1,3,{'travel_time':9}), (2,3,{'travel_time':5})],
+    'starting_state': [1000,0,0,0],
     'num_cars': 1000,
     'request_dist': lambda step, num_nodes: np.array([2,2]),
     'reward': lambda distance: -np.sqrt(distance),
@@ -194,10 +194,10 @@ rideshare_graph_0_2_rides_config = {
 
 rideshare_graph_0_3_rides_config = {
     'epLen': 1000,
-    'edges': [(0,1,{'travel_time':1}), (0,2,{'travel_time':5}), 
-            (0,3,{'travel_time':10}), (1,2,{'travel_time':4}), 
-            (1,3,{'travel_time':9}), (2,3,{'travel_time':5})], 
-    'starting_state': [1000,0,0,0], 
+    'edges': [(0,1,{'travel_time':1}), (0,2,{'travel_time':5}),
+            (0,3,{'travel_time':10}), (1,2,{'travel_time':4}),
+            (1,3,{'travel_time':9}), (2,3,{'travel_time':5})],
+    'starting_state': [1000,0,0,0],
     'num_cars': 1000,
     'request_dist': lambda step, num_nodes: np.array([3,3]),
     'reward': lambda distance: -np.sqrt(distance),
