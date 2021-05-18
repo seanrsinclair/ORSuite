@@ -212,20 +212,15 @@ class Experiment(object):
                 outfile.close()
 
         if self.pickle:
-            try:
-            # print(type(self.agent))
+
+            if hasattr(self.agent, 'tree_list'):
                 outfile = open(agent_filename, 'wb')
                 pickle.dump(self.agent.tree_list, outfile)
-                outfile.close()
-            except:
-                pass
-
-            try:
+                outfile.close()               
+            elif hasattr(self.agent, 'qVals'):
                 outfile = open(agent_filename, 'wb')
                 pickle.dump(self.agent.qVals, outfile)
-                outfile.close()                
-            except:
-                pass
+                outfile.close()
 
         print('**************************************************')
         print('Data save complete')
